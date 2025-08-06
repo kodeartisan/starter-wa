@@ -1,0 +1,26 @@
+div.plasmo-csui-container {
+  margin: 0;
+  color-scheme: var(--mantine-color-scheme);
+  font-family: var(--mantine-font-family);
+  font-size: var(--mantine-font-size-md);
+  line-height: var(--mantine-line-height);
+  background-color: var(--mantine-color-body);
+  color: var(--mantine-color-text);
+  -webkit-font-smoothing: var(--mantine-webkit-font-smoothing);
+  -moz-osx-font-smoothing: var(--mantine-moz-font-smoothing);
+  right: 0px;
+  left: auto !important;
+}
+
+.root {
+  position: fixed;
+  top: '30%';
+  left: '50%';
+  transform: 'translate(-50%, -50%)';
+  z-index: 1001;
+  background-color: red;
+}
+
+#plasmo-inline {
+  background: transparent;
+}

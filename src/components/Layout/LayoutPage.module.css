@@ -1,0 +1,7 @@
+.header {
+  border-bottom: 1px solid var(--mantine-color-gray-3);
+}
+
+.footer {
+  border-top: 2px solid var(--mantine-color-gray-3);
+}
