@@ -242,6 +242,7 @@ const App: React.FC = () => {
           variant="pills"
           orientation="vertical"
           radius={0}
+          keepMounted={false}
         >
           {renderTabList()}
           {renderTabPanel()}

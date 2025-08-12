@@ -20,10 +20,10 @@ const PageChatBackup: React.FC = () => {
               onCancel={backup.cancelBackup}
             />
           ) : (
-            <BackupOptions form={backup.form} onStart={backup.startBackup} />
+            // Pass the entire hook object as a single prop
+            <BackupOptions backupHook={backup} onStart={backup.startBackup} />
           )}
         </Card>
-
         <Box mt="md">
           <Alert
             variant="light"

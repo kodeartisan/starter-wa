@@ -103,6 +103,7 @@ const list = () => {
       name: Action.Chat.LIST,
     },
     async ({ body }) => {
+      console.log('body', body)
       return (await WPP.chat.list(body)).map(serialize.chat)
     },
   )

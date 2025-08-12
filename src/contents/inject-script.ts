@@ -12,7 +12,9 @@ export const config: PlasmoCSConfig = {
 initInjectScriptRelays()
 
 wa.on.ready(() => {
-  onReady()
+  setTimeout(() => {
+    onReady()
+  }, 2000)
 })
 
 const onReady = () => {

@@ -5,8 +5,11 @@ import { getContactName } from '@/utils/util'
 import { useForm } from '@mantine/form'
 import { isWithinInterval } from 'date-fns'
 import _ from 'lodash'
-import { useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { exportToHtml } from '../helpers/exportUtils'
+
+// Define supported media types for the UI
+const SUPPORTED_MEDIA_TYPES = ['image', 'video', 'document', 'ptt']
 
 export const useChatBackup = () => {
   const [isBackingUp, setIsBackingUp] = useState(false)
@@ -14,18 +17,65 @@ export const useChatBackup = () => {
     value: 0,
     label: 'Initializing...',
   })
+  const [chatDetails, setChatDetails] = useState<{ msgCount?: number } | null>(
+    null,
+  )
   const validationRef = useRef(true)
 
   const form = useForm({
     initialValues: {
       chatId: '',
-      includeMedia: false,
+      // Changed from a boolean to an array for selective media backup
+      includeMediaTypes: [] as string[],
+      // Added new field for keyword filtering
+      keyword: '',
       dateRange: [null, null] as [Date | null, Date | null],
     },
     validate: {
-      chatId: (value) => (value ? null : 'Contact must be selected.'),
+      chatId: (value) => (value ? null : 'A chat must be selected.'),
     },
   })
+
+  // Fetches chat details (like message count) when a chat is selected, used for the time estimate.
+  useEffect(() => {
+    if (form.values.chatId) {
+      wa.chat.find(form.values.chatId).then((chat) => {
+        setChatDetails(chat.data)
+      })
+    } else {
+      setChatDetails(null)
+    }
+  }, [form.values.chatId])
+
+  // Calculates a rough time estimate before the backup starts.
+  const estimatedTime = useMemo(() => {
+    if (!chatDetails?.msgCount) return ''
+    const messageCount = chatDetails.msgCount
+    const mediaSelected = form.values.includeMediaTypes.length > 0
+
+    // Rough estimates: 0.1s per message, 2s per media file (highly approximate).
+    let totalSeconds = messageCount * 0.1
+    if (mediaSelected) {
+      // A wild guess that 20% of messages might contain media.
+      const estimatedMediaCount = messageCount * 0.2
+      totalSeconds += estimatedMediaCount * 2
+    }
+
+    if (totalSeconds < 10) return 'Less than 10 seconds.'
+    const minutes = Math.floor(totalSeconds / 60)
+    const seconds = Math.round(totalSeconds % 60)
+
+    let estimate = 'Approximately '
+    if (minutes > 0) {
+      estimate += `${minutes} minute${minutes > 1 ? 's' : ''}`
+    }
+    if (seconds > 0) {
+      if (minutes > 0) estimate += ' and '
+      estimate += `${seconds} second${seconds > 1 ? 's' : ''}.`
+    }
+
+    return estimate
+  }, [chatDetails, form.values.includeMediaTypes])
 
   const cancelBackup = () => {
     validationRef.current = false
@@ -33,7 +83,6 @@ export const useChatBackup = () => {
 
   const startBackup = async () => {
     if (form.validate().hasErrors) return
-
     setIsBackingUp(true)
     validationRef.current = true
     setProgress({ value: 0, label: 'Fetching messages...' })
@@ -49,19 +98,29 @@ export const useChatBackup = () => {
         return
       }
 
+      // Apply date and keyword filters
       const [startDate, endDate] = form.values.dateRange
-      const filteredMessages =
-        startDate && endDate
-          ? allMessages.filter((msg) =>
-              isWithinInterval(new Date(msg.timestamp), {
-                start: startDate,
-                end: endDate,
-              }),
-            )
-          : allMessages
+      const keyword = form.values.keyword.trim().toLowerCase()
+
+      const filteredMessages = allMessages.filter((msg) => {
+        const dateMatch =
+          !startDate ||
+          !endDate ||
+          isWithinInterval(new Date(msg.timestamp), {
+            start: startDate,
+            end: endDate,
+          })
+
+        const keywordMatch =
+          !keyword ||
+          (msg.body && msg.body.toLowerCase().includes(keyword)) ||
+          (msg.caption && msg.caption.toLowerCase().includes(keyword))
+
+        return dateMatch && keywordMatch
+      })
 
       if (filteredMessages.length === 0) {
-        toast.info('No messages found in the selected chat or date range.')
+        toast.info('No messages found matching your criteria.')
         setIsBackingUp(false)
         return
       }
@@ -74,7 +133,8 @@ export const useChatBackup = () => {
         messages: filteredMessages,
         chat,
         filename,
-        includeMedia: form.values.includeMedia,
+        //@ts-ignore
+        includeMediaTypes: form.values.includeMediaTypes,
         setProgress,
         validationRef,
       })
@@ -98,5 +158,7 @@ export const useChatBackup = () => {
     progress,
     startBackup,
     cancelBackup,
+    estimatedTime,
+    SUPPORTED_MEDIA_TYPES,
   }
 }

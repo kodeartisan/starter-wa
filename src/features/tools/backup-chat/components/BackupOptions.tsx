@@ -1,29 +1,35 @@
+// src/features/tools/backup-chat/components/BackupOptions.tsx
 import useWa from '@/hooks/useWa'
 import { getContactName } from '@/utils/util'
 import { Icon } from '@iconify/react'
-import { Button, Checkbox, Group, Select, Stack } from '@mantine/core'
+import {
+  Button,
+  Checkbox,
+  Group,
+  Select,
+  Stack,
+  Text,
+  TextInput,
+} from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
-import { useForm } from '@mantine/form'
 import React, { useEffect, useState } from 'react'
+import type { useChatBackup } from '../hooks/useChatBackup'
 
 interface Props {
-  form: ReturnType<
-    typeof useForm<{
-      chatId: string
-      includeMedia: boolean
-      dateRange: [Date | null, Date | null]
-    }>
-  >
+  // We pass the entire hook's return object for cleaner prop management
+  backupHook: ReturnType<typeof useChatBackup>
   onStart: () => void
 }
 
-const BackupOptions: React.FC<Props> = ({ form, onStart }) => {
+const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
+  const { form, estimatedTime, SUPPORTED_MEDIA_TYPES } = backupHook
   const wa = useWa()
   const [chatOptions, setChatOptions] = useState<any[]>()
 
   useEffect(() => {
     if (!wa.isReady) return
-    wa.chat.list().then((chats) => {
+    // Fetch all user and group chats for the selector
+    wa.chat.list({ onlyUsers: true }).then((chats) => {
       const labelValueChats = chats.map((chat: any) => ({
         label: getContactName(chat.contact),
         value: chat.contact.id,
@@ -42,6 +48,11 @@ const BackupOptions: React.FC<Props> = ({ form, onStart }) => {
         required
         {...form.getInputProps('chatId')}
       />
+      <TextInput
+        label="Filter by Keyword (Optional)"
+        placeholder="Only export messages containing this text"
+        {...form.getInputProps('keyword')}
+      />
       <DatePickerInput
         type="range"
         label="Date Range (Optional)"
@@ -50,12 +61,29 @@ const BackupOptions: React.FC<Props> = ({ form, onStart }) => {
         clearable
       />
 
-      <Checkbox
-        mt="md"
-        label="Include media files (images, videos, etc.)"
-        description="Warning: This will create a .zip file and can be very slow for large chats."
-        {...form.getInputProps('includeMedia', { type: 'checkbox' })}
-      />
+      {/* Replaced single checkbox with a Checkbox.Group for selective media */}
+      <Checkbox.Group
+        label="Include Media Files (Optional)"
+        description="Warning: This can be very slow for large chats."
+        {...form.getInputProps('includeMediaTypes')}
+      >
+        <Group mt="xs">
+          {SUPPORTED_MEDIA_TYPES.map((type) => (
+            <Checkbox
+              key={type}
+              value={type}
+              label={type.charAt(0).toUpperCase() + type.slice(1)} // e.g., 'image' -> 'Image'
+            />
+          ))}
+        </Group>
+      </Checkbox.Group>
+
+      {/* Display the time estimate */}
+      {estimatedTime && (
+        <Text size="sm" c="dimmed" mt="sm">
+          <b>Estimated time:</b> {estimatedTime}
+        </Text>
+      )}
 
       <Group justify="flex-end" mt="lg">
         <Button
