@@ -114,3 +114,13 @@ export const generateVideoThumbnail = (file: File): Promise<string> => {
     }
   })
 }
+
+export const getContactName = (contact: any) => {
+  return (
+    contact.name ||
+    contact.pushname ||
+    contact.notifyName ||
+    contact.formattedName ||
+    '-'
+  )
+}

@@ -24,12 +24,17 @@ const PageTools: React.FC = () => {
       description: 'Start a chat without saving the number to your contacts.',
       icon: 'tabler:message-circle-plus',
     },
-
     {
       key: Page.NUMBER_VALIDATOR,
       title: 'Number Validator',
       description: 'Check if WhatsApp numbers are valid.',
       icon: 'tabler:checks',
+    },
+    {
+      key: Page.CHAT_BACKUP, // ++ ADDED
+      title: 'Chat Backup',
+      description: 'Export and backup individual or group chats.',
+      icon: 'tabler:database-export',
     },
     {
       key: Page.PRIVACY,
@@ -77,6 +82,9 @@ const PageTools: React.FC = () => {
       case Page.GROUP_LINK_GENERATOR:
         page.goTo(Page.GROUP_LINK_GENERATOR)
         break
+      case Page.CHAT_BACKUP: // ++ ADDED
+        page.goTo(Page.CHAT_BACKUP)
+        break
       default:
         break
     }
@@ -105,6 +113,7 @@ const PageTools: React.FC = () => {
       ))}
     </SimpleGrid>
   )
+
   return (
     <LayoutPage title="Tools">
       <Stack p="md">{renderGrid()}</Stack>

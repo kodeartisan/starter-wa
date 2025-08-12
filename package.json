@@ -30,6 +30,7 @@
     "emoji-picker-react": "^4.13.2",
     "file-saver": "^2.0.5",
     "jquery": "^3.7.1",
+    "jszip": "^3.10.1",
     "lodash": "^4.17.21",
     "mantine-datatable": "^8.2.0",
     "plasmo": "0.90.5",

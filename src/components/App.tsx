@@ -6,6 +6,7 @@ import PageHome from '@/features/home/PageHome'
 import PageLabel from '@/features/label/PageLabel'
 import PageProfile from '@/features/profile/PageProfile'
 import PageQuickReply from '@/features/quick-reply/PageQuickReply'
+import PageChatBackup from '@/features/tools/backup-chat/PageChatBackup'
 import PageDirectChat from '@/features/tools/direct-chat/PageDirectChat'
 import PageGroupLinkGenerator from '@/features/tools/group-link-generator/PageGroupLinkGenerator'
 import PageNumberValidator from '@/features/tools/number-validator/PageNumberValidator'
@@ -50,7 +51,6 @@ const App: React.FC = () => {
         setActiveChat(body)
         break
       case Action.Window.GO_TO_PAGE:
-        modalMain.toggle()
         setActiveTab(body)
         break
       case Action.Window.SHOW_MODAL_UPGRADE:
@@ -225,6 +225,9 @@ const App: React.FC = () => {
         </Tabs.Panel>
         <Tabs.Panel value={Page.GROUP_LINK_GENERATOR}>
           <PageGroupLinkGenerator />
+        </Tabs.Panel>
+        <Tabs.Panel value={Page.CHAT_BACKUP}>
+          <PageChatBackup />
         </Tabs.Panel>
       </>
     )

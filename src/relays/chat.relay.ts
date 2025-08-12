@@ -145,7 +145,6 @@ const get = () => {
     async ({ body }) => {
       try {
         const chat = WPP.chat.get(body)
-        return {}
         return serialize.chat(chat)
       } catch (error) {}
     },
@@ -200,7 +199,8 @@ const getMessages = () => {
     },
     async ({ body }) => {
       const { chatId, options } = body
-      return await WPP.chat.getMessages(chatId, options)
+      const messages = await WPP.chat.getMessages(chatId, options)
+      return messages.map(serialize.message)
     },
   )
 }
@@ -397,6 +397,28 @@ const setNotes = () => {
   )
 }
 
+const downloadMedia = () => {
+  relay(
+    {
+      name: Action.Chat.DOWNLOAD_MEDIA,
+    },
+    async ({ body: messageId }) => {
+      try {
+        const media = await Promise.race([
+          WPP.chat.downloadMedia(messageId),
+
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('Error download media')), 3000),
+          ),
+        ])
+        return media
+      } catch (error) {
+        return null
+      }
+    },
+  )
+}
+
 const initChatRelay = () => {
   archive()
   canMarkPlayed()
@@ -406,6 +428,7 @@ const initChatRelay = () => {
   closeChat()
   _delete()
   deleteMessage()
+  downloadMedia()
   find()
   forwardMessage()
   get()

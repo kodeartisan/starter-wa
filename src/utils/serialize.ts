@@ -31,6 +31,7 @@ const list = (rows: any[]) => {
 }
 
 const contact = (contact: ContactModel) => {
+  if (!contact) return {}
   const countryCode = WPP.whatsapp.functions.getCountryShortcodeByPhone(
     contact.id.user,
   )
@@ -83,10 +84,18 @@ const message = (msgModel: MsgModel) => {
     body: msgModel.body,
     from: msgModel.from,
     isViewOnce: msgModel.isViewOnce,
-    timestamp: msgModel.t,
+    timestamp: msgModel.t * 1000,
     to: msgModel.to,
     type: msgModel.type,
-    media: mediaData(msgModel.mediaData),
+    mimetype: msgModel.mimetype,
+    size: msgModel.size,
+    filename: msgModel.filename,
+    caption: msgModel.caption,
+    duration: msgModel.duration,
+    height: msgModel.height,
+    width: msgModel.width,
+    quotedMessage: msgModel.quotedMsg,
+    contact: contact(msgModel.senderObj),
   }
 }
 
@@ -126,4 +135,5 @@ export default {
   contact,
   chat,
   participant,
+  message,
 }

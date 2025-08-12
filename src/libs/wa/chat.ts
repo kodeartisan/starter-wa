@@ -167,6 +167,24 @@ export const deleteMessage = async (
   })
 }
 
+/**
+ * Downloads media from a message
+ *
+ * @example
+ * ```javascript
+ * await wa.chat.downloadMedia('messageId');
+ * ```
+ */
+export const downloadMedia = async (
+  messageId: string | MsgKey,
+): Promise<Blob | null> => {
+  return await sendToBackgroundViaRelay({
+    //@ts-ignore
+    name: Action.Chat.DOWNLOAD_MEDIA,
+    body: messageId,
+  })
+}
+
 export const find = async (chatId: string | Wid): Promise<Response<any>> => {
   return await sendToBackgroundViaRelay({
     //@ts-ignore
@@ -424,7 +442,7 @@ export const getPlatformFromMessage = async (
  * ```
  *
  */
-export const list = async (options: ChatListOptions = {}): Promise<any> => {
+export const list = async (options: ChatListOptions = {}): Promise<[]> => {
   return await sendToBackgroundViaRelay({
     //@ts-ignore
     name: Action.Chat.LIST,

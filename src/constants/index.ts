@@ -31,6 +31,7 @@ export const Page = {
   WA_ME_GENERATOR: 'Page.WA_ME_GENERATOR',
   LABEL: 'Page.LABEL',
   GROUP_LINK_GENERATOR: 'Page.GROUP_LINK_GENERATOR',
+  CHAT_BACKUP: 'Page.CHAT_BACKUP', // ++ ADDED
 }
 
 export const Account = {
