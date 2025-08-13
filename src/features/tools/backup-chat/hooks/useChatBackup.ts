@@ -14,7 +14,13 @@ import {
 } from 'date-fns'
 import _ from 'lodash'
 import { useEffect, useRef, useState } from 'react'
-import { exportToHtml, exportToPdf } from '../helpers/exportUtils'
+import {
+  exportToHtml,
+  exportToJson,
+  exportToMarkdown,
+  exportToPdf,
+  exportToTxt,
+} from '../helpers/exportUtils'
 
 // Supported message types for export options.
 const SUPPORTED_MESSAGE_TYPES = ['chat', 'image', 'video', 'document', 'ptt']
@@ -65,16 +71,13 @@ export const useChatBackup = () => {
       // MODIFIED: Destructure 'datePreset' from form values.
       const { chatId, dateRange, keywords, messageTypes, datePreset } =
         form.values
-
       if (!chatId) {
         setBackupPreview(null)
         setFilteredMessages([])
         setEstimatedTime('')
         return
       }
-
       setIsPreparing(true)
-
       // MODIFIED: Derive the effective date range from the selected preset.
       let effectiveDateRange: [Date | null, Date | null] = [null, null]
       if (datePreset === 'custom') {
@@ -113,12 +116,10 @@ export const useChatBackup = () => {
         }
         effectiveDateRange = [start, end]
       }
-
       try {
         const allMessages = await wa.chat.getMessages(chatId, { count: -1 })
         // MODIFIED: Use the derived date range for filtering.
         const [startDate, endDate] = effectiveDateRange
-
         const lowercasedKeywords = keywords
           .map((k) => k.toLowerCase().trim())
           .filter(Boolean)
@@ -131,7 +132,6 @@ export const useChatBackup = () => {
               start: startDate,
               end: endDate,
             })
-
           const keywordMatch =
             lowercasedKeywords.length === 0 ||
             lowercasedKeywords.some(
@@ -139,7 +139,6 @@ export const useChatBackup = () => {
                 (msg.body && msg.body.toLowerCase().includes(k)) ||
                 (msg.caption && msg.caption.toLowerCase().includes(k)),
             )
-
           const typeMatch = messageTypes.includes(msg.type)
           return dateMatch && keywordMatch && typeMatch
         })
@@ -181,11 +180,9 @@ export const useChatBackup = () => {
         setIsPreparing(false)
       }
     }
-
     const handler = setTimeout(() => {
       calculatePreview()
     }, 500) // Debounce for 500ms
-
     return () => {
       clearTimeout(handler)
     }
@@ -207,11 +204,9 @@ export const useChatBackup = () => {
       toast.info('No messages found matching your criteria to export.')
       return
     }
-
     setIsBackingUp(true)
     validationRef.current = true
     setProgress({ value: 0, label: 'Initializing backup...' })
-
     try {
       const chat = await wa.chat.find(form.values.chatId)
       // @ts-ignore
@@ -223,16 +218,31 @@ export const useChatBackup = () => {
         messages: filteredMessages,
         chat,
         filename,
+        // Only include media for HTML format; other formats are text-based.
         includeMediaTypes:
           form.values.exportFormat === 'html' ? form.values.messageTypes : [],
         setProgress,
         validationRef,
       }
 
-      if (form.values.exportFormat === 'pdf') {
-        await exportToPdf(exporterParams)
-      } else {
-        await exportToHtml(exporterParams)
+      // ++ MODIFIED: Use a switch statement to call the appropriate exporter.
+      switch (form.values.exportFormat) {
+        case 'pdf':
+          await exportToPdf(exporterParams)
+          break
+        case 'txt':
+          await exportToTxt(exporterParams)
+          break
+        case 'json':
+          await exportToJson(exporterParams)
+          break
+        case 'md':
+          await exportToMarkdown(exporterParams)
+          break
+        case 'html':
+        default:
+          await exportToHtml(exporterParams)
+          break
       }
 
       if (validationRef.current) {

@@ -13,17 +13,15 @@ const PageChatBackup: React.FC = () => {
   return (
     <LayoutPage title="Chat Backup & Export">
       <Stack>
-        <Card withBorder p="lg" radius="md" shadow="none">
-          {backup.isBackingUp ? (
-            <BackupProgress
-              progress={backup.progress}
-              onCancel={backup.cancelBackup}
-            />
-          ) : (
-            // Pass the entire hook object as a single prop
-            <BackupOptions backupHook={backup} onStart={backup.startBackup} />
-          )}
-        </Card>
+        {backup.isBackingUp ? (
+          <BackupProgress
+            progress={backup.progress}
+            onCancel={backup.cancelBackup}
+          />
+        ) : (
+          // Pass the entire hook object as a single prop
+          <BackupOptions backupHook={backup} onStart={backup.startBackup} />
+        )}
         <Box mt="md">
           <Alert
             variant="light"

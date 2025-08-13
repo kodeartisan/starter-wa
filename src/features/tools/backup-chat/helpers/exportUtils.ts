@@ -3,7 +3,6 @@ import wa from '@/libs/wa'
 import { getContactName } from '@/utils/util'
 import FileSaver from 'file-saver'
 import html2canvas from 'html2canvas'
-// ++ ADDED: Import jspdf and html2canvas
 import jsPDF from 'jspdf'
 import JSZip from 'jszip'
 import _ from 'lodash'
@@ -48,12 +47,12 @@ const renderQuotedMessage = (quotedMsg: any): string => {
   // The entire block is a link to the original message's ID.
   return `
     <a href="#message-${quotedMsg.id}" class="quoted-message-link">
-        <div class="quoted-message">
-            <div class="quoted-sender">${_.escape(quotedSenderName)}</div>
-            <div class="quoted-content">${quotedContent}</div>
-        </div>
+      <div class="quoted-message">
+        <div class="quoted-sender">${_.escape(quotedSenderName)}</div>
+        <div class="quoted-content">${quotedContent}</div>
+      </div>
     </a>
-    `
+  `
 }
 
 // ++ ADDED: Centralized HTML body generation to avoid duplication.
@@ -70,11 +69,11 @@ const generateHtmlBody = async ({
   mediaMap: Map<string, Blob>
 }> => {
   const headerHtml = `
-    <div class="export-header">
+      <div class="export-header">
         <p><b>Chat With:</b> ${_.escape(getContactName(chat.data.contact))}</p>
         <p><b>Export Date:</b> ${new Date().toLocaleString()}</p>
         <p><b>Total Messages Exported:</b> ${messages.length}</p>
-    </div>
+      </div>
     `
   let messagesHtml = ''
   const mediaMap = new Map<string, Blob>()
@@ -97,6 +96,7 @@ const generateHtmlBody = async ({
         ? msg.contact?.pushname || msg.contact?.formattedName || 'Unknown'
         : ''
     let mediaHtml = ''
+
     const isMediaMessage = ['image', 'video', 'document', 'ptt'].includes(
       msg.type,
     )
@@ -153,39 +153,35 @@ const generateHtmlBody = async ({
 
     const quotedHtml = renderQuotedMessage(msg.quotedMsg)
     messagesHtml += `
-        <div class="message-cluster message-${direction}" id="message-${
-          msg.id
-        }">
+          <div class="message-cluster message-${direction}" id="message-${
+            msg.id
+          }">
             <div class="message">
-                <div class="message-bubble">
-                    ${
-                      senderName
-                        ? `<div class="sender-name">${_.escape(
-                            senderName,
-                          )}</div>`
-                        : ''
-                    }
-                    <div class="message-content">
-                        ${quotedHtml}
-                        ${mediaHtml}
-                        <span>${
-                          _.escape(
-                            msg.type === 'chat' ? msg.body : msg.caption,
-                          ) ?? ''
-                        }</span>
-                        <span class="timestamp">${new Date(
-                          msg.timestamp,
-                        ).toLocaleTimeString([], {
-                          day: '2-digit',
-                          month: '2-digit',
-                          year: 'numeric',
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}</span>
-                    </div>
+              <div class="message-bubble">
+                ${
+                  senderName
+                    ? `<div class="sender-name">${_.escape(senderName)}</div>`
+                    : ''
+                }
+                <div class="message-content">
+                  ${quotedHtml}
+                  ${mediaHtml}
+                  <span>${
+                    _.escape(msg.type === 'chat' ? msg.body : msg.caption) ?? ''
+                  }</span>
+                  <span class="timestamp">${new Date(
+                    msg.timestamp,
+                  ).toLocaleTimeString([], {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}</span>
                 </div>
+              </div>
             </div>
-        </div>
+          </div>
         `
   }
 
@@ -195,7 +191,7 @@ const generateHtmlBody = async ({
 // Function to get the full HTML document string
 const getFullHtmlDocument = (bodyContent: string, chat: any) => {
   const styles = `
-    <style>
+      <style>
         body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; margin: 0; background-color: #E5DDD5; }
         .chat-container { max-width: 800px; margin: auto; padding: 20px; }
         .export-header { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #dee2e6; font-size: 0.9em; }
@@ -221,43 +217,42 @@ const getFullHtmlDocument = (bodyContent: string, chat: any) => {
         .quoted-message:hover { opacity: 1; }
         .quoted-sender { font-weight: bold; font-size: 0.85em; color: #4CAF50; }
         .quoted-content { font-size: 0.9em; white-space: pre-wrap; word-wrap: break-word; }
-    </style>
-    <script>
+      </style>
+      <script>
         document.addEventListener('DOMContentLoaded', () => {
-            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-                anchor.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const targetElement = document.querySelector(this.getAttribute('href'));
-                    if (targetElement) {
-                        targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        targetElement.style.transition = 'none';
-                        targetElement.style.backgroundColor = 'rgba(255, 255, 0, 0.4)';
-                        setTimeout(() => {
-                            targetElement.style.transition = 'background-color 0.5s';
-                            targetElement.style.backgroundColor = '';
-                        }, 1500);
-                    }
-                });
+          document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+              e.preventDefault();
+              const targetElement = document.querySelector(this.getAttribute('href'));
+              if (targetElement) {
+                targetElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                targetElement.style.transition = 'none';
+                targetElement.style.backgroundColor = 'rgba(255, 255, 0, 0.4)';
+                setTimeout(() => {
+                  targetElement.style.transition = 'background-color 0.5s';
+                  targetElement.style.backgroundColor = '';
+                }, 1500);
+              }
             });
+          });
         });
-    </script>
+      </script>
     `
-
   return `
-    <html>
+      <html>
         <head>
-            <meta charset="UTF-8">
-            <title>Chat with ${_.escape(getContactName(chat.data.contact))}</title>
-            ${styles}
+          <meta charset="UTF-8">
+          <title>Chat with ${_.escape(getContactName(chat.data.contact))}</title>
+          ${styles}
         </head>
         <body><div class="chat-container">${bodyContent}</div></body>
-    </html>
+      </html>
     `
 }
+
 // Main HTML Exporter
 export const exportToHtml = async (params: ExporterParams) => {
   const { filename, setProgress } = params
-
   const { htmlBody, mediaMap } = await generateHtmlBody(params)
   const fullHtml = getFullHtmlDocument(htmlBody, params.chat)
 
@@ -289,6 +284,7 @@ export const exportToHtml = async (params: ExporterParams) => {
     }
 
     zip.file(`${filename}.html`, fullHtml)
+
     setProgress({ value: 98, label: 'Compressing files...' })
     const zipBlob = await zip.generateAsync({ type: 'blob' })
     FileSaver.saveAs(zipBlob, `${filename}.zip`)
@@ -319,7 +315,6 @@ export const exportToPdf = async (params: ExporterParams) => {
   }
 
   setProgress({ value: 92, label: 'Generating PDF document...' })
-
   // Create a temporary, off-screen div to render the HTML for capturing
   const container = document.createElement('div')
   container.style.position = 'absolute'
@@ -343,21 +338,18 @@ export const exportToPdf = async (params: ExporterParams) => {
     if (!validationRef.current) return
 
     setProgress({ value: 95, label: 'Formatting PDF pages...' })
-
     const imgData = canvas.toDataURL('image/png')
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'pt',
       format: 'a4',
     })
-
     const pdfWidth = pdf.internal.pageSize.getWidth()
     const pdfHeight = pdf.internal.pageSize.getHeight()
     const canvasWidth = canvas.width
     const canvasHeight = canvas.height
     const ratio = canvasWidth / pdfWidth
     const canvasHeightInPdf = canvasHeight / ratio
-
     let heightLeft = canvasHeightInPdf
     let position = 0
 
@@ -402,5 +394,181 @@ export const exportToPdf = async (params: ExporterParams) => {
       if (url.startsWith('blob:')) URL.revokeObjectURL(url)
     })
     throw new Error('Failed to generate PDF from chat content.')
+  }
+}
+
+/**
+ * ++ ADDED: Exports messages to a plain text file.
+ * @param {ExporterParams} params - The parameters for the export operation.
+ */
+export const exportToTxt = async (params: ExporterParams) => {
+  const { messages, chat, filename, setProgress, validationRef } = params
+
+  let textContent = `Chat With: ${getContactName(chat.data.contact)}\r\n`
+  textContent += `Export Date: ${new Date().toLocaleString()}\r\n`
+  textContent += `Total Messages Exported: ${messages.length}\r\n\r\n`
+
+  for (let i = 0; i < messages.length; i++) {
+    if (!validationRef.current) break
+    const msg = messages[i]
+
+    setProgress({
+      value: ((i + 1) / messages.length) * 100,
+      label: `Processing message ${i + 1} of ${messages.length}...`,
+    })
+
+    const sender = msg.contact.isMe ? 'You' : getContactName(msg.contact)
+    const timestamp = new Date(msg.timestamp).toLocaleString()
+    let content = msg.body || msg.caption || `[${msg.type}]`
+
+    if (msg.quotedMsg) {
+      const quotedSender = msg.quotedMsg.sender.isMe
+        ? 'You'
+        : getContactName(msg.quotedMsg.sender)
+      const quotedContent = _.truncate(
+        msg.quotedMsg.body || `[${msg.quotedMsg.type}]`,
+        { length: 40 },
+      )
+      content = `[Quoting ${quotedSender}: "${quotedContent}"]\r\n${content}`
+    }
+
+    textContent += `[${timestamp}] ${sender}: ${content}\r\n\r\n`
+  }
+
+  if (validationRef.current) {
+    const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' })
+    FileSaver.saveAs(blob, `${filename}.txt`)
+  }
+}
+
+/**
+ * ++ ADDED: Exports messages to a JSON file.
+ * @param {ExporterParams} params - The parameters for the export operation.
+ */
+export const exportToJson = async (params: ExporterParams) => {
+  const { messages, chat, filename, setProgress, validationRef } = params
+  const messageList: object[] = []
+
+  for (let i = 0; i < messages.length; i++) {
+    if (!validationRef.current) break
+    const msg = messages[i]
+
+    setProgress({
+      value: ((i + 1) / messages.length) * 100,
+      label: `Processing message ${i + 1} of ${messages.length}...`,
+    })
+
+    messageList.push({
+      id: msg.id,
+      timestamp: new Date(msg.timestamp).toISOString(),
+      sender: {
+        name: msg.contact.isMe ? 'You' : getContactName(msg.contact),
+        id: msg.from,
+        isMe: msg.contact.isMe,
+      },
+      type: msg.type,
+      body: msg.body || null,
+      caption: msg.caption || null,
+      filename: msg.filename || null,
+      quotedMessage: msg.quotedMsg
+        ? {
+            id: msg.quotedMsg.id,
+            sender: getContactName(msg.quotedMsg.sender),
+            body: msg.quotedMsg.body || `[${msg.quotedMsg.type}]`,
+          }
+        : null,
+    })
+  }
+
+  if (validationRef.current) {
+    const finalJson = {
+      metadata: {
+        chatWith: getContactName(chat.data.contact),
+        chatId: chat.data.id,
+        exportDate: new Date().toISOString(),
+        totalMessages: messages.length,
+      },
+      messages: messageList,
+    }
+    const jsonString = JSON.stringify(finalJson, null, 2)
+    const blob = new Blob([jsonString], {
+      type: 'application/json;charset=utf-8',
+    })
+    FileSaver.saveAs(blob, `${filename}.json`)
+  }
+}
+
+/**
+ * ++ ADDED: Exports messages to a Markdown file.
+ * @param {ExporterParams} params - The parameters for the export operation.
+ */
+export const exportToMarkdown = async (params: ExporterParams) => {
+  const { messages, chat, filename, setProgress, validationRef } = params
+
+  let mdContent = `# Chat with: ${getContactName(chat.data.contact)}\n\n`
+  mdContent += `**Export Date:** ${new Date().toLocaleString()}\n`
+  mdContent += `**Total Messages:** ${messages.length}\n\n---\n\n`
+
+  for (let i = 0; i < messages.length; i++) {
+    if (!validationRef.current) break
+    const msg = messages[i]
+
+    setProgress({
+      value: ((i + 1) / messages.length) * 100,
+      label: `Processing message ${i + 1} of ${messages.length}...`,
+    })
+
+    const senderName = msg.contact.isMe ? 'You' : getContactName(msg.contact)
+    const timestamp = new Date(msg.timestamp).toLocaleString()
+
+    mdContent += `**${_.escape(senderName)}** (*${timestamp}*)\n\n`
+
+    if (msg.quotedMsg) {
+      const quotedSenderName = msg.quotedMsg.sender.isMe
+        ? 'You'
+        : getContactName(msg.quotedMsg.sender)
+      const quotedBody = _.truncate(
+        msg.quotedMsg.body || `[${msg.quotedMsg.type}]`,
+        { length: 80 },
+      )
+      mdContent += `> > **${_.escape(quotedSenderName)}**: ${_.escape(
+        quotedBody,
+      )}\n\n`
+    }
+
+    let mdMessageContent = ''
+    switch (msg.type) {
+      case 'chat':
+        mdMessageContent = msg.body.replace(/\n/g, '  \n') // Markdown line breaks
+        break
+      case 'image':
+        mdMessageContent = `*Image* ${
+          msg.caption ? `\n> ${_.escape(msg.caption)}` : ''
+        }`
+        break
+      case 'video':
+        mdMessageContent = `*Video* ${
+          msg.caption ? `\n> ${_.escape(msg.caption)}` : ''
+        }`
+        break
+      case 'document':
+        mdMessageContent = `*Document*: \`${_.escape(msg.filename)}\`${
+          msg.caption ? `\n> ${_.escape(msg.caption)}` : ''
+        }`
+        break
+      case 'ptt':
+        mdMessageContent = `*Voice Message*`
+        break
+      default:
+        mdMessageContent = `*[Unsupported message type: ${msg.type}]*`
+    }
+    mdContent += `${mdMessageContent}\n\n---\n`
+  }
+
+  if (validationRef.current) {
+    const blob = new Blob([mdContent], {
+      type: 'text/markdown;charset=utf-8',
+    })
+    FileSaver.saveAs(blob, `${filename}.md`)
   }
 }

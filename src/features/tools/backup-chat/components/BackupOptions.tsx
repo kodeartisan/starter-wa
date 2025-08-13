@@ -141,6 +141,10 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
         <Group mt="xs">
           <Radio size="sm" value="html" label="HTML (.zip)" />
           <Radio size="sm" value="pdf" label="PDF" />
+          {/* ++ ADDED: New export format options */}
+          <Radio size="sm" value="txt" label="TXT" />
+          <Radio size="sm" value="json" label="JSON" />
+          <Radio size="sm" value="md" label="Markdown" />
         </Group>
       </Radio.Group>
 
@@ -148,7 +152,8 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
         <Group>
           <Loader size="xs" />
           <Text size="sm" c="dimmed">
-            Preparing preview...
+            {' '}
+            Preparing preview...{' '}
           </Text>
         </Group>
       )}
@@ -161,20 +166,23 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
         >
           <Stack gap="xs">
             <Text size="sm">
+              {' '}
               You are about to export{' '}
-              <b>{backupPreview.messageCount} message(s)</b>.
+              <b>{backupPreview.messageCount} message(s)</b>.{' '}
             </Text>
             {form.values.messageTypes.length > 0 &&
               backupPreview.estimatedMediaSize > 0 &&
               form.values.exportFormat === 'html' && (
                 <Text size="sm">
+                  {' '}
                   Estimated media download size:{' '}
-                  <b>{formatBytes(backupPreview.estimatedMediaSize)}</b>.
+                  <b>{formatBytes(backupPreview.estimatedMediaSize)}</b>.{' '}
                 </Text>
               )}
             {estimatedTime && (
               <Text size="sm">
-                <b>Estimated Completion Time:</b> {estimatedTime}
+                {' '}
+                <b>Estimated Completion Time:</b> {estimatedTime}{' '}
               </Text>
             )}
           </Stack>
@@ -187,7 +195,8 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
           onClick={onStart}
           disabled={!form.values.chatId || isPreparing}
         >
-          Start Backup
+          {' '}
+          Start Backup{' '}
         </Button>
       </Group>
     </Stack>
