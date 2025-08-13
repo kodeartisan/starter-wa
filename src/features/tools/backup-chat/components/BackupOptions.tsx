@@ -4,61 +4,53 @@ import { getContactName } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   Alert,
+  Avatar,
   Button,
   Checkbox,
   Group,
   Loader,
+  Radio,
   Select,
   Stack,
+  TagsInput,
   Text,
-  TextInput,
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
-import {
-  endOfDay,
-  endOfMonth,
-  startOfDay,
-  startOfMonth,
-  subDays,
-} from 'date-fns'
 import React, { useEffect, useState } from 'react'
 import type { useChatBackup } from '../hooks/useChatBackup'
 
 interface Props {
-  // We pass the entire hook's return object for cleaner prop management
+  // Pass the entire hook's return object for cleaner prop management.
   backupHook: ReturnType<typeof useChatBackup>
   onStart: () => void
 }
 
 const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
-  // ++ MODIFIED: Destructure the new constant and form field.
-  const { form, backupPreview, isPreparing, SUPPORTED_MESSAGE_TYPES } =
-    backupHook
+  const {
+    form,
+    backupPreview,
+    isPreparing,
+    SUPPORTED_MESSAGE_TYPES,
+    estimatedTime,
+  } = backupHook
   const wa = useWa()
-  const [chatOptions, setChatOptions] = useState<any[]>()
-
-  // Map internal type names to user-friendly labels.
-  const messageTypeLabels: { [key: string]: string } = {
-    chat: 'Text',
-    image: 'Images',
-    video: 'Videos',
-    document: 'Documents',
-    ptt: 'Voice Messages',
-  }
+  const [chatOptions, setChatOptions] =
+    useState<{ label: string; value: string; avatar: string }[]>()
 
   useEffect(() => {
     if (!wa.isReady) return
-    // Fetch all user and group chats for the selector
+    // Fetch all user chats for the selector.
     wa.chat.list({ onlyUsers: true }).then((chats) => {
       const labelValueChats = chats.map((chat: any) => ({
         label: getContactName(chat.contact),
-        value: chat.contact.id,
+        value: chat.id,
+        avatar: chat.contact.avatar,
       }))
       setChatOptions(labelValueChats)
     })
   }, [wa.isReady])
 
-  // Helper to format bytes into KB, MB, GB
+  // Helper to format bytes into KB, MB, GB.
   const formatBytes = (bytes: number, decimals = 2) => {
     if (bytes === 0) return '0 Bytes'
     const k = 1024
@@ -68,27 +60,19 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
     return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
   }
 
-  // Handlers for date range presets
-  const setDateRange = (preset: 'today' | 'last7' | 'thisMonth') => {
-    const now = new Date()
-    let start: Date
-    let end: Date
-    switch (preset) {
-      case 'today':
-        start = startOfDay(now)
-        end = endOfDay(now)
-        break
-      case 'last7':
-        start = startOfDay(subDays(now, 6)) // Include today
-        end = endOfDay(now)
-        break
-      case 'thisMonth':
-        start = startOfMonth(now)
-        end = endOfMonth(now)
-        break
-    }
-    form.setFieldValue('dateRange', [start, end])
-  }
+  // Custom renderer for select options to display avatars.
+  const renderSelectOption = ({
+    option,
+  }: {
+    option: { value: string; label: string; avatar: string }
+  }) => (
+    <Group>
+      <Avatar src={option.avatar} size="md" radius="xl" />
+      <div>
+        <Text size="sm">{option.label}</Text>
+      </div>
+    </Group>
+  )
 
   return (
     <Stack>
@@ -98,45 +82,45 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
         searchable
         clearable
         required
+        renderOption={renderSelectOption}
         {...form.getInputProps('chatId')}
       />
-      <TextInput
-        label="Filter by Keyword (Optional)"
-        placeholder="Only export messages containing this text"
-        {...form.getInputProps('keyword')}
-      />
-      <DatePickerInput
-        type="range"
-        label="Date Range (Optional)"
-        placeholder="Leave blank to export all messages"
-        {...form.getInputProps('dateRange')}
+
+      <TagsInput
+        label="Filter by Keywords (Optional)"
+        placeholder="Add keywords and press Enter"
+        description="Only export messages containing any of these keywords. Case-insensitive."
+        {...form.getInputProps('keywords')}
         clearable
       />
-      <Group gap="xs">
-        <Button
-          size="compact-xs"
-          variant="light"
-          onClick={() => setDateRange('today')}
-        >
-          Today
-        </Button>
-        <Button
-          size="compact-xs"
-          variant="light"
-          onClick={() => setDateRange('last7')}
-        >
-          Last 7 Days
-        </Button>
-        <Button
-          size="compact-xs"
-          variant="light"
-          onClick={() => setDateRange('thisMonth')}
-        >
-          This Month
-        </Button>
-      </Group>
 
-      {/* ++ MODIFIED: The Checkbox group now controls which message types are included in the export. */}
+      {/* MODIFIED: Replaced preset buttons with a Select component. */}
+      <Select
+        label="Date Range"
+        data={[
+          { value: 'all', label: 'All Time' },
+          { value: 'today', label: 'Today' },
+          { value: 'yesterday', label: 'Yesterday' },
+          { value: 'last7', label: 'Last 7 Days' },
+          { value: 'last30', label: 'Last 30 Days' },
+          { value: 'thisMonth', label: 'This Month' },
+          { value: 'lastMonth', label: 'Last Month' },
+          { value: 'custom', label: 'Custom Range...' },
+        ]}
+        {...form.getInputProps('datePreset')}
+      />
+
+      {/* MODIFIED: Conditionally show DatePickerInput only for 'custom' preset. */}
+      {form.values.datePreset === 'custom' && (
+        <DatePickerInput
+          type="range"
+          label="Custom Date Range"
+          placeholder="Pick a start and end date"
+          {...form.getInputProps('dateRange')}
+          required
+        />
+      )}
+
       <Checkbox.Group
         label="Include Message Types"
         description="Select the types of messages to include in the backup."
@@ -147,11 +131,18 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
             <Checkbox
               key={type}
               value={type}
-              label={messageTypeLabels[type] || type}
+              label={type.charAt(0).toUpperCase() + type.slice(1)}
             />
           ))}
         </Group>
       </Checkbox.Group>
+
+      <Radio.Group label="Format" {...form.getInputProps('exportFormat')}>
+        <Group mt="xs">
+          <Radio size="sm" value="html" label="HTML (.zip)" />
+          <Radio size="sm" value="pdf" label="PDF" />
+        </Group>
+      </Radio.Group>
 
       {isPreparing && (
         <Group>
@@ -161,19 +152,32 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
           </Text>
         </Group>
       )}
+
       {backupPreview && !isPreparing && (
-        <Alert variant="light" icon={<Icon icon="tabler:info-circle" />}>
-          <Text size="sm">
-            You are about to export{' '}
-            <b>{backupPreview.messageCount} message(s)</b>.
-          </Text>
-          {form.values.messageTypes.length > 0 &&
-            backupPreview.estimatedMediaSize > 0 && (
+        <Alert
+          variant="light"
+          color="blue"
+          icon={<Icon icon="tabler:info-circle" />}
+        >
+          <Stack gap="xs">
+            <Text size="sm">
+              You are about to export{' '}
+              <b>{backupPreview.messageCount} message(s)</b>.
+            </Text>
+            {form.values.messageTypes.length > 0 &&
+              backupPreview.estimatedMediaSize > 0 &&
+              form.values.exportFormat === 'html' && (
+                <Text size="sm">
+                  Estimated media download size:{' '}
+                  <b>{formatBytes(backupPreview.estimatedMediaSize)}</b>.
+                </Text>
+              )}
+            {estimatedTime && (
               <Text size="sm">
-                Estimated media download size:{' '}
-                <b>{formatBytes(backupPreview.estimatedMediaSize)}</b>.
+                <b>Estimated Completion Time:</b> {estimatedTime}
               </Text>
             )}
+          </Stack>
         </Alert>
       )}
 
