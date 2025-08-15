@@ -1,6 +1,8 @@
+// src/components/Modal/ModalUpgrade.tsx
 import Modal from '@/components/Modal/Modal'
 import plans from '@/config/plans'
-import { Button, Card, Group, Stack, Text, Title } from '@mantine/core'
+import { showModalActivation } from '@/utils/util'
+import { Anchor, Button, Card, Group, Stack, Text, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import _ from 'lodash'
 import React from 'react'
@@ -23,6 +25,10 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
   const handleOnClose = () => {
     form.reset()
     onClose()
+  }
+
+  const handleActivateClick = () => {
+    showModalActivation()
   }
 
   const renderPlans = () => {
@@ -62,7 +68,8 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
             </Stack>
             {plan.isFree ? (
               <Button size="sm" mt={'lg'}>
-                Free
+                {' '}
+                Free{' '}
               </Button>
             ) : (
               <Button
@@ -72,7 +79,8 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
                 target="_blank"
                 mt={'lg'}
               >
-                Upgrade now
+                {' '}
+                Upgrade now{' '}
               </Button>
             )}
           </Card>
@@ -85,20 +93,35 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
     <Modal
       opened={opened}
       onClose={handleOnClose}
-      w={1000}
+      w={900}
       p={'md'}
       withCloseButton
     >
-      <Stack py={'xl'}>
+      <Stack>
         <Stack justify="center" align="center">
           <Stack justify="center" align="center" gap={4} mb={30}>
             <Title order={2}>Pricing & Plans</Title>
             <Text fw={500} size="md">
+              {' '}
               Select the right plan for you business. Upgrade or downgrade at
-              any time.
+              any time.{' '}
             </Text>
           </Stack>
           {renderPlans()}
+
+          <Group justify="center">
+            <Text size="sm">Already have a license key?</Text>
+            <Anchor
+              component="button"
+              type="button"
+              size="sm"
+              onClick={handleActivateClick}
+            >
+              <Text fw={500} size="sm">
+                Activate it here
+              </Text>
+            </Anchor>
+          </Group>
         </Stack>
       </Stack>
     </Modal>

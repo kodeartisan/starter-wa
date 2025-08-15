@@ -39,6 +39,14 @@ export const showModalActivation = () => {
   postMessage(Action.Window.SHOW_MODAL_ACTIVATION)
 }
 
+export const showModalProfile = () => {
+  postMessage(Action.Window.SHOW_MODAL_PROFILE)
+}
+
+export const showModalFaq = () => {
+  postMessage(Action.Window.SHOW_MODAL_FAQ)
+}
+
 export const getStoreId = () => {
   return process.env.PLASMO_PUBLIC_STORE_ID
 }

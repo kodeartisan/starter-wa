@@ -85,7 +85,6 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
         renderOption={renderSelectOption}
         {...form.getInputProps('chatId')}
       />
-
       <TagsInput
         label="Filter by Keywords (Optional)"
         placeholder="Add keywords and press Enter"
@@ -93,8 +92,6 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
         {...form.getInputProps('keywords')}
         clearable
       />
-
-      {/* MODIFIED: Replaced preset buttons with a Select component. */}
       <Select
         label="Date Range"
         data={[
@@ -109,8 +106,6 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
         ]}
         {...form.getInputProps('datePreset')}
       />
-
-      {/* MODIFIED: Conditionally show DatePickerInput only for 'custom' preset. */}
       {form.values.datePreset === 'custom' && (
         <DatePickerInput
           type="range"
@@ -120,7 +115,6 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
           required
         />
       )}
-
       <Checkbox.Group
         label="Include Message Types"
         description="Select the types of messages to include in the backup."
@@ -136,18 +130,15 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
           ))}
         </Group>
       </Checkbox.Group>
-
       <Radio.Group label="Format" {...form.getInputProps('exportFormat')}>
         <Group mt="xs">
           <Radio size="sm" value="html" label="HTML (.zip)" />
           <Radio size="sm" value="pdf" label="PDF" />
-          {/* ++ ADDED: New export format options */}
           <Radio size="sm" value="txt" label="TXT" />
           <Radio size="sm" value="json" label="JSON" />
           <Radio size="sm" value="md" label="Markdown" />
         </Group>
       </Radio.Group>
-
       {isPreparing && (
         <Group>
           <Loader size="xs" />
@@ -157,7 +148,6 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
           </Text>
         </Group>
       )}
-
       {backupPreview && !isPreparing && (
         <Alert
           variant="light"
@@ -189,14 +179,13 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
         </Alert>
       )}
 
-      <Group justify="flex-end" mt="lg">
+      <Group justify="flex-end" mt={'xl'}>
         <Button
           leftSection={<Icon icon="tabler:download" />}
           onClick={onStart}
           disabled={!form.values.chatId || isPreparing}
         >
-          {' '}
-          Start Backup{' '}
+          Start Backup
         </Button>
       </Group>
     </Stack>

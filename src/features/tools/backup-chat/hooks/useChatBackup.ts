@@ -49,13 +49,11 @@ export const useChatBackup = () => {
       exportFormat: 'html',
       messageTypes: SUPPORTED_MESSAGE_TYPES,
       keywords: [] as string[],
-      // MODIFIED: Added a preset field for the new dropdown.
       datePreset: 'all',
       dateRange: [null, null] as [Date | null, Date | null],
     },
     validate: {
       chatId: (value) => (value ? null : 'A chat must be selected.'),
-      // MODIFIED: Validate custom date range only when 'custom' is selected.
       dateRange: (value, values) => {
         if (values.datePreset === 'custom' && (!value[0] || !value[1])) {
           return 'A start and end date are required for a custom range.'
@@ -68,7 +66,6 @@ export const useChatBackup = () => {
   // This effect calculates the backup preview whenever filter criteria change.
   useEffect(() => {
     const calculatePreview = async () => {
-      // MODIFIED: Destructure 'datePreset' from form values.
       const { chatId, dateRange, keywords, messageTypes, datePreset } =
         form.values
       if (!chatId) {
@@ -77,9 +74,10 @@ export const useChatBackup = () => {
         setEstimatedTime('')
         return
       }
+
       setIsPreparing(true)
-      // MODIFIED: Derive the effective date range from the selected preset.
       let effectiveDateRange: [Date | null, Date | null] = [null, null]
+
       if (datePreset === 'custom') {
         effectiveDateRange = dateRange
       } else if (datePreset !== 'all') {
@@ -116,9 +114,9 @@ export const useChatBackup = () => {
         }
         effectiveDateRange = [start, end]
       }
+
       try {
         const allMessages = await wa.chat.getMessages(chatId, { count: -1 })
-        // MODIFIED: Use the derived date range for filtering.
         const [startDate, endDate] = effectiveDateRange
         const lowercasedKeywords = keywords
           .map((k) => k.toLowerCase().trim())
@@ -157,6 +155,7 @@ export const useChatBackup = () => {
           ).length
           const timeForMedia = mediaToDownload * 1.5
           const totalSeconds = timeForMessages + timeForMedia
+
           if (totalSeconds < 60) {
             setEstimatedTime('Less than a minute.')
           } else {
@@ -180,9 +179,11 @@ export const useChatBackup = () => {
         setIsPreparing(false)
       }
     }
+
     const handler = setTimeout(() => {
       calculatePreview()
     }, 500) // Debounce for 500ms
+
     return () => {
       clearTimeout(handler)
     }
@@ -191,7 +192,7 @@ export const useChatBackup = () => {
     form.values.dateRange,
     form.values.keywords,
     form.values.messageTypes,
-    form.values.datePreset, // MODIFIED: Added preset to dependency array.
+    form.values.datePreset,
   ])
 
   const cancelBackup = () => {
@@ -204,9 +205,11 @@ export const useChatBackup = () => {
       toast.info('No messages found matching your criteria to export.')
       return
     }
+
     setIsBackingUp(true)
     validationRef.current = true
     setProgress({ value: 0, label: 'Initializing backup...' })
+
     try {
       const chat = await wa.chat.find(form.values.chatId)
       // @ts-ignore
@@ -218,14 +221,11 @@ export const useChatBackup = () => {
         messages: filteredMessages,
         chat,
         filename,
-        // Only include media for HTML format; other formats are text-based.
-        includeMediaTypes:
-          form.values.exportFormat === 'html' ? form.values.messageTypes : [],
+        includeMediaTypes: form.values.messageTypes,
         setProgress,
         validationRef,
       }
 
-      // ++ MODIFIED: Use a switch statement to call the appropriate exporter.
       switch (form.values.exportFormat) {
         case 'pdf':
           await exportToPdf(exporterParams)

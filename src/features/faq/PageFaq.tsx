@@ -1,4 +1,3 @@
-import LayoutPage from '@/components/Layout/LayoutPage'
 import { Icon } from '@iconify/react'
 import {
   Accordion,
@@ -35,54 +34,64 @@ const faqData = [
 
 const PageFaq: React.FC = () => {
   return (
-    <LayoutPage title="Help & FAQ">
-      <Stack p="md">
-        {/* Accordion */}
-        <Accordion variant="separated" radius="md">
-          {faqData.map((item) => (
-            <Accordion.Item key={item.question} value={item.question}>
-              <Accordion.Control
-                icon={
-                  <ThemeIcon variant="light" size="lg">
-                    <Icon icon={item.icon} fontSize={22} />
-                  </ThemeIcon>
-                }
-              >
-                <Text fw={500}>{item.question}</Text>
-              </Accordion.Control>
-              <Accordion.Panel>
-                <Text c="dimmed" size="sm" lh={1.6}>
-                  {item.answer}
-                </Text>
-              </Accordion.Panel>
-            </Accordion.Item>
-          ))}
-        </Accordion>
-
-        {/* Contact Support */}
-        <Paper withBorder p="md" shadow="none" radius="md" mt="xl">
-          <Group>
-            <ThemeIcon size="xl" radius="md" variant="light">
-              <Icon icon="tabler:mail-filled" fontSize={24} />
-            </ThemeIcon>
-            <Stack gap={2}>
-              <Title order={4}>Still have questions?</Title>
-              <Text c="dimmed" size="sm">
-                Our team is ready to help. Contact us via email.
-              </Text>
-              <Anchor
-                href="mailto:extdotninja@gmail.com"
-                size="sm"
-                fw={500}
-                target="_blank"
-              >
-                extdotninja@gmail.com
-              </Anchor>
-            </Stack>
-          </Group>
-        </Paper>
+    <Stack w={800}>
+      {/* ADDED: Page header with title, icon, and description for better context. */}
+      <Stack align="center" gap={4} mb={'xl'}>
+        <Icon
+          icon="tabler:world-question"
+          fontSize={48}
+          color="var(--mantine-color-teal-6)"
+        />
+        <Title order={3} ta="center">
+          Frequently Asked Questions
+        </Title>
       </Stack>
-    </LayoutPage>
+
+      {/* Accordion */}
+      <Accordion variant="separated" radius="md">
+        {faqData.map((item) => (
+          <Accordion.Item key={item.question} value={item.question}>
+            <Accordion.Control
+              icon={
+                <ThemeIcon variant="light" size="lg">
+                  <Icon icon={item.icon} fontSize={22} />
+                </ThemeIcon>
+              }
+            >
+              <Text fw={500}>{item.question}</Text>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <Text c="dimmed" size="sm" lh={1.6}>
+                {item.answer}
+              </Text>
+            </Accordion.Panel>
+          </Accordion.Item>
+        ))}
+      </Accordion>
+
+      {/* Contact Support */}
+      <Paper withBorder p="md" shadow="none" radius="md" mt="xl">
+        <Group>
+          <ThemeIcon size="xl" radius="md" variant="light">
+            <Icon icon="tabler:mail-filled" fontSize={24} />
+          </ThemeIcon>
+          <Stack gap={2}>
+            <Title order={4}>Still have questions?</Title>
+            <Text c="dimmed" size="sm">
+              Our team is ready to help. Contact us via email.
+            </Text>
+            <Anchor
+              href="mailto:extdotninja@gmail.com"
+              size="sm"
+              fw={500}
+              target="_blank"
+            >
+              extdotninja@gmail.com
+            </Anchor>
+          </Stack>
+        </Group>
+      </Paper>
+    </Stack>
   )
 }
 

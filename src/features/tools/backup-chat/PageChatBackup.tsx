@@ -11,7 +11,7 @@ const PageChatBackup: React.FC = () => {
   const backup = useChatBackup()
 
   return (
-    <LayoutPage title="Chat Backup & Export">
+    <LayoutPage width={600}>
       <Stack>
         {backup.isBackingUp ? (
           <BackupProgress
@@ -19,24 +19,8 @@ const PageChatBackup: React.FC = () => {
             onCancel={backup.cancelBackup}
           />
         ) : (
-          // Pass the entire hook object as a single prop
           <BackupOptions backupHook={backup} onStart={backup.startBackup} />
         )}
-        <Box mt="md">
-          <Alert
-            variant="light"
-            color="orange"
-            title="Important Considerations"
-            icon={<Icon icon="tabler:alert-triangle" />}
-          >
-            - Backing up chats with many media files can be slow and consume
-            significant memory.
-            <br />- For very large chats, consider exporting without media or
-            using a date range.
-            <br />- Ensure you have a stable internet connection during the
-            process.
-          </Alert>
-        </Box>
       </Stack>
     </LayoutPage>
   )

@@ -1,4 +1,5 @@
 import App from '@/components/App'
+import AppMenu from '@/components/AppMenu'
 import ToastProvider from '@/components/Toast/ToastProvider'
 import theme from '@/libs/theme'
 import style from '@/utils/style'
