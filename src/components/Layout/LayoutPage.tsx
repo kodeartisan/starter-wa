@@ -1,7 +1,9 @@
+// src/components/Layout/LayoutPage.tsx
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
 import { useAppStore } from '@/stores/app'
 import env from '@/utils/env'
+import { showModalUpgrade } from '@/utils/util' // ADDED: Import for showing upgrade modal
 import { Icon } from '@iconify/react'
 import {
   ActionIcon,
@@ -80,6 +82,20 @@ const LayoutPage: React.FC<Props> = ({
               </Button>
             </When>
           </Group>
+
+          {/* ADDED: A non-intrusive call to action for free users to upgrade. */}
+          <When condition={license.isFree()}>
+            <Button
+              variant="filled"
+              color="yellow"
+              size="xs"
+              radius="md"
+              leftSection={<Icon icon="tabler:crown" fontSize={16} />}
+              onClick={showModalUpgrade}
+            >
+              Unlock All Features
+            </Button>
+          </When>
         </Group>
         {wa.isReady ? (
           <ScrollArea h={height}>{renderBody()}</ScrollArea>
