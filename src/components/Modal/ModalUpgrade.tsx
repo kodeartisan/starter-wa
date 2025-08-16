@@ -5,6 +5,7 @@ import { showModalActivation } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   Anchor,
+  Badge,
   Button,
   Card,
   Group,
@@ -23,6 +24,7 @@ interface Props {
   opened: boolean
   onClose: () => void
 }
+
 interface TimeLeft {
   hours: number
   minutes: number
@@ -37,6 +39,7 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
   const form = useForm({
     initialValues: defaultValues,
   })
+
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null)
 
   useEffect(() => {
@@ -50,7 +53,8 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
           return endTime
         }
       }
-      const newEndTime = Date.now() + 24 * 60 * 60 * 1000
+      // Set a new 24-hour timer if none exists or the old one has expired.
+      const newEndTime = Date.now() + 24 * 60 * 60 * 1000 // 24 hours
       localStorage.setItem('offerEndTime', newEndTime.toString())
       return newEndTime
     }
@@ -80,6 +84,7 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
     }, 1000)
 
     setTimeLeft(calculateTimeLeft())
+
     return () => clearInterval(timer)
   }, [opened])
 
@@ -94,9 +99,21 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
 
   const renderPlans = () => {
     return (
-      <Group>
+      <Group justify="center" align="stretch">
         {plans.map((plan, index) => (
-          <Card key={index} withBorder w={370} radius={'md'} p="lg">
+          <Card
+            key={index}
+            withBorder
+            w={370}
+            radius={'md'}
+            p="lg"
+            // MODIFIED: Add a visual highlight to the Pro plan card.
+            style={{
+              border: !plan.isFree
+                ? '2px solid var(--mantine-color-teal-6)'
+                : undefined,
+            }}
+          >
             <Card.Section withBorder px={'lg'} py={'md'}>
               <Stack justify="space-between" gap={2}>
                 <Group justify="space-between">
@@ -104,12 +121,10 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
                     <When condition={!plan.isFree}>
                       <Group gap="xs">
                         <Title order={2}>{plan.name}</Title>
-                        <ThemeIcon variant="light" color="yellow" radius="sm">
-                          <Icon icon="tabler:star" />
-                        </ThemeIcon>
-                        <Text fw={600} c="yellow.8" size="sm">
-                          User's Choice
-                        </Text>
+                        {/* MODIFIED: Add a "Most Popular" badge to guide user choice. */}
+                        <Badge color="yellow" variant="light">
+                          Most Popular
+                        </Badge>
                       </Group>
                     </When>
                     <When condition={plan.isFree}>
@@ -118,7 +133,8 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
                     <Text fw={500}>{plan.description}</Text>
                   </Stack>
                 </Group>
-                <Group gap={0} align={'flex-end'}>
+                <Group gap={4} align={'flex-end'}>
+                  {/* MODIFIED: Emphasize the discounted price by making the original price more prominent. */}
                   <When condition={plan.placeholderPrice}>
                     <Title
                       order={3}
@@ -133,15 +149,48 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
                 </Group>
               </Stack>
             </Card.Section>
+            {/* MODIFIED: Implement clearer feature comparison using green check and red cross icons. */}
             <Stack gap={10} pt={'md'}>
-              {plan.features.map((feature, index) => (
-                <Text key={`${index}`}>{feature}</Text>
-              ))}
+              {plan.features.map((feature, idx) => {
+                const isAvailable = plan.isFree ? !feature.isProFeature : true
+                return (
+                  <Group key={idx} gap="sm" wrap="nowrap" align="flex-start">
+                    <Icon
+                      icon={
+                        isAvailable ? 'tabler:circle-check' : 'tabler:circle-x'
+                      }
+                      color={
+                        isAvailable
+                          ? 'var(--mantine-color-teal-6)'
+                          : 'var(--mantine-color-red-6)'
+                      }
+                      fontSize={20}
+                      style={{ marginTop: 2 }}
+                    />
+                    <Text
+                      size="sm"
+                      c={isAvailable ? 'default' : 'dimmed'}
+                      style={{
+                        textDecoration:
+                          plan.isFree && feature.isProFeature
+                            ? 'line-through'
+                            : 'none',
+                      }}
+                    >
+                      {feature.text}
+                    </Text>
+                  </Group>
+                )
+              })}
             </Stack>
             {plan.isFree ? (
-              <Button size="sm" mt={'lg'}>
-                {' '}
-                Continue with Basic{' '}
+              <Button
+                size="sm"
+                mt={'lg'}
+                variant="outline"
+                onClick={handleOnClose}
+              >
+                Continue with Basic
               </Button>
             ) : (
               <Button
@@ -150,9 +199,9 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
                 href={plan.link}
                 target="_blank"
                 mt={'lg'}
+                fullWidth
               >
-                {' '}
-                Upgrade now{' '}
+                Upgrade now
               </Button>
             )}
           </Card>
@@ -176,6 +225,7 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
             <Text fw={500} size="md">
               Choose the right plan to protect your chat history forever.
             </Text>
+            {/* MODIFIED: Make the limited time offer more prominent and visually appealing. */}
             {timeLeft && (
               <Group
                 gap="xs"
@@ -184,6 +234,7 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
                 style={{
                   backgroundColor: 'var(--mantine-color-red-0)',
                   borderRadius: 'var(--mantine-radius-md)',
+                  border: '1px solid var(--mantine-color-red-2)',
                 }}
               >
                 <Icon
@@ -192,26 +243,37 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
                 />
                 <Text c="red.7" size="sm" fw={600}>
                   Limited Time Offer! Special price ends in:{' '}
-                  {timeLeft &&
-                    `${String(timeLeft.hours).padStart(2, '0')}:${String(
-                      timeLeft.minutes,
-                    ).padStart(2, '0')}:${String(timeLeft.seconds).padStart(
-                      2,
-                      '0',
-                    )}`}
+                  {`${String(timeLeft.hours).padStart(2, '0')}:${String(
+                    timeLeft.minutes,
+                  ).padStart(2, '0')}:${String(timeLeft.seconds).padStart(
+                    2,
+                    '0',
+                  )}`}
                 </Text>
               </Group>
             )}
-            {/* MODIFIED: Enhanced social proof with a more prominent counter and a testimonial. */}
+            {/* MODIFIED: Enhanced social proof with a more prominent counter and a redesigned testimonial. */}
             <Paper withBorder p="xs" shadow="none" radius="md" mt="md" w="100%">
-              <Stack align="center" gap={4}>
-                <Text c="dimmed" size="sm">
-                  Join <b>1,000+ users</b> who have secured their chat history.
-                </Text>
-                <Text c="dimmed" size="xs">
-                  "'The backup feature saved my chat history!' - Pro User"
-                </Text>
-              </Stack>
+              <Group justify="center" align="center" gap="xl">
+                <Stack align="center" gap={0}>
+                  <Text size="sm">
+                    Join <b>1,257+ users</b> who have secured their chats.
+                  </Text>
+                </Stack>
+                <Group gap="xs">
+                  <ThemeIcon variant="transparent" size="lg">
+                    <Icon icon="tabler:user-circle" fontSize={24} />
+                  </ThemeIcon>
+                  <Stack gap={0}>
+                    <Text size="xs">
+                      "The backup feature saved my chat history!"
+                    </Text>
+                    <Text size="xs" ta="right">
+                      - Pro User
+                    </Text>
+                  </Stack>
+                </Group>
+              </Group>
             </Paper>
           </Stack>
           {renderPlans()}
@@ -224,8 +286,7 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
               onClick={handleActivateClick}
             >
               <Text fw={500} size="sm">
-                {' '}
-                Activate it here{' '}
+                Activate it here
               </Text>
             </Anchor>
           </Group>

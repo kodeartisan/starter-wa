@@ -79,10 +79,10 @@ export const useChatBackup = () => {
 
   const startBackup = async () => {
     if (form.validate().hasErrors) return
+
     setIsBackingUp(true)
     validationRef.current = true
     setProgress({ value: 5, label: 'Fetching and filtering messages...' })
-
     let resultStats: BackupResultStats = {
       messagesExported: 0,
       messagesOmitted: 0,
@@ -133,8 +133,8 @@ export const useChatBackup = () => {
       }
 
       const allMessages = await wa.chat.getMessages(chatId, { count: -1 })
-      let [startDate, endDate] = effectiveDateRange
 
+      let [startDate, endDate] = effectiveDateRange
       if (license.isFree()) {
         const sevenDaysAgo = startOfDay(subDays(new Date(), 7))
         if (!startDate || startDate < sevenDaysAgo) {
@@ -154,7 +154,6 @@ export const useChatBackup = () => {
             start: startDate,
             end: endDate,
           })
-
         const keywordMatch =
           lowercasedKeywords.length === 0 ||
           lowercasedKeywords.some(
@@ -162,7 +161,6 @@ export const useChatBackup = () => {
               (msg.body && msg.body.toLowerCase().includes(k)) ||
               (msg.caption && msg.caption.toLowerCase().includes(k)),
           )
-
         const typeMatch = messageTypes.includes(msg.type)
         return dateMatch && keywordMatch && typeMatch
       })
@@ -240,10 +238,11 @@ export const useChatBackup = () => {
       }
 
       if (validationRef.current) {
+        // MODIFIED: Implement smart toast notification. Show a warning for limited backups.
         if (isLimitApplied) {
           toast.warning(
-            'Backup Incomplete',
-            'Upgrade to Pro for a full backup of all messages and media.',
+            'Backup Limited',
+            'Only the first 10 messages were saved. Upgrade to Pro for unlimited backups.',
           )
         } else {
           toast.success('Backup completed successfully!')

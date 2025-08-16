@@ -38,6 +38,7 @@ const BackupResult: React.FC<Props> = ({ result, onDone }) => {
           Successfully exported {messagesExported} messages. You can find the
           file in your downloads folder.
         </Text>
+
         <When condition={isLimitApplied}>
           {/* MODIFIED: The entire warning card has been updated for better psychological impact. */}
           <Card
@@ -49,25 +50,27 @@ const BackupResult: React.FC<Props> = ({ result, onDone }) => {
             style={{
               width: '100%',
               borderColor: 'var(--mantine-color-orange-4)',
+              backgroundColor: 'var(--mantine-color-orange-0)',
             }}
           >
             <Stack align="center" gap="sm">
               <Group gap="xs">
-                {/* MODIFIED: Changed icon to an alert triangle. */}
                 <Icon
                   icon="tabler:alert-triangle"
-                  color="orange"
+                  color="var(--mantine-color-orange-7)"
                   fontSize={24}
                 />
-                {/* MODIFIED: Changed title to be more alarming. */}
-                <Title order={5}>Warning: Your Backup is Incomplete!</Title>
+                {/* MODIFIED: Changed title to be more alarming and personal. */}
+                <Title order={5} c="orange.9">
+                  Warning: Some Memories Are At Risk!
+                </Title>
               </Group>
-              {/* MODIFIED: Changed text to emphasize risk of permanent data loss. */}
+              {/* MODIFIED: Changed text to emphasize the risk of permanent data loss. */}
               <Text ta="center" size="sm" c="dimmed">
                 <b>{messagesOmitted.toLocaleString()} messages</b> and{' '}
-                <b>{mediaOmitted.toLocaleString()} media files</b> were not
-                saved and are at risk of being lost forever. Upgrade now to
-                protect all your data.
+                <b>{mediaOmitted.toLocaleString()} media files</b> were NOT
+                SAVED and could be lost forever. Upgrade now to protect all your
+                data.
               </Text>
               <Button
                 mt="sm"
@@ -80,6 +83,7 @@ const BackupResult: React.FC<Props> = ({ result, onDone }) => {
             </Stack>
           </Card>
         </When>
+
         <Button variant="outline" mt="xl" onClick={onDone}>
           Start Another Backup
         </Button>
