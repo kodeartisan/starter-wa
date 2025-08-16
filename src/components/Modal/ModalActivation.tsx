@@ -54,7 +54,6 @@ const ModalActivation: React.FC<Props> = ({ opened, onClose }: Props) => {
 
     try {
       const response = await license.activate(form.values.license)
-
       if (response.data.error) {
         form.setFieldError('license', response.data.error.replace(/_/g, ' '))
         setLoading(false)
@@ -105,6 +104,7 @@ const ModalActivation: React.FC<Props> = ({ opened, onClose }: Props) => {
             Enter your license key below to unlock all Pro features.{' '}
           </Text>
         </Stack>
+
         <Stack>
           <TextInput
             label="License Key"
@@ -113,12 +113,14 @@ const ModalActivation: React.FC<Props> = ({ opened, onClose }: Props) => {
             leftSection={<Icon icon="tabler:key" fontSize={18} />}
             {...form.getInputProps('license')}
           />
+          {/* MODIFIED: Replaced text with more reassuring microcopy. */}
           <Text size="xs" c="dimmed">
             {' '}
-            You can find your license key in the purchase confirmation email. If
-            you need help, please check our FAQ page or contact support.{' '}
+            Your license key validates your purchase, ensuring you receive
+            lifetime access and all future updates.{' '}
           </Text>
         </Stack>
+
         <Button
           loading={loading}
           onClick={handleSubmit}

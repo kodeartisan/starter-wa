@@ -1,6 +1,5 @@
-// src/components/Modal/ModalActivation.tsx
+// src/components/Modal/ModalFaq.tsx
 import Modal from '@/components/Modal/Modal'
-import PageFaq from '@/features/faq/PageFaq'
 import { Icon } from '@iconify/react'
 import {
   Accordion,
@@ -12,7 +11,6 @@ import {
   ThemeIcon,
   Title,
 } from '@mantine/core'
-import _ from 'lodash'
 import React from 'react'
 
 interface Props {
@@ -21,6 +19,12 @@ interface Props {
 }
 
 const faqData = [
+  {
+    icon: 'tabler:rocket',
+    question: 'What are the main benefits of upgrading to Pro?',
+    answer:
+      "With Pro, you get **Total Protection** by backing up all messages and media without limits—no more risk of losing important data or precious memories. You'll unlock **Exclusive Features** like custom date ranges, Excel/CSV exports, and upcoming premium tools. Plus, you receive **Priority Support**, ensuring our team assists you first whenever you need help.",
+  },
   {
     icon: 'tabler:key',
     question: 'Where can I find my license key?',
@@ -71,12 +75,26 @@ const ModalFaq: React.FC<Props> = ({ opened, onClose }: Props) => {
                   </ThemeIcon>
                 }
               >
-                <Text fw={500}>{item.question}</Text>
+                {/* MODIFIED: Changed the answer to markdown-like bolding for emphasis. */}
+                <Text
+                  fw={500}
+                  dangerouslySetInnerHTML={{
+                    __html: item.question.replace(
+                      /\*\*(.*?)\*\*/g,
+                      '<b>$1</b>',
+                    ),
+                  }}
+                ></Text>
               </Accordion.Control>
               <Accordion.Panel>
-                <Text c="dimmed" size="sm" lh={1.6}>
-                  {item.answer}
-                </Text>
+                <Text
+                  c="dimmed"
+                  size="sm"
+                  lh={1.6}
+                  dangerouslySetInnerHTML={{
+                    __html: item.answer.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'),
+                  }}
+                ></Text>
               </Accordion.Panel>
             </Accordion.Item>
           ))}

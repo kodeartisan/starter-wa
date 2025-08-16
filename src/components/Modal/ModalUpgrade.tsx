@@ -84,7 +84,6 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
     }, 1000)
 
     setTimeLeft(calculateTimeLeft())
-
     return () => clearInterval(timer)
   }, [opened])
 
@@ -149,6 +148,7 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
                 </Group>
               </Stack>
             </Card.Section>
+
             {/* MODIFIED: Implement clearer feature comparison using green check and red cross icons. */}
             <Stack gap={10} pt={'md'}>
               {plan.features.map((feature, idx) => {
@@ -183,6 +183,7 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
                 )
               })}
             </Stack>
+
             {plan.isFree ? (
               <Button
                 size="sm"
@@ -193,16 +194,28 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
                 Continue with Basic
               </Button>
             ) : (
-              <Button
-                size="sm"
-                component="a"
-                href={plan.link}
-                target="_blank"
-                mt={'lg'}
-                fullWidth
-              >
-                Upgrade now
-              </Button>
+              <Stack mt="lg" gap="xs">
+                <Button
+                  size="sm"
+                  component="a"
+                  href={plan.link}
+                  target="_blank"
+                  fullWidth
+                >
+                  Upgrade now
+                </Button>
+                {/* ADDED: Trust-building microcopy for the payment button. */}
+                <Group justify="center" gap={4}>
+                  <Icon
+                    icon="tabler:lock"
+                    fontSize={14}
+                    color="var(--mantine-color-gray-6)"
+                  />
+                  <Text size="xs" c="dimmed">
+                    Secure Transaction via Lemon Squeezy.
+                  </Text>
+                </Group>
+              </Stack>
             )}
           </Card>
         ))}
@@ -225,6 +238,7 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
             <Text fw={500} size="md">
               Choose the right plan to protect your chat history forever.
             </Text>
+
             {/* MODIFIED: Make the limited time offer more prominent and visually appealing. */}
             {timeLeft && (
               <Group
@@ -252,6 +266,7 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
                 </Text>
               </Group>
             )}
+
             {/* MODIFIED: Enhanced social proof with a more prominent counter and a redesigned testimonial. */}
             <Paper withBorder p="xs" shadow="none" radius="md" mt="md" w="100%">
               <Group justify="center" align="center" gap="xl">
@@ -276,7 +291,9 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
               </Group>
             </Paper>
           </Stack>
+
           {renderPlans()}
+
           <Group justify="center" mt="md">
             <Text size="sm">Already have a license key?</Text>
             <Anchor
