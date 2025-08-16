@@ -2,13 +2,13 @@
 import Modal from '@/components/Modal/Modal'
 import plans from '@/config/plans'
 import { showModalActivation } from '@/utils/util'
-// ADDED: Import hooks for state and side effects.
 import { Icon } from '@iconify/react'
 import {
   Anchor,
   Button,
   Card,
   Group,
+  Paper,
   Stack,
   Text,
   ThemeIcon,
@@ -16,7 +16,6 @@ import {
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import _ from 'lodash'
-// ADDED: Import useEffect and useState for the timer.
 import React, { useEffect, useState } from 'react'
 import { When } from 'react-if'
 
@@ -24,8 +23,6 @@ interface Props {
   opened: boolean
   onClose: () => void
 }
-
-// ADDED: A type for the time left.
 interface TimeLeft {
   hours: number
   minutes: number
@@ -40,11 +37,8 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
   const form = useForm({
     initialValues: defaultValues,
   })
-
-  // ADDED: State to manage the countdown timer.
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null)
 
-  // ADDED: useEffect to manage the countdown logic.
   useEffect(() => {
     if (!opened) return
 
@@ -52,19 +46,16 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
       const storedEndTime = localStorage.getItem('offerEndTime')
       if (storedEndTime) {
         const endTime = parseInt(storedEndTime, 10)
-        // If the stored time is in the past, create a new one.
         if (endTime > Date.now()) {
           return endTime
         }
       }
-      // Set a new 24-hour offer window.
       const newEndTime = Date.now() + 24 * 60 * 60 * 1000
       localStorage.setItem('offerEndTime', newEndTime.toString())
       return newEndTime
     }
 
     const offerEndTime = getOfferEndTime()
-
     const calculateTimeLeft = (): TimeLeft | null => {
       const difference = offerEndTime - Date.now()
       if (difference > 0) {
@@ -83,15 +74,12 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
         setTimeLeft(newTimeLeft)
       } else {
         clearInterval(timer)
-        localStorage.removeItem('offerEndTime') // Clear expired timer
+        localStorage.removeItem('offerEndTime')
         setTimeLeft(null)
       }
     }, 1000)
 
-    // Initial calculation
     setTimeLeft(calculateTimeLeft())
-
-    // Cleanup interval on component unmount or when modal closes.
     return () => clearInterval(timer)
   }, [opened])
 
@@ -184,13 +172,10 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
       <Stack>
         <Stack justify="center" align="center">
           <Stack justify="center" align="center" gap={4} mb={30}>
-            <Title order={2}>Pricing & Plans</Title>
+            <Title order={2}>Your Memories Are Priceless</Title>
             <Text fw={500} size="md">
-              {' '}
-              Select the right plan for you business. Upgrade or downgrade at
-              any time.{' '}
+              Choose the right plan to protect your chat history forever.
             </Text>
-
             {timeLeft && (
               <Group
                 gap="xs"
@@ -208,17 +193,29 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
                 <Text c="red.7" size="sm" fw={600}>
                   Limited Time Offer! Special price ends in:{' '}
                   {timeLeft &&
-                    `${String(timeLeft.hours).padStart(2, '0')}:${String(timeLeft.minutes).padStart(2, '0')}:${String(timeLeft.seconds).padStart(2, '0')}`}
+                    `${String(timeLeft.hours).padStart(2, '0')}:${String(
+                      timeLeft.minutes,
+                    ).padStart(2, '0')}:${String(timeLeft.seconds).padStart(
+                      2,
+                      '0',
+                    )}`}
                 </Text>
               </Group>
             )}
-            <Text c="dimmed" size="sm" mt="xs">
-              {' '}
-              Join 1,000+ users who have secured their chat history.{' '}
-            </Text>
+            {/* MODIFIED: Enhanced social proof with a more prominent counter and a testimonial. */}
+            <Paper withBorder p="xs" shadow="none" radius="md" mt="md" w="100%">
+              <Stack align="center" gap={4}>
+                <Text c="dimmed" size="sm">
+                  Join <b>1,000+ users</b> who have secured their chat history.
+                </Text>
+                <Text c="dimmed" size="xs">
+                  "'The backup feature saved my chat history!' - Pro User"
+                </Text>
+              </Stack>
+            </Paper>
           </Stack>
           {renderPlans()}
-          <Group justify="center">
+          <Group justify="center" mt="md">
             <Text size="sm">Already have a license key?</Text>
             <Anchor
               component="button"

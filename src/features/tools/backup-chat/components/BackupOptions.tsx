@@ -44,9 +44,12 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
     { value: 'custom', label: 'Custom Range...', pro: true },
   ]
 
+  // MODIFIED: Added CSV and XLSX export formats.
   const exportFormats = [
     { value: 'html', label: 'HTML (.zip)' },
     { value: 'pdf', label: 'PDF' },
+    { value: 'csv', label: 'CSV' },
+    { value: 'xlsx', label: 'Excel (XLSX)' },
     { value: 'txt', label: 'TXT' },
     { value: 'json', label: 'JSON' },
     { value: 'md', label: 'Markdown' },
@@ -123,14 +126,14 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
               <Text>{option.label}</Text>
               {license.isFree() && preset?.pro && (
                 <Badge size="sm" variant="light" color="teal">
-                  PRO
+                  {' '}
+                  PRO{' '}
                 </Badge>
               )}
             </Group>
           )
         }}
       />
-
       {form.values.datePreset === 'custom' && (
         <DatePickerInput
           type="range"
@@ -140,7 +143,6 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
           required
         />
       )}
-
       <Checkbox.Group
         label="Include Message Types"
         description="Select the types of messages to include in the backup."
@@ -161,7 +163,6 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
           ))}
         </Group>
       </Checkbox.Group>
-
       <Radio.Group
         label="Format"
         value={form.values.exportFormat}
@@ -177,7 +178,6 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
           ))}
         </Group>
       </Radio.Group>
-
       <Group justify="flex-end" mt={'xl'}>
         <Button
           leftSection={<Icon icon="tabler:download" />}

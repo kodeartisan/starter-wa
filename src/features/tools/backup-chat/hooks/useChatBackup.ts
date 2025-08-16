@@ -15,22 +15,23 @@ import {
 } from 'date-fns'
 import _ from 'lodash'
 import { useRef, useState } from 'react'
+// MODIFIED: Import new CSV and XLSX exporters.
 import {
+  exportToCsv,
   exportToHtml,
   exportToJson,
   exportToMarkdown,
   exportToPdf,
   exportToTxt,
+  exportToXlsx,
 } from '../helpers/exportUtils'
 
-// Supported message types for export options.
 const SUPPORTED_MESSAGE_TYPES = ['chat', 'image', 'video', 'document', 'ptt']
 
-// Define a type for the backup result stats.
 export interface BackupResultStats {
   messagesExported: number
-  messagesOmitted: number // Note: For the UI, this now represents "redacted" messages.
-  mediaOmitted: number // Note: For the UI, this now represents "redacted" media.
+  messagesOmitted: number
+  mediaOmitted: number
   isLimitApplied: boolean
 }
 
@@ -42,7 +43,6 @@ export const useChatBackup = () => {
     label: 'Initializing...',
   })
   const validationRef = useRef(true)
-  // State for backup result.
   const [backupResult, setBackupResult] = useState<BackupResultStats | null>(
     null,
   )
@@ -72,7 +72,6 @@ export const useChatBackup = () => {
     validationRef.current = false
   }
 
-  // Function to clear the result screen and go back to options.
   const clearBackupResult = () => {
     setBackupResult(null)
     form.reset()
@@ -83,6 +82,7 @@ export const useChatBackup = () => {
     setIsBackingUp(true)
     validationRef.current = true
     setProgress({ value: 5, label: 'Fetching and filtering messages...' })
+
     let resultStats: BackupResultStats = {
       messagesExported: 0,
       messagesOmitted: 0,
@@ -133,7 +133,6 @@ export const useChatBackup = () => {
       }
 
       const allMessages = await wa.chat.getMessages(chatId, { count: -1 })
-
       let [startDate, endDate] = effectiveDateRange
 
       if (license.isFree()) {
@@ -163,6 +162,7 @@ export const useChatBackup = () => {
               (msg.body && msg.body.toLowerCase().includes(k)) ||
               (msg.caption && msg.caption.toLowerCase().includes(k)),
           )
+
         const typeMatch = messageTypes.includes(msg.type)
         return dateMatch && keywordMatch && typeMatch
       })
@@ -174,16 +174,11 @@ export const useChatBackup = () => {
       }
 
       const isLimitApplied = license.isFree() && filteredMessages.length > 10
-
-      // MODIFIED: Instead of slicing the array, we now map over it and add an `isRedacted` property.
-      // This allows the export utilities to render a placeholder for content beyond the free limit.
       const messagesToExport = filteredMessages.map((msg, index) => ({
         ...msg,
         isRedacted: isLimitApplied && index >= 10,
       }))
 
-      // MODIFIED: The result stats are calculated to be consistent with the UI's messaging.
-      // "messagesOmitted" and "mediaOmitted" now refer to items that will be redacted in the export file.
       const messagesOmittedCount = isLimitApplied
         ? filteredMessages.length - 10
         : 0
@@ -209,15 +204,16 @@ export const useChatBackup = () => {
       )}_${new Date().toISOString().slice(0, 10)}`
 
       const exporterParams = {
-        messages: messagesToExport, // MODIFIED: Pass the full array with redaction flags.
+        messages: messagesToExport,
         chat,
         filename,
         includeMediaTypes: form.values.messageTypes,
         setProgress,
         validationRef,
-        isLimitApplied, // This flag is now used by exporters to know if any redaction happened.
+        isLimitApplied,
       }
 
+      // MODIFIED: Added cases for 'csv' and 'xlsx' export formats.
       switch (form.values.exportFormat) {
         case 'pdf':
           await exportToPdf(exporterParams)
@@ -231,11 +227,18 @@ export const useChatBackup = () => {
         case 'md':
           await exportToMarkdown(exporterParams)
           break
+        case 'csv':
+          await exportToCsv(exporterParams)
+          break
+        case 'xlsx':
+          await exportToXlsx(exporterParams)
+          break
         case 'html':
         default:
           await exportToHtml(exporterParams)
           break
       }
+
       if (validationRef.current) {
         if (isLimitApplied) {
           toast.warning(
@@ -252,7 +255,7 @@ export const useChatBackup = () => {
     } catch (error: any) {
       console.error('Backup failed:', error)
       toast.error(error.message || 'An unknown error occurred during backup.')
-      setBackupResult(null) // Clear result on error
+      setBackupResult(null)
     } finally {
       setIsBackingUp(false)
     }

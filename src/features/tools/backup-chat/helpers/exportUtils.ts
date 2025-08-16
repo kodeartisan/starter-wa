@@ -6,6 +6,8 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import JSZip from 'jszip'
 import _ from 'lodash'
+// ADDED: Import xlsx library for CSV and Excel export.
+import * as XLSX from 'xlsx'
 
 interface ExporterParams {
   messages: any[] // Messages now include an `isRedacted` property
@@ -18,17 +20,15 @@ interface ExporterParams {
   password?: string
 }
 
-// ADDED: A constant for the redaction placeholder to ensure consistency.
 const REDACTED_PLACEHOLDER = '********'
 
+// ... (existing functions: renderQuotedMessage, getRedactedMediaHtml, etc. remain unchanged)
 const renderQuotedMessage = (quotedMsg: any): string => {
   if (!quotedMsg) return ''
-
   const quotedSenderName = quotedMsg.sender.isMe
     ? 'You'
     : getContactName(quotedMsg.sender)
   let quotedContent = ''
-
   switch (quotedMsg.type) {
     case 'chat':
       quotedContent = _.escape(quotedMsg.body)
@@ -49,22 +49,12 @@ const renderQuotedMessage = (quotedMsg: any): string => {
       quotedContent = `[Unsupported message type: ${quotedMsg.type}]`
   }
   return `
-    <a href="#message-${quotedMsg.id}" class="quoted-message-link">
-      <div class="quoted-message">
-        <div class="quoted-sender">${_.escape(quotedSenderName)}</div>
-        <div class="quoted-content">${quotedContent}</div>
-      </div>
-    </a>
-  `
-}
-
-// This function is no longer needed for the header, as redaction is inline.
-// It can be removed if not used elsewhere, but we'll leave it for now to be safe.
-const getLimitNoticeHtml = (): string => {
-  return `
-    <div class="limit-notice">
-      <b></b> Only the first 10 messages are shown. Upgrade to Pro to view all content.
+  <a href="#message-${quotedMsg.id}" class="quoted-message-link">
+    <div class="quoted-message">
+      <div class="quoted-sender">${_.escape(quotedSenderName)}</div>
+      <div class="quoted-content">${quotedContent}</div>
     </div>
+  </a>
   `
 }
 
@@ -77,26 +67,24 @@ const getRedactedMediaHtml = (type: string): string => {
   }
   const icon = iconMap[type] || '🔒'
   return `
-    <div class="redacted-media-container">
-      <div class="redacted-bg">${icon}</div>
-      <div class="redacted-overlay">
-        <div class="lock-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
-        </div>
-        <div class="redacted-text">Upgrade to Pro to view</div>
+  <div class="redacted-media-container">
+    <div class="redacted-bg">${icon}</div>
+    <div class="redacted-overlay">
+      <div class="lock-icon">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
       </div>
+      <div class="redacted-text">Upgrade to Pro to view</div>
     </div>
+  </div>
   `
 }
 
-// ADDED: A helper to generate a consistent placeholder for redacted text messages in HTML.
 const getRedactedTextHtml = (): string => {
   return `<div class="redacted-text-placeholder">${REDACTED_PLACEHOLDER}</div>`
 }
-
 const generateHtmlBody = async ({
   messages,
   chat,
@@ -110,16 +98,16 @@ const generateHtmlBody = async ({
   mediaMap: Map<string, Blob>
 }> => {
   const headerHtml = `
-    <div class="export-header">
-      <p><b>Chat With:</b> ${_.escape(getContactName(chat.data.contact))}</p>
-      <p><b>Export Date:</b> ${new Date().toLocaleString()}</p>
-      <p><b>Total Messages Exported:</b> ${messages.length}</p>
-      ${
-        isLimitApplied
-          ? '<p style="color: #d9534f;"><b>Notice:</b>Upgrade to Pro to save all messages and media.</p>'
-          : ''
-      }
-    </div>
+  <div class="export-header">
+    <p><b>Chat With:</b> ${_.escape(getContactName(chat.data.contact))}</p>
+    <p><b>Export Date:</b> ${new Date().toLocaleString()}</p>
+    <p><b>Total Messages Exported:</b> ${messages.length}</p>
+    ${
+      isLimitApplied
+        ? '<p style="color: #d9534f;"><b>Notice:</b>Upgrade to Pro to save all messages and media.</p>'
+        : ''
+    }
+  </div>
   `
   let messagesHtml = ''
   const mediaMap = new Map<string, Blob>()
@@ -127,6 +115,7 @@ const generateHtmlBody = async ({
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
+
     if (
       !['chat', 'image', 'video', 'document', 'ptt', 'location'].includes(
         msg.type,
@@ -224,14 +213,13 @@ const generateHtmlBody = async ({
       }
     }
 
-    // MODIFIED: Use a variable to hold either the real content or the redacted placeholder.
     const messageBodyHtml = msg.isRedacted
       ? getRedactedTextHtml()
       : `<span>${
           _.escape(msg.type === 'chat' ? msg.body : msg.caption) ?? ''
         }</span>`
-
     const quotedHtml = renderQuotedMessage(msg.quotedMsg)
+
     messagesHtml += `
       <div class="message-cluster message-${direction}" id="message-${msg.id}">
         <div class="message">
@@ -266,66 +254,55 @@ const generateHtmlBody = async ({
 
 const getFullHtmlDocument = (bodyContent: string, chat: any) => {
   const styles = `
-    <style>
-      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; margin: 0; background-color: #E5DDD5; }
-      .chat-container { max-width: 800px; margin: auto; padding: 20px; }
-      .export-header { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #dee2e6; font-size: 0.9em; }
-      .export-header p { margin: 2px 0; color: #333; }
-      .export-header b { color: #111; }
-      .limit-notice { background-color: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; padding: 10px; margin-top: 10px; font-size: 0.85em; text-align: center; color: #856404; }
-      .message-cluster { display: flex; flex-direction: column; margin-bottom: 2px; padding: 0 9%; scroll-margin-top: 20px; }
-      .message-cluster.message-out { align-items: flex-end; }
-      .message-cluster.message-in { align-items: flex-start; }
-      .message { max-width: 65%; word-wrap: break-word; margin-bottom: 10px; }
-      .message-bubble { padding: 6px 9px; border-radius: 7.5px; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); position: relative; }
-      .message-out .message-bubble { background-color: #d9fdd3; color: #0f1010; }
-      .message-in .message-bubble { background-color: #fff; color: #111b21; }
-      .sender-name { font-size: 0.8rem; font-weight: 500; color: #028a76; margin-bottom: 4px; }
-      .message-content img, .message-content video { width: 100%; max-width: 300px; border-radius: 6px; margin-top: 5px; display: block; }
-      .message-content a { color: #0088cc; }
-      .timestamp { font-size: 0.7rem; color: #667781; display: flex; justify-content: flex-end; padding-top: 4px; }
-      .media-placeholder { padding: 10px; background-color: #f0f0f0; border: 1px dashed #ccc; border-radius: 6px; color: #888; font-style: italic; font-size: 0.9em; margin-top: 5px; text-align: center; }
-      .quoted-message-link { text-decoration: none; color: inherit; }
-      .quoted-message { background-color: #f0f2f5; border-left: 4px solid #4CAF50; padding: 8px 10px; margin-bottom: 5px; border-radius: 4px; opacity: 0.85; }
-      .quoted-sender { font-weight: bold; font-size: 0.85em; color: #4CAF50; }
-      .quoted-content { font-size: 0.9em; white-space: pre-wrap; word-wrap: break-word; }
-      .video-thumb-container { position: relative; display: inline-block; }
-      .video-thumb-container img { display: block; width: 100%; max-width: 300px; border-radius: 6px; }
-      .video-thumb-container .play-button { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: white; background-color: rgba(0, 0, 0, 0.5); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; text-shadow: 1px 1px 2px black;}
-      .redacted-media-container { position: relative; width: 100%; max-width: 300px; height: 200px; background-color: #e9ecef; border-radius: 6px; margin-top: 5px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-      .redacted-bg { font-size: 50px; filter: blur(8px); opacity: 0.3; user-select: none; }
-      .redacted-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
-      .lock-icon svg { width: 32px; height: 32px; }
-      .redacted-text { font-size: 0.9em; font-weight: 500; margin-top: 8px; }
-      /* ADDED: Style for the redacted text placeholder. */
-      .redacted-text-placeholder {
-        padding: 10px;
-        background-color: #f8f9fa;
-        border: 1px dashed #dee2e6;
-        border-radius: 6px;
-        color: #6c757d;
-        font-style: italic;
-        font-size: 0.9em;
-        margin-top: 5px;
-        text-align: center;
-      }
-    </style>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; margin: 0; background-color: #E5DDD5; }
+    .chat-container { max-width: 800px; margin: auto; padding: 20px; }
+    .export-header { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #dee2e6; font-size: 0.9em; }
+    .export-header p { margin: 2px 0; color: #333; }
+    .export-header b { color: #111; }
+    .limit-notice { background-color: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; padding: 10px; margin-top: 10px; font-size: 0.85em; text-align: center; color: #856404; }
+    .message-cluster { display: flex; flex-direction: column; margin-bottom: 2px; padding: 0 9%; scroll-margin-top: 20px; }
+    .message-cluster.message-out { align-items: flex-end; }
+    .message-cluster.message-in { align-items: flex-start; }
+    .message { max-width: 65%; word-wrap: break-word; margin-bottom: 10px; }
+    .message-bubble { padding: 6px 9px; border-radius: 7.5px; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); position: relative; }
+    .message-out .message-bubble { background-color: #d9fdd3; color: #0f1010; }
+    .message-in .message-bubble { background-color: #fff; color: #111b21; }
+    .sender-name { font-size: 0.8rem; font-weight: 500; color: #028a76; margin-bottom: 4px; }
+    .message-content img, .message-content video { width: 100%; max-width: 300px; border-radius: 6px; margin-top: 5px; display: block; }
+    .message-content a { color: #0088cc; }
+    .timestamp { font-size: 0.7rem; color: #667781; display: flex; justify-content: flex-end; padding-top: 4px; }
+    .media-placeholder { padding: 10px; background-color: #f0f0f0; border: 1px dashed #ccc; border-radius: 6px; color: #888; font-style: italic; font-size: 0.9em; margin-top: 5px; text-align: center; }
+    .quoted-message-link { text-decoration: none; color: inherit; }
+    .quoted-message { background-color: #f0f2f5; border-left: 4px solid #4CAF50; padding: 8px 10px; margin-bottom: 5px; border-radius: 4px; opacity: 0.85; }
+    .quoted-sender { font-weight: bold; font-size: 0.85em; color: #4CAF50; }
+    .quoted-content { font-size: 0.9em; white-space: pre-wrap; word-wrap: break-word; }
+    .video-thumb-container { position: relative; display: inline-block; }
+    .video-thumb-container img { display: block; width: 100%; max-width: 300px; border-radius: 6px; }
+    .video-thumb-container .play-button { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: white; background-color: rgba(0, 0, 0, 0.5); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; text-shadow: 1px 1px 2px black;}
+    .redacted-media-container { position: relative; width: 100%; max-width: 300px; height: 200px; background-color: #e9ecef; border-radius: 6px; margin-top: 5px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+    .redacted-bg { font-size: 50px; filter: blur(8px); opacity: 0.3; user-select: none; }
+    .redacted-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
+    .lock-icon svg { width: 32px; height: 32px; }
+    .redacted-text { font-size: 0.9em; font-weight: 500; margin-top: 8px; }
+    .redacted-text-placeholder { padding: 10px; background-color: #f8f9fa; border: 1px dashed #dee2e6; border-radius: 6px; color: #6c757d; font-style: italic; font-size: 0.9em; margin-top: 5px; text-align: center; }
+  </style>
   `
   return `
-    <html>
-      <head>
-        <meta charset="UTF-8">
-        <title>Chat with ${_.escape(getContactName(chat.data.contact))}</title>
-        ${styles}
-      </head>
-      <body><div class="chat-container">${bodyContent}</div></body>
-    </html>
+  <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Chat with ${_.escape(getContactName(chat.data.contact))}</title>
+      ${styles}
+    </head>
+    <body><div class="chat-container">${bodyContent}</div></body>
+  </html>
   `
 }
+// ... (existing exportToHtml, exportToPdf, etc. functions remain unchanged)
 
 export const exportToHtml = async (params: ExporterParams) => {
   const { filename, setProgress, password } = params
-
   const { htmlBody, mediaMap } = await generateHtmlBody(params)
   const fullHtml = getFullHtmlDocument(htmlBody, params.chat)
 
@@ -354,7 +331,6 @@ export const exportToHtml = async (params: ExporterParams) => {
         folder?.file(mediaFilename, blob)
       }
     }
-
     zip.file(`${filename}.html`, fullHtml)
     setProgress({ value: 98, label: 'Compressing files...' })
     const zipOptions: any = { type: 'blob' }
@@ -372,7 +348,6 @@ export const exportToHtml = async (params: ExporterParams) => {
 
 export const exportToPdf = async (params: ExporterParams) => {
   const { filename, setProgress, validationRef } = params
-
   const { htmlBody, mediaMap } = await generateHtmlBody({
     ...params,
     includeMediaTypes: ['image', 'video'],
@@ -386,14 +361,15 @@ export const exportToPdf = async (params: ExporterParams) => {
     })
     return
   }
-  setProgress({ value: 92, label: 'Generating PDF document...' })
 
+  setProgress({ value: 92, label: 'Generating PDF document...' })
   const container = document.createElement('div')
   container.style.position = 'absolute'
   container.style.left = '-9999px'
   container.style.width = '800px'
   document.body.appendChild(container)
   container.innerHTML = fullHtml
+
   try {
     const canvas = await html2canvas(container, { useCORS: true, scale: 2 })
     document.body.removeChild(container)
@@ -402,8 +378,8 @@ export const exportToPdf = async (params: ExporterParams) => {
     })
 
     if (!validationRef.current) return
-    setProgress({ value: 95, label: 'Formatting PDF pages...' })
 
+    setProgress({ value: 95, label: 'Formatting PDF pages...' })
     const imgData = canvas.toDataURL('image/png')
     const pdf = new jsPDF({
       orientation: 'portrait',
@@ -418,6 +394,7 @@ export const exportToPdf = async (params: ExporterParams) => {
     const canvasHeightInPdf = canvasHeight / ratio
     let heightLeft = canvasHeightInPdf
     let position = 0
+
     pdf.addImage(
       imgData,
       'PNG',
@@ -429,6 +406,7 @@ export const exportToPdf = async (params: ExporterParams) => {
       'FAST',
     )
     heightLeft -= pdfHeight
+
     while (heightLeft > 0) {
       position = heightLeft - canvasHeightInPdf
       pdf.addPage()
@@ -444,7 +422,6 @@ export const exportToPdf = async (params: ExporterParams) => {
       )
       heightLeft -= pdfHeight
     }
-
     setProgress({ value: 98, label: 'Saving PDF file...' })
     pdf.save(`${filename}.pdf`)
   } catch (error) {
@@ -469,6 +446,7 @@ export const exportToTxt = async (params: ExporterParams) => {
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
+
     setProgress({
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
@@ -478,7 +456,6 @@ export const exportToTxt = async (params: ExporterParams) => {
     const timestamp = new Date(msg.timestamp).toLocaleString()
     let content = ''
 
-    // MODIFIED: Check for redaction first. If a message is redacted, use the placeholder.
     if (msg.isRedacted) {
       content = REDACTED_PLACEHOLDER
     } else {
@@ -520,11 +497,10 @@ export const exportToTxt = async (params: ExporterParams) => {
       )
       content = `[Quoting ${quotedSender}: "${quotedContent}"]\r\n${content}`
     }
-
     textContent += `[${timestamp}] ${sender}: ${content}\r\n\r\n`
   }
+
   if (validationRef.current) {
-    // MODIFIED: Removed the separate limit notice at the end of the file.
     const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' })
     FileSaver.saveAs(blob, `${filename}.txt`)
   }
@@ -532,7 +508,6 @@ export const exportToTxt = async (params: ExporterParams) => {
 
 export const exportToJson = async (params: ExporterParams) => {
   const { messages, chat, filename, setProgress, validationRef } = params
-
   const messageList: object[] = []
 
   for (let i = 0; i < messages.length; i++) {
@@ -543,7 +518,6 @@ export const exportToJson = async (params: ExporterParams) => {
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
 
-    // MODIFIED: Determine body content based on redaction status first.
     let bodyContent: string | null = msg.body || null
     if (msg.isRedacted) {
       bodyContent = REDACTED_PLACEHOLDER
@@ -569,7 +543,6 @@ export const exportToJson = async (params: ExporterParams) => {
         isMe: msg.contact.isMe,
       },
       type: msg.type,
-      // MODIFIED: Apply redacted content to body, and nullify other fields.
       body: bodyContent,
       caption: msg.isRedacted ? null : msg.caption || null,
       filename: msg.isRedacted ? null : msg.filename || null,
@@ -583,6 +556,7 @@ export const exportToJson = async (params: ExporterParams) => {
           : null,
     })
   }
+
   if (validationRef.current) {
     const finalJson = {
       metadata: {
@@ -590,7 +564,6 @@ export const exportToJson = async (params: ExporterParams) => {
         chatId: chat.data.id,
         exportDate: new Date().toISOString(),
         totalMessages: messages.length,
-        // MODIFIED: Removed the separate limit notice from metadata.
       },
       messages: messageList,
     }
@@ -613,11 +586,11 @@ export const exportToMarkdown = async (params: ExporterParams) => {
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
+
     setProgress({
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
-
     const senderName = msg.contact.isMe ? 'You' : getContactName(msg.contact)
     const timestamp = new Date(msg.timestamp).toLocaleString()
     mdContent += `**${_.escape(senderName)}** (*${timestamp}*)\n\n`
@@ -636,7 +609,6 @@ export const exportToMarkdown = async (params: ExporterParams) => {
     }
 
     let mdMessageContent = ''
-    // MODIFIED: Check for redaction in each case of the switch statement.
     switch (msg.type) {
       case 'chat':
         mdMessageContent = msg.isRedacted
@@ -677,11 +649,103 @@ export const exportToMarkdown = async (params: ExporterParams) => {
     }
     mdContent += `${mdMessageContent}\n\n---\n`
   }
+
   if (validationRef.current) {
-    // MODIFIED: Removed the separate limit notice from the end of the file.
     const blob = new Blob([mdContent], {
       type: 'text/markdown;charset=utf-8',
     })
     FileSaver.saveAs(blob, `${filename}.md`)
+  }
+}
+
+// ADDED: A shared helper to prepare data for CSV/XLSX to avoid code duplication.
+const prepareSheetData = (params: ExporterParams): any[] => {
+  const { messages, setProgress, validationRef } = params
+  const sheetData: any[] = []
+
+  // Define headers
+  sheetData.push([
+    'Message ID',
+    'Timestamp',
+    'Sender Name',
+    'Sender Number',
+    'Message Type',
+    'Content',
+    'Quoted Message ID',
+  ])
+
+  for (let i = 0; i < messages.length; i++) {
+    if (!validationRef.current) break
+    const msg = messages[i]
+
+    setProgress({
+      value: ((i + 1) / messages.length) * 100,
+      label: `Processing message ${i + 1} of ${messages.length}...`,
+    })
+
+    const senderName = msg.contact.isMe ? 'You' : getContactName(msg.contact)
+    const timestamp = new Date(msg.timestamp).toISOString()
+    let content = ''
+
+    if (msg.isRedacted) {
+      content = REDACTED_PLACEHOLDER
+    } else {
+      switch (msg.type) {
+        case 'chat':
+          content = msg.body
+          break
+        case 'image':
+        case 'video':
+        case 'document':
+          content = `[${msg.type.toUpperCase()}] ${msg.caption || ''}`.trim()
+          break
+        case 'ptt':
+          const duration = new Date(msg.duration * 1000)
+            .toISOString()
+            .substr(14, 5)
+          content = `[VOICE MESSAGE] Duration: ${duration}`
+          break
+        default:
+          content = `[${msg.type.toUpperCase()}]`
+          break
+      }
+    }
+
+    sheetData.push([
+      msg.id,
+      timestamp,
+      senderName,
+      msg.from,
+      msg.type,
+      content,
+      msg.quotedMsg?.id || '',
+    ])
+  }
+  return sheetData
+}
+
+// ADDED: Export function for CSV format.
+export const exportToCsv = async (params: ExporterParams) => {
+  const { filename, validationRef } = params
+  const sheetData = prepareSheetData(params)
+
+  if (validationRef.current) {
+    const worksheet = XLSX.utils.aoa_to_sheet(sheetData)
+    const csvString = XLSX.utils.sheet_to_csv(worksheet)
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
+    FileSaver.saveAs(blob, `${filename}.csv`)
+  }
+}
+
+// ADDED: Export function for XLSX format.
+export const exportToXlsx = async (params: ExporterParams) => {
+  const { filename, validationRef } = params
+  const sheetData = prepareSheetData(params)
+
+  if (validationRef.current) {
+    const worksheet = XLSX.utils.aoa_to_sheet(sheetData)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Chat Backup')
+    XLSX.writeFile(workbook, `${filename}.xlsx`)
   }
 }
