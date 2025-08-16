@@ -1,6 +1,5 @@
 .header {
-  background-color: var(--mantine-primary-color-filled-hover);
-  color: var(--mantine-color-body);
+  border-bottom: 1px solid var(--mantine-color-gray-3);
 }
 
 .footer {

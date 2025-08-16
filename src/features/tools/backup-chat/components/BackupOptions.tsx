@@ -1,14 +1,14 @@
 // src/features/tools/backup-chat/components/BackupOptions.tsx
+import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
-import { getContactName } from '@/utils/util'
+import { getContactName, showModalUpgrade } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
-  Alert,
   Avatar,
+  Badge,
   Button,
   Checkbox,
   Group,
-  Loader,
   Radio,
   Select,
   Stack,
@@ -26,20 +26,34 @@ interface Props {
 }
 
 const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
-  const {
-    form,
-    backupPreview,
-    isPreparing,
-    SUPPORTED_MESSAGE_TYPES,
-    estimatedTime,
-  } = backupHook
+  // -- MODIFIED: Removed preview-related states.
+  const { form, SUPPORTED_MESSAGE_TYPES } = backupHook
+  const license = useLicense()
   const wa = useWa()
   const [chatOptions, setChatOptions] =
     useState<{ label: string; value: string; avatar: string }[]>()
 
+  const datePresets = [
+    { value: 'today', label: 'Today', pro: false },
+    { value: 'yesterday', label: 'Yesterday', pro: false },
+    { value: 'last7', label: 'Last 7 Days', pro: false },
+    { value: 'last30', label: 'Last 30 Days', pro: true },
+    { value: 'thisMonth', label: 'This Month', pro: true },
+    { value: 'lastMonth', label: 'Last Month', pro: true },
+    { value: 'all', label: 'All Time', pro: true },
+    { value: 'custom', label: 'Custom Range...', pro: true },
+  ]
+
+  const exportFormats = [
+    { value: 'html', label: 'HTML (.zip)' },
+    { value: 'pdf', label: 'PDF' },
+    { value: 'txt', label: 'TXT' },
+    { value: 'json', label: 'JSON' },
+    { value: 'md', label: 'Markdown' },
+  ]
+
   useEffect(() => {
     if (!wa.isReady) return
-    // Fetch all user chats for the selector.
     wa.chat.list({ onlyUsers: true }).then((chats) => {
       const labelValueChats = chats.map((chat: any) => ({
         label: getContactName(chat.contact),
@@ -50,17 +64,16 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
     })
   }, [wa.isReady])
 
-  // Helper to format bytes into KB, MB, GB.
-  const formatBytes = (bytes: number, decimals = 2) => {
-    if (bytes === 0) return '0 Bytes'
-    const k = 1024
-    const dm = decimals < 0 ? 0 : decimals
-    const sizes = ['Bytes', 'KB', 'MB', 'GB']
-    const i = Math.floor(Math.log(bytes) / Math.log(k))
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(dm)) + ' ' + sizes[i]
+  const handleDatePresetChange = (value: string | null) => {
+    if (!value) return
+    const option = datePresets.find((p) => p.value === value)
+    if (license.isFree() && option?.pro) {
+      showModalUpgrade()
+      return
+    }
+    form.setFieldValue('datePreset', value)
   }
 
-  // Custom renderer for select options to display avatars.
   const renderSelectOption = ({
     option,
   }: {
@@ -89,22 +102,31 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
         label="Filter by Keywords (Optional)"
         placeholder="Add keywords and press Enter"
         description="Only export messages containing any of these keywords. Case-insensitive."
-        {...form.getInputProps('keywords')}
+        value={form.values.keywords}
+        onChange={(newKeywords) => {
+          form.setFieldValue('keywords', newKeywords)
+        }}
+        error={form.errors.keywords}
         clearable
       />
       <Select
         label="Date Range"
-        data={[
-          { value: 'all', label: 'All Time' },
-          { value: 'today', label: 'Today' },
-          { value: 'yesterday', label: 'Yesterday' },
-          { value: 'last7', label: 'Last 7 Days' },
-          { value: 'last30', label: 'Last 30 Days' },
-          { value: 'thisMonth', label: 'This Month' },
-          { value: 'lastMonth', label: 'Last Month' },
-          { value: 'custom', label: 'Custom Range...' },
-        ]}
-        {...form.getInputProps('datePreset')}
+        data={datePresets}
+        value={form.values.datePreset}
+        onChange={handleDatePresetChange}
+        renderOption={({ option }) => {
+          const preset = datePresets.find((p) => p.value === option.value)
+          return (
+            <Group justify="space-between">
+              <Text>{option.label}</Text>
+              {license.isFree() && preset?.pro && (
+                <Badge size="sm" variant="light" color="teal">
+                  PRO
+                </Badge>
+              )}
+            </Group>
+          )
+        }}
       />
       {form.values.datePreset === 'custom' && (
         <DatePickerInput
@@ -118,72 +140,43 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
       <Checkbox.Group
         label="Include Message Types"
         description="Select the types of messages to include in the backup."
-        {...form.getInputProps('messageTypes')}
+        value={form.values.messageTypes}
+        onChange={(values) => {
+          form.setFieldValue('messageTypes', values)
+        }}
       >
         <Group mt="xs">
           {SUPPORTED_MESSAGE_TYPES.map((type) => (
-            <Checkbox
-              key={type}
-              value={type}
-              label={type.charAt(0).toUpperCase() + type.slice(1)}
-            />
+            <Group key={type} gap="xs">
+              <Checkbox
+                key={type}
+                value={type}
+                label={type.charAt(0).toUpperCase() + type.slice(1)}
+              />
+            </Group>
           ))}
         </Group>
       </Checkbox.Group>
-      <Radio.Group label="Format" {...form.getInputProps('exportFormat')}>
+      <Radio.Group
+        label="Format"
+        value={form.values.exportFormat}
+        onChange={(value) => {
+          form.setFieldValue('exportFormat', value)
+        }}
+      >
         <Group mt="xs">
-          <Radio size="sm" value="html" label="HTML (.zip)" />
-          <Radio size="sm" value="pdf" label="PDF" />
-          <Radio size="sm" value="txt" label="TXT" />
-          <Radio size="sm" value="json" label="JSON" />
-          <Radio size="sm" value="md" label="Markdown" />
+          {exportFormats.map((format) => (
+            <Group key={format.value} gap="xs">
+              <Radio size="sm" value={format.value} label={format.label} />
+            </Group>
+          ))}
         </Group>
       </Radio.Group>
-      {isPreparing && (
-        <Group>
-          <Loader size="xs" />
-          <Text size="sm" c="dimmed">
-            {' '}
-            Preparing preview...{' '}
-          </Text>
-        </Group>
-      )}
-      {backupPreview && !isPreparing && (
-        <Alert
-          variant="light"
-          color="blue"
-          icon={<Icon icon="tabler:info-circle" />}
-        >
-          <Stack gap="xs">
-            <Text size="sm">
-              {' '}
-              You are about to export{' '}
-              <b>{backupPreview.messageCount} message(s)</b>.{' '}
-            </Text>
-            {form.values.messageTypes.length > 0 &&
-              backupPreview.estimatedMediaSize > 0 &&
-              form.values.exportFormat === 'html' && (
-                <Text size="sm">
-                  {' '}
-                  Estimated media download size:{' '}
-                  <b>{formatBytes(backupPreview.estimatedMediaSize)}</b>.{' '}
-                </Text>
-              )}
-            {estimatedTime && (
-              <Text size="sm">
-                {' '}
-                <b>Estimated Completion Time:</b> {estimatedTime}{' '}
-              </Text>
-            )}
-          </Stack>
-        </Alert>
-      )}
-
       <Group justify="flex-end" mt={'xl'}>
         <Button
           leftSection={<Icon icon="tabler:download" />}
           onClick={onStart}
-          disabled={!form.values.chatId || isPreparing}
+          disabled={!form.values.chatId} // Simplified disable logic
         >
           Start Backup
         </Button>

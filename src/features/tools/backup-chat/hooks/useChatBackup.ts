@@ -1,4 +1,5 @@
 // src/features/tools/backup-chat/hooks/useChatBackup.ts
+import useLicense from '@/hooks/useLicense'
 import wa from '@/libs/wa'
 import toast from '@/utils/toast'
 import { getContactName } from '@/utils/util'
@@ -13,7 +14,7 @@ import {
   subMonths,
 } from 'date-fns'
 import _ from 'lodash'
-import { useEffect, useRef, useState } from 'react'
+import { useRef, useState } from 'react'
 import {
   exportToHtml,
   exportToJson,
@@ -25,22 +26,13 @@ import {
 // Supported message types for export options.
 const SUPPORTED_MESSAGE_TYPES = ['chat', 'image', 'video', 'document', 'ptt']
 
-// Interface for the backup preview data.
-interface BackupPreview {
-  messageCount: number
-  estimatedMediaSize: number // in bytes
-}
-
 export const useChatBackup = () => {
+  const license = useLicense()
   const [isBackingUp, setIsBackingUp] = useState(false)
-  const [isPreparing, setIsPreparing] = useState(false)
   const [progress, setProgress] = useState({
     value: 0,
     label: 'Initializing...',
   })
-  const [backupPreview, setBackupPreview] = useState<BackupPreview | null>(null)
-  const [filteredMessages, setFilteredMessages] = useState<any[]>([])
-  const [estimatedTime, setEstimatedTime] = useState('')
   const validationRef = useRef(true)
 
   const form = useForm({
@@ -49,7 +41,7 @@ export const useChatBackup = () => {
       exportFormat: 'html',
       messageTypes: SUPPORTED_MESSAGE_TYPES,
       keywords: [] as string[],
-      datePreset: 'all',
+      datePreset: 'today',
       dateRange: [null, null] as [Date | null, Date | null],
     },
     validate: {
@@ -61,23 +53,25 @@ export const useChatBackup = () => {
         return null
       },
     },
+    validateInputOnChange: ['keywords'],
   })
 
-  // This effect calculates the backup preview whenever filter criteria change.
-  useEffect(() => {
-    const calculatePreview = async () => {
+  const cancelBackup = () => {
+    validationRef.current = false
+  }
+
+  const startBackup = async () => {
+    if (form.validate().hasErrors) return
+
+    setIsBackingUp(true)
+    validationRef.current = true
+    setProgress({ value: 5, label: 'Fetching and filtering messages...' })
+
+    try {
       const { chatId, dateRange, keywords, messageTypes, datePreset } =
         form.values
-      if (!chatId) {
-        setBackupPreview(null)
-        setFilteredMessages([])
-        setEstimatedTime('')
-        return
-      }
 
-      setIsPreparing(true)
       let effectiveDateRange: [Date | null, Date | null] = [null, null]
-
       if (datePreset === 'custom') {
         effectiveDateRange = dateRange
       } else if (datePreset !== 'all') {
@@ -115,102 +109,64 @@ export const useChatBackup = () => {
         effectiveDateRange = [start, end]
       }
 
-      try {
-        const allMessages = await wa.chat.getMessages(chatId, { count: -1 })
-        const [startDate, endDate] = effectiveDateRange
-        const lowercasedKeywords = keywords
-          .map((k) => k.toLowerCase().trim())
-          .filter(Boolean)
+      const allMessages = await wa.chat.getMessages(chatId, { count: -1 })
 
-        const messages = allMessages.filter((msg) => {
-          const dateMatch =
-            !startDate ||
-            !endDate ||
-            isWithinInterval(new Date(msg.timestamp), {
-              start: startDate,
-              end: endDate,
-            })
-          const keywordMatch =
-            lowercasedKeywords.length === 0 ||
-            lowercasedKeywords.some(
-              (k) =>
-                (msg.body && msg.body.toLowerCase().includes(k)) ||
-                (msg.caption && msg.caption.toLowerCase().includes(k)),
-            )
-          const typeMatch = messageTypes.includes(msg.type)
-          return dateMatch && keywordMatch && typeMatch
-        })
+      let [startDate, endDate] = effectiveDateRange
 
-        const estimatedMediaSize = messages
-          .filter((msg) => messageTypes.includes(msg.type) && msg.size)
-          .reduce((acc, msg) => acc + msg.size, 0)
-
-        setFilteredMessages(messages)
-        setBackupPreview({ messageCount: messages.length, estimatedMediaSize })
-
-        if (messages.length > 0) {
-          const timeForMessages = messages.length * 0.05
-          const mediaToDownload = messages.filter(
-            (msg) => messageTypes.includes(msg.type) && msg.size,
-          ).length
-          const timeForMedia = mediaToDownload * 1.5
-          const totalSeconds = timeForMessages + timeForMedia
-
-          if (totalSeconds < 60) {
-            setEstimatedTime('Less than a minute.')
-          } else {
-            const minutes = Math.floor(totalSeconds / 60)
-            const seconds = Math.round(totalSeconds % 60)
-            let timeString = `About ${minutes} minute${minutes > 1 ? 's' : ''}`
-            if (seconds > 0) {
-              timeString += ` and ${seconds} second${seconds > 1 ? 's' : ''}`
-            }
-            setEstimatedTime(`${timeString}.`)
-          }
-        } else {
-          setEstimatedTime('')
+      if (license.isFree()) {
+        const sevenDaysAgo = startOfDay(subDays(new Date(), 7))
+        if (!startDate || startDate < sevenDaysAgo) {
+          startDate = sevenDaysAgo
         }
-      } catch (error) {
-        console.error('Failed to calculate backup preview:', error)
-        toast.error('Could not fetch messages to prepare the backup.')
-        setBackupPreview(null)
-        setFilteredMessages([])
-      } finally {
-        setIsPreparing(false)
       }
-    }
 
-    const handler = setTimeout(() => {
-      calculatePreview()
-    }, 500) // Debounce for 500ms
+      const lowercasedKeywords = keywords
+        .map((k) => k.toLowerCase().trim())
+        .filter(Boolean)
 
-    return () => {
-      clearTimeout(handler)
-    }
-  }, [
-    form.values.chatId,
-    form.values.dateRange,
-    form.values.keywords,
-    form.values.messageTypes,
-    form.values.datePreset,
-  ])
+      const filteredMessages = allMessages.filter((msg) => {
+        const dateMatch =
+          !startDate ||
+          !endDate ||
+          isWithinInterval(new Date(msg.timestamp), {
+            start: startDate,
+            end: endDate,
+          })
 
-  const cancelBackup = () => {
-    validationRef.current = false
-  }
+        const keywordMatch =
+          lowercasedKeywords.length === 0 ||
+          lowercasedKeywords.some(
+            (k) =>
+              (msg.body && msg.body.toLowerCase().includes(k)) ||
+              (msg.caption && msg.caption.toLowerCase().includes(k)),
+          )
 
-  const startBackup = async () => {
-    if (form.validate().hasErrors) return
-    if (filteredMessages.length === 0) {
-      toast.info('No messages found matching your criteria to export.')
-      return
-    }
+        const typeMatch = messageTypes.includes(msg.type)
+        return dateMatch && keywordMatch && typeMatch
+      })
 
-    setIsBackingUp(true)
-    validationRef.current = true
-    setProgress({ value: 0, label: 'Initializing backup...' })
+      if (filteredMessages.length === 0) {
+        toast.info('No messages found matching your criteria to export.')
+        setIsBackingUp(false)
+        return
+      }
 
-    try {
+      // -- MODIFIED: Apply redaction logic for free users.
+      const isLimitApplied = license.isFree() && filteredMessages.length > 10
+      const messagesToExport = isLimitApplied
+        ? filteredMessages.map((msg, index) => {
+            if (index < 10) return msg
+            // For free users, after the 10th message, redact the content
+            // and add a flag to prevent media download.
+            return {
+              ...msg,
+              body: '********',
+              caption: msg.caption ? '********' : undefined,
+              isRedacted: true, // This flag will prevent media download
+            }
+          })
+        : filteredMessages
+
       const chat = await wa.chat.find(form.values.chatId)
       // @ts-ignore
       const filename = `backup_chat_${_.snakeCase(
@@ -218,12 +174,13 @@ export const useChatBackup = () => {
       )}_${new Date().toISOString().slice(0, 10)}`
 
       const exporterParams = {
-        messages: filteredMessages,
+        messages: messagesToExport,
         chat,
         filename,
         includeMediaTypes: form.values.messageTypes,
         setProgress,
         validationRef,
+        isLimitApplied, // Pass the flag to exporters for the notice.
       }
 
       switch (form.values.exportFormat) {
@@ -261,12 +218,9 @@ export const useChatBackup = () => {
   return {
     form,
     isBackingUp,
-    isPreparing,
     progress,
     startBackup,
     cancelBackup,
-    backupPreview,
     SUPPORTED_MESSAGE_TYPES,
-    estimatedTime,
   }
 }

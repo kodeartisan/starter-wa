@@ -27,6 +27,7 @@ import React, { useEffect, useState } from 'react'
 import classes from './AppMenu.module.css'
 import Modal from './Modal/Modal'
 import ModalActivation from './Modal/ModalActivation'
+import ModalFaq from './Modal/ModalFaq'
 import ModalUpgrade from './Modal/ModalUpgrade'
 
 const AppMenu: React.FC = () => {
@@ -36,6 +37,7 @@ const AppMenu: React.FC = () => {
   const [showModalMain, modalMain] = useDisclosure(true)
   const [showModalUpgrade, modalUpgrade] = useDisclosure(false)
   const [showModalActivation, modalActivation] = useDisclosure(false)
+  const [showModalFaq, modalFaq] = useDisclosure(false)
   const [needToOpen, setNeedToOpen] = useStorage(Setting.NEED_TO_OPEN, false)
   const [activeTab, setActiveTab] = useState<string | null>(Page.HOME)
 
@@ -58,6 +60,11 @@ const AppMenu: React.FC = () => {
         break
       case Action.Window.SHOW_MODAL_ACTIVATION:
         modalActivation.toggle()
+        break
+      case Action.Window.SHOW_MODAL_FAQ:
+        modalFaq.toggle()
+        break
+      default:
         break
     }
   })
@@ -107,6 +114,10 @@ const AppMenu: React.FC = () => {
     }
     if (Page.ACTIVATE === value) {
       modalActivation.toggle()
+      return
+    }
+    if (Page.FAQ === value) {
+      modalFaq.toggle()
       return
     }
     setActiveTab(value)
@@ -253,6 +264,7 @@ const AppMenu: React.FC = () => {
         opened={showModalActivation}
         onClose={modalActivation.close}
       />
+      <ModalFaq opened={showModalFaq} onClose={modalFaq.close} />
       <BroadcastListener />
       <PrivacyListener />
     </>

@@ -11,7 +11,7 @@ const PageChatBackup: React.FC = () => {
   const backup = useChatBackup()
 
   return (
-    <LayoutPage width={600}>
+    <LayoutPage>
       <Stack>
         {backup.isBackingUp ? (
           <BackupProgress

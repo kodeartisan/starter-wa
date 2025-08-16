@@ -20,7 +20,6 @@ const ToastComponent: React.FC<ToastProps> = ({
     const timer = setTimeout(() => {
       onClose()
     }, duration)
-
     return () => clearTimeout(timer)
   }, [id, duration, onClose])
 
@@ -28,6 +27,8 @@ const ToastComponent: React.FC<ToastProps> = ({
     success: { icon: 'tabler:check', color: 'teal' },
     error: { icon: 'tabler:x', color: 'red' },
     info: { icon: 'tabler:info-circle', color: 'blue' },
+    // ADDED: Configuration for the new 'warning' type.
+    warning: { icon: 'tabler:alert-triangle', color: 'orange' },
   }
 
   const { icon, color } = toastConfig[type]
@@ -45,7 +46,6 @@ const ToastComponent: React.FC<ToastProps> = ({
         <ThemeIcon color={color} size={36} radius="xl" mt={4}>
           <Icon icon={icon} fontSize={22} />
         </ThemeIcon>
-
         <Stack gap={2} style={{ flex: 1 }}>
           <Text fw={600} size="md">
             {title}
@@ -54,7 +54,6 @@ const ToastComponent: React.FC<ToastProps> = ({
             {message}
           </Text>
         </Stack>
-
         <ActionIcon variant="transparent" color="gray" onClick={onClose}>
           <Icon icon="tabler:x" />
         </ActionIcon>

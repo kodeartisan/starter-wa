@@ -14,6 +14,8 @@ interface ExporterParams {
   includeMediaTypes: string[]
   setProgress: (progress: { value: number; label: string }) => void
   validationRef: React.MutableRefObject<boolean>
+  isLimitApplied?: boolean
+  password?: string
 }
 
 const renderQuotedMessage = (quotedMsg: any): string => {
@@ -48,10 +50,17 @@ const renderQuotedMessage = (quotedMsg: any): string => {
         <div class="quoted-content">${quotedContent}</div>
       </div>
     </a>
+    `
+}
+
+const getLimitNoticeHtml = (): string => {
+  return `
+  <div class="limit-notice">
+    <b></b> Only the first 10 messages are shown. Upgrade to Pro to view all content.
+  </div>
   `
 }
 
-// MODIFIED: This function is now enhanced to create thumbnails and better placeholders for PDF generation.
 const generateHtmlBody = async ({
   messages,
   chat,
@@ -59,6 +68,7 @@ const generateHtmlBody = async ({
   setProgress,
   validationRef,
   isForPdf = false,
+  isLimitApplied = false,
 }: ExporterParams & { isForPdf?: boolean }): Promise<{
   htmlBody: string
   mediaMap: Map<string, Blob>
@@ -68,14 +78,14 @@ const generateHtmlBody = async ({
       <p><b>Chat With:</b> ${_.escape(getContactName(chat.data.contact))}</p>
       <p><b>Export Date:</b> ${new Date().toLocaleString()}</p>
       <p><b>Total Messages Exported:</b> ${messages.length}</p>
+      ${isLimitApplied ? getLimitNoticeHtml() : ''}
     </div>
-  `
+    `
   let messagesHtml = ''
   const mediaMap = new Map<string, Blob>()
 
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
-
     const msg = messages[i]
     if (
       !['chat', 'image', 'video', 'document', 'ptt', 'location'].includes(
@@ -83,7 +93,6 @@ const generateHtmlBody = async ({
       )
     )
       continue
-
     const progressValue = ((i + 1) / messages.length) * 90 // Reserve last 10%
     setProgress({
       value: progressValue,
@@ -95,13 +104,19 @@ const generateHtmlBody = async ({
       !msg.fromMe && chat.data.isGroup
         ? msg.contact?.pushname || msg.contact?.formattedName || 'Unknown'
         : ''
+
     let mediaHtml = ''
     const isMediaMessage = ['image', 'video', 'document', 'ptt'].includes(
       msg.type,
     )
     const shouldIncludeThisMedia = includeMediaTypes.includes(msg.type)
 
-    if (isMediaMessage && shouldIncludeThisMedia && !mediaMap.has(msg.id)) {
+    if (
+      isMediaMessage &&
+      shouldIncludeThisMedia &&
+      !mediaMap.has(msg.id) &&
+      !msg.isRedacted
+    ) {
       setProgress({
         value: progressValue,
         label: `Downloading media for message ${i + 1}... (${
@@ -109,9 +124,9 @@ const generateHtmlBody = async ({
         })`,
       })
       const blob = await wa.chat.downloadMedia(msg.id)
-
       if (blob) {
         mediaMap.set(msg.id, blob)
+
         const mediaType = msg.type as 'image' | 'video' | 'document' | 'ptt'
         const extension = blob.type.split('/')[1] || 'bin'
         const mediaFilename = `${msg.id}.${extension}`
@@ -126,7 +141,6 @@ const generateHtmlBody = async ({
             }" alt="Image" />`
             break
           case 'video':
-            // MODIFIED: For PDF, generate and display a thumbnail. For HTML, use the video tag.
             if (isForPdf) {
               //@ts-ignore
               const thumb = await generateVideoThumbnail(blob)
@@ -136,7 +150,6 @@ const generateHtmlBody = async ({
             }
             break
           case 'ptt':
-            // MODIFIED: Better placeholder for PDF.
             if (isForPdf) {
               const duration = new Date(msg.duration * 1000)
                 .toISOString()
@@ -147,7 +160,6 @@ const generateHtmlBody = async ({
             }
             break
           case 'document':
-            // MODIFIED: Better placeholder for PDF.
             if (isForPdf) {
               mediaHtml = `<div class="media-placeholder">📄 ${
                 _.escape(msg.filename) || 'Document'
@@ -162,9 +174,13 @@ const generateHtmlBody = async ({
       }
     } else if (isMediaMessage) {
       const mediaType = msg.type === 'ptt' ? 'Audio' : msg.type
-      mediaHtml = `<div class="media-placeholder">[${
+      let placeholderText = `[${
         mediaType.charAt(0).toUpperCase() + mediaType.slice(1)
-      } not included]</div>`
+      } not included]`
+      if (msg.isRedacted) {
+        placeholderText = `[Upgrade to Pro to view this media]`
+      }
+      mediaHtml = `<div class="media-placeholder">${placeholderText}</div>`
     }
 
     const quotedHtml = renderQuotedMessage(msg.quotedMsg)
@@ -197,9 +213,8 @@ const generateHtmlBody = async ({
           </div>
         </div>
       </div>
-    `
+      `
   }
-
   return { htmlBody: headerHtml + messagesHtml, mediaMap }
 }
 
@@ -211,6 +226,16 @@ const getFullHtmlDocument = (bodyContent: string, chat: any) => {
       .export-header { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #dee2e6; font-size: 0.9em; }
       .export-header p { margin: 2px 0; color: #333; }
       .export-header b { color: #111; }
+      .limit-notice {
+        background-color: #fffbe6;
+        border: 1px solid #ffe58f;
+        border-radius: 4px;
+        padding: 10px;
+        margin-top: 10px;
+        font-size: 0.85em;
+        text-align: center;
+        color: #856404;
+      }
       .message-cluster { display: flex; flex-direction: column; margin-bottom: 2px; padding: 0 9%; scroll-margin-top: 20px; }
       .message-cluster.message-out { align-items: flex-end; }
       .message-cluster.message-in { align-items: flex-start; }
@@ -231,10 +256,7 @@ const getFullHtmlDocument = (bodyContent: string, chat: any) => {
       .video-thumb-container img { display: block; width: 100%; max-width: 300px; border-radius: 6px; }
       .video-thumb-container .play-button { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: white; background-color: rgba(0, 0, 0, 0.5); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; text-shadow: 1px 1px 2px black;}
     </style>
-    <script>
-      // Script for smooth scrolling to quoted messages remains the same
-    </script>
-  `
+    `
   return `
     <html>
       <head>
@@ -244,11 +266,11 @@ const getFullHtmlDocument = (bodyContent: string, chat: any) => {
       </head>
       <body><div class="chat-container">${bodyContent}</div></body>
     </html>
-  `
+    `
 }
 
 export const exportToHtml = async (params: ExporterParams) => {
-  const { filename, setProgress } = params
+  const { filename, setProgress, password } = params
   const { htmlBody, mediaMap } = await generateHtmlBody(params)
   const fullHtml = getFullHtmlDocument(htmlBody, params.chat)
 
@@ -277,11 +299,15 @@ export const exportToHtml = async (params: ExporterParams) => {
         folder?.file(mediaFilename, blob)
       }
     }
-
     zip.file(`${filename}.html`, fullHtml)
-
     setProgress({ value: 98, label: 'Compressing files...' })
-    const zipBlob = await zip.generateAsync({ type: 'blob' })
+
+    const zipOptions: any = { type: 'blob' }
+    if (password) {
+      zipOptions.password = password
+    }
+    const zipBlob = await zip.generateAsync(zipOptions)
+    //@ts-ignore
     FileSaver.saveAs(zipBlob, `${filename}.zip`)
   } else {
     const blob = new Blob([fullHtml], { type: 'text/html;charset=utf-8' })
@@ -291,7 +317,6 @@ export const exportToHtml = async (params: ExporterParams) => {
 
 export const exportToPdf = async (params: ExporterParams) => {
   const { filename, setProgress, validationRef } = params
-  // MODIFIED: Include 'video' to allow thumbnail generation.
   const { htmlBody, mediaMap } = await generateHtmlBody({
     ...params,
     includeMediaTypes: ['image', 'video'],
@@ -316,12 +341,9 @@ export const exportToPdf = async (params: ExporterParams) => {
   container.innerHTML = fullHtml
 
   try {
-    const canvas = await html2canvas(container, {
-      useCORS: true,
-      scale: 2,
-    })
-
+    const canvas = await html2canvas(container, { useCORS: true, scale: 2 })
     document.body.removeChild(container)
+
     mediaMap.forEach((blob, url) => {
       if (url.startsWith('blob:')) URL.revokeObjectURL(url)
     })
@@ -386,10 +408,15 @@ export const exportToPdf = async (params: ExporterParams) => {
   }
 }
 
-// MODIFIED: Added better media placeholders.
 export const exportToTxt = async (params: ExporterParams) => {
-  const { messages, chat, filename, setProgress, validationRef } = params
-
+  const {
+    messages,
+    chat,
+    filename,
+    setProgress,
+    validationRef,
+    isLimitApplied,
+  } = params
   let textContent = `Chat With: ${getContactName(chat.data.contact)}\r\n`
   textContent += `Export Date: ${new Date().toLocaleString()}\r\n`
   textContent += `Total Messages Exported: ${messages.length}\r\n\r\n`
@@ -401,6 +428,7 @@ export const exportToTxt = async (params: ExporterParams) => {
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
+
     const sender = msg.contact.isMe ? 'You' : getContactName(msg.contact)
     const timestamp = new Date(msg.timestamp).toLocaleString()
     let content = ''
@@ -410,28 +438,35 @@ export const exportToTxt = async (params: ExporterParams) => {
         content = msg.body
         break
       case 'image':
-        content = `[Image: ${msg.filename || 'image.jpg'}]`
+        content = msg.isRedacted
+          ? `[Upgrade to Pro to view this media]`
+          : `[Image: ${msg.filename || 'image.jpg'}]`
         if (msg.caption) content += `\r\n${msg.caption}`
         break
       case 'video':
-        content = `[Video: ${msg.filename || 'video.mp4'}]`
+        content = msg.isRedacted
+          ? `[Upgrade to Pro to view this media]`
+          : `[Video: ${msg.filename || 'video.mp4'}]`
         if (msg.caption) content += `\r\n${msg.caption}`
         break
       case 'document':
-        content = `[Document: ${msg.filename || 'file'}]`
+        content = msg.isRedacted
+          ? `[Upgrade to Pro to view this media]`
+          : `[Document: ${msg.filename || 'file'}]`
         if (msg.caption) content += `\r\n${msg.caption}`
         break
       case 'ptt':
         const duration = new Date(msg.duration * 1000)
           .toISOString()
           .substr(14, 5)
-        content = `[Voice Message: ${duration}]`
+        content = msg.isRedacted
+          ? `[Upgrade to Pro to view this media]`
+          : `[Voice Message: ${duration}]`
         break
       default:
         content = `[${msg.type}]`
         break
     }
-
     if (msg.quotedMsg) {
       const quotedSender = msg.quotedMsg.sender.isMe
         ? 'You'
@@ -447,14 +482,23 @@ export const exportToTxt = async (params: ExporterParams) => {
   }
 
   if (validationRef.current) {
+    if (isLimitApplied) {
+      textContent += `\r\n\r\n---\r\nUpgrade to Pro to view all content.\r\n---`
+    }
     const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' })
     FileSaver.saveAs(blob, `${filename}.txt`)
   }
 }
 
-// MODIFIED: Added better media placeholders.
 export const exportToJson = async (params: ExporterParams) => {
-  const { messages, chat, filename, setProgress, validationRef } = params
+  const {
+    messages,
+    chat,
+    filename,
+    setProgress,
+    validationRef,
+    isLimitApplied,
+  } = params
   const messageList: object[] = []
 
   for (let i = 0; i < messages.length; i++) {
@@ -464,19 +508,25 @@ export const exportToJson = async (params: ExporterParams) => {
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
+
     let bodyContent = msg.body || null
     if (msg.type !== 'chat') {
-      let placeholder = `[${msg.type}]`
-      if (msg.filename) {
-        placeholder = `[${msg.type}: ${msg.filename}]`
-      } else if (msg.type === 'ptt' && msg.duration) {
-        const duration = new Date(msg.duration * 1000)
-          .toISOString()
-          .substr(14, 5)
-        placeholder = `[Voice Message: ${duration}]`
+      if (msg.isRedacted) {
+        bodyContent = `[Upgrade to Pro to view this media]`
+      } else {
+        let placeholder = `[${msg.type}]`
+        if (msg.filename) {
+          placeholder = `[${msg.type}: ${msg.filename}]`
+        } else if (msg.type === 'ptt' && msg.duration) {
+          const duration = new Date(msg.duration * 1000)
+            .toISOString()
+            .substr(14, 5)
+          placeholder = `[Voice Message: ${duration}]`
+        }
+        bodyContent = placeholder
       }
-      bodyContent = placeholder
     }
+
     messageList.push({
       id: msg.id,
       timestamp: new Date(msg.timestamp).toISOString(),
@@ -488,7 +538,7 @@ export const exportToJson = async (params: ExporterParams) => {
       type: msg.type,
       body: bodyContent,
       caption: msg.caption || null,
-      filename: msg.filename || null,
+      filename: msg.isRedacted ? null : msg.filename || null,
       quotedMessage: msg.quotedMsg
         ? {
             id: msg.quotedMsg.id,
@@ -506,6 +556,10 @@ export const exportToJson = async (params: ExporterParams) => {
         chatId: chat.data.id,
         exportDate: new Date().toISOString(),
         totalMessages: messages.length,
+        ...(isLimitApplied && {
+          notice:
+            'Free Preview Limit Reached. Upgrade to Pro for full content.',
+        }),
       },
       messages: messageList,
     }
@@ -517,10 +571,15 @@ export const exportToJson = async (params: ExporterParams) => {
   }
 }
 
-// MODIFIED: Added better media placeholders.
 export const exportToMarkdown = async (params: ExporterParams) => {
-  const { messages, chat, filename, setProgress, validationRef } = params
-
+  const {
+    messages,
+    chat,
+    filename,
+    setProgress,
+    validationRef,
+    isLimitApplied,
+  } = params
   let mdContent = `# Chat with: ${getContactName(chat.data.contact)}\n\n`
   mdContent += `**Export Date:** ${new Date().toLocaleString()}\n`
   mdContent += `**Total Messages:** ${messages.length}\n\n---\n\n`
@@ -532,10 +591,11 @@ export const exportToMarkdown = async (params: ExporterParams) => {
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
+
     const senderName = msg.contact.isMe ? 'You' : getContactName(msg.contact)
     const timestamp = new Date(msg.timestamp).toLocaleString()
-    mdContent += `**${_.escape(senderName)}** (*${timestamp}*)\n\n`
 
+    mdContent += `**${_.escape(senderName)}** (*${timestamp}*)\n\n`
     if (msg.quotedMsg) {
       const quotedSenderName = msg.quotedMsg.sender.isMe
         ? 'You'
@@ -548,36 +608,49 @@ export const exportToMarkdown = async (params: ExporterParams) => {
         quotedBody,
       )}\n\n`
     }
+
     let mdMessageContent = ''
     switch (msg.type) {
       case 'chat':
         mdMessageContent = msg.body.replace(/\n/g, ' \n') // Markdown line breaks
         break
       case 'image':
-        mdMessageContent = `*Image: \`${_.escape(msg.filename)}\`*`
+        mdMessageContent = msg.isRedacted
+          ? `*[Upgrade to Pro to view this media]*`
+          : `*Image: \`${_.escape(msg.filename)}\`*`
         if (msg.caption) mdMessageContent += `\n> ${_.escape(msg.caption)}`
         break
       case 'video':
-        mdMessageContent = `*Video: \`${_.escape(msg.filename)}\`*`
+        mdMessageContent = msg.isRedacted
+          ? `*[Upgrade to Pro to view this media]*`
+          : `*Video: \`${_.escape(msg.filename)}\`*`
         if (msg.caption) mdMessageContent += `\n> ${_.escape(msg.caption)}`
         break
       case 'document':
-        mdMessageContent = `*Document: \`${_.escape(msg.filename)}\`*`
+        mdMessageContent = msg.isRedacted
+          ? `*[Upgrade to Pro to view this media]*`
+          : `*Document: \`${_.escape(msg.filename)}\`*`
         if (msg.caption) mdMessageContent += `\n> ${_.escape(msg.caption)}`
         break
       case 'ptt':
         const duration = new Date(msg.duration * 1000)
           .toISOString()
           .substr(14, 5)
-        mdMessageContent = `*Voice Message (${duration})*`
+        mdMessageContent = msg.isRedacted
+          ? `*[Upgrade to Pro to view this media]*`
+          : `*Voice Message (${duration})*`
         break
       default:
         mdMessageContent = `*[Unsupported message type: ${msg.type}]*`
     }
+
     mdContent += `${mdMessageContent}\n\n---\n`
   }
 
   if (validationRef.current) {
+    if (isLimitApplied) {
+      mdContent += `\n---\n** Only the first 10 messages are shown. Upgrade to Pro to view all content.\n---\n`
+    }
     const blob = new Blob([mdContent], {
       type: 'text/markdown;charset=utf-8',
     })
