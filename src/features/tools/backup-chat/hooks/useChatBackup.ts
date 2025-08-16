@@ -26,11 +26,11 @@ import {
 // Supported message types for export options.
 const SUPPORTED_MESSAGE_TYPES = ['chat', 'image', 'video', 'document', 'ptt']
 
-// ADDED: Define a type for the backup result stats.
+// Define a type for the backup result stats.
 export interface BackupResultStats {
   messagesExported: number
-  messagesOmitted: number
-  mediaOmitted: number
+  messagesOmitted: number // Note: For the UI, this now represents "redacted" messages.
+  mediaOmitted: number // Note: For the UI, this now represents "redacted" media.
   isLimitApplied: boolean
 }
 
@@ -42,15 +42,7 @@ export const useChatBackup = () => {
     label: 'Initializing...',
   })
   const validationRef = useRef(true)
-
-  // ADDED: State for chat analysis.
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [analysisResult, setAnalysisResult] = useState<{
-    totalMessages: number
-    totalMedia: number
-  } | null>(null)
-
-  // ADDED: State for backup result.
+  // State for backup result.
   const [backupResult, setBackupResult] = useState<BackupResultStats | null>(
     null,
   )
@@ -76,37 +68,11 @@ export const useChatBackup = () => {
     validateInputOnChange: ['keywords'],
   })
 
-  // ADDED: Smart chat analysis function.
-  const analyzeChat = async (chatId: string) => {
-    if (!chatId) {
-      setAnalysisResult(null)
-      return
-    }
-    setIsAnalyzing(true)
-    setAnalysisResult(null)
-    try {
-      // Use WPP to get all messages for the selected chat.
-      const messages = await wa.chat.getMessages(chatId, { count: -1 })
-      const mediaMessages = messages.filter((msg) =>
-        ['image', 'video', 'document', 'ptt'].includes(msg.type),
-      )
-      setAnalysisResult({
-        totalMessages: messages.length,
-        totalMedia: mediaMessages.length,
-      })
-    } catch (error) {
-      console.error('Chat analysis failed:', error)
-      toast.error('Could not analyze the selected chat.')
-    } finally {
-      setIsAnalyzing(false)
-    }
-  }
-
   const cancelBackup = () => {
     validationRef.current = false
   }
 
-  // ADDED: Function to clear the result screen and go back to options.
+  // Function to clear the result screen and go back to options.
   const clearBackupResult = () => {
     setBackupResult(null)
     form.reset()
@@ -117,7 +83,6 @@ export const useChatBackup = () => {
     setIsBackingUp(true)
     validationRef.current = true
     setProgress({ value: 5, label: 'Fetching and filtering messages...' })
-
     let resultStats: BackupResultStats = {
       messagesExported: 0,
       messagesOmitted: 0,
@@ -128,8 +93,8 @@ export const useChatBackup = () => {
     try {
       const { chatId, dateRange, keywords, messageTypes, datePreset } =
         form.values
-      let effectiveDateRange: [Date | null, Date | null] = [null, null]
 
+      let effectiveDateRange: [Date | null, Date | null] = [null, null]
       if (datePreset === 'custom') {
         effectiveDateRange = dateRange
       } else if (datePreset !== 'all') {
@@ -168,6 +133,7 @@ export const useChatBackup = () => {
       }
 
       const allMessages = await wa.chat.getMessages(chatId, { count: -1 })
+
       let [startDate, endDate] = effectiveDateRange
 
       if (license.isFree()) {
@@ -189,6 +155,7 @@ export const useChatBackup = () => {
             start: startDate,
             end: endDate,
           })
+
         const keywordMatch =
           lowercasedKeywords.length === 0 ||
           lowercasedKeywords.some(
@@ -207,21 +174,31 @@ export const useChatBackup = () => {
       }
 
       const isLimitApplied = license.isFree() && filteredMessages.length > 10
-      const messagesToExport = isLimitApplied
-        ? filteredMessages.slice(0, 10)
-        : filteredMessages
 
-      const originalMediaCount = filteredMessages.filter((msg) =>
-        ['image', 'video', 'document', 'ptt'].includes(msg.type),
-      ).length
-      const exportedMediaCount = messagesToExport.filter((msg) =>
-        ['image', 'video', 'document', 'ptt'].includes(msg.type),
-      ).length
+      // MODIFIED: Instead of slicing the array, we now map over it and add an `isRedacted` property.
+      // This allows the export utilities to render a placeholder for content beyond the free limit.
+      const messagesToExport = filteredMessages.map((msg, index) => ({
+        ...msg,
+        isRedacted: isLimitApplied && index >= 10,
+      }))
+
+      // MODIFIED: The result stats are calculated to be consistent with the UI's messaging.
+      // "messagesOmitted" and "mediaOmitted" now refer to items that will be redacted in the export file.
+      const messagesOmittedCount = isLimitApplied
+        ? filteredMessages.length - 10
+        : 0
+      const mediaOmittedCount = isLimitApplied
+        ? filteredMessages
+            .slice(10)
+            .filter((msg) =>
+              ['image', 'video', 'document', 'ptt'].includes(msg.type),
+            ).length
+        : 0
 
       resultStats = {
-        messagesExported: messagesToExport.length,
-        messagesOmitted: filteredMessages.length - messagesToExport.length,
-        mediaOmitted: originalMediaCount - exportedMediaCount,
+        messagesExported: filteredMessages.length - messagesOmittedCount,
+        messagesOmitted: messagesOmittedCount,
+        mediaOmitted: mediaOmittedCount,
         isLimitApplied: isLimitApplied,
       }
 
@@ -232,13 +209,13 @@ export const useChatBackup = () => {
       )}_${new Date().toISOString().slice(0, 10)}`
 
       const exporterParams = {
-        messages: messagesToExport,
+        messages: messagesToExport, // MODIFIED: Pass the full array with redaction flags.
         chat,
         filename,
         includeMediaTypes: form.values.messageTypes,
         setProgress,
         validationRef,
-        isLimitApplied,
+        isLimitApplied, // This flag is now used by exporters to know if any redaction happened.
       }
 
       switch (form.values.exportFormat) {
@@ -259,9 +236,7 @@ export const useChatBackup = () => {
           await exportToHtml(exporterParams)
           break
       }
-
       if (validationRef.current) {
-        // MODIFIED: Use different toasts based on result.
         if (isLimitApplied) {
           toast.warning(
             'Backup Incomplete',
@@ -270,7 +245,7 @@ export const useChatBackup = () => {
         } else {
           toast.success('Backup completed successfully!')
         }
-        setBackupResult(resultStats) // ADDED: Set result for the UI.
+        setBackupResult(resultStats)
       } else {
         toast.info('Backup cancelled by user.')
       }
@@ -290,10 +265,6 @@ export const useChatBackup = () => {
     startBackup,
     cancelBackup,
     SUPPORTED_MESSAGE_TYPES,
-    // ADDED exports
-    isAnalyzing,
-    analysisResult,
-    analyzeChat,
     backupResult,
     clearBackupResult,
   }

@@ -2,15 +2,34 @@
 import Modal from '@/components/Modal/Modal'
 import plans from '@/config/plans'
 import { showModalActivation } from '@/utils/util'
-import { Anchor, Button, Card, Group, Stack, Text, Title } from '@mantine/core'
+// ADDED: Import hooks for state and side effects.
+import { Icon } from '@iconify/react'
+import {
+  Anchor,
+  Button,
+  Card,
+  Group,
+  Stack,
+  Text,
+  ThemeIcon,
+  Title,
+} from '@mantine/core'
 import { useForm } from '@mantine/form'
 import _ from 'lodash'
-import React from 'react'
+// ADDED: Import useEffect and useState for the timer.
+import React, { useEffect, useState } from 'react'
 import { When } from 'react-if'
 
 interface Props {
   opened: boolean
   onClose: () => void
+}
+
+// ADDED: A type for the time left.
+interface TimeLeft {
+  hours: number
+  minutes: number
+  seconds: number
 }
 
 const defaultValues = {
@@ -21,6 +40,60 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
   const form = useForm({
     initialValues: defaultValues,
   })
+
+  // ADDED: State to manage the countdown timer.
+  const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(null)
+
+  // ADDED: useEffect to manage the countdown logic.
+  useEffect(() => {
+    if (!opened) return
+
+    const getOfferEndTime = (): number => {
+      const storedEndTime = localStorage.getItem('offerEndTime')
+      if (storedEndTime) {
+        const endTime = parseInt(storedEndTime, 10)
+        // If the stored time is in the past, create a new one.
+        if (endTime > Date.now()) {
+          return endTime
+        }
+      }
+      // Set a new 24-hour offer window.
+      const newEndTime = Date.now() + 24 * 60 * 60 * 1000
+      localStorage.setItem('offerEndTime', newEndTime.toString())
+      return newEndTime
+    }
+
+    const offerEndTime = getOfferEndTime()
+
+    const calculateTimeLeft = (): TimeLeft | null => {
+      const difference = offerEndTime - Date.now()
+      if (difference > 0) {
+        return {
+          hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+          minutes: Math.floor((difference / 1000 / 60) % 60),
+          seconds: Math.floor((difference / 1000) % 60),
+        }
+      }
+      return null
+    }
+
+    const timer = setInterval(() => {
+      const newTimeLeft = calculateTimeLeft()
+      if (newTimeLeft) {
+        setTimeLeft(newTimeLeft)
+      } else {
+        clearInterval(timer)
+        localStorage.removeItem('offerEndTime') // Clear expired timer
+        setTimeLeft(null)
+      }
+    }, 1000)
+
+    // Initial calculation
+    setTimeLeft(calculateTimeLeft())
+
+    // Cleanup interval on component unmount or when modal closes.
+    return () => clearInterval(timer)
+  }, [opened])
 
   const handleOnClose = () => {
     form.reset()
@@ -40,7 +113,20 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
               <Stack justify="space-between" gap={2}>
                 <Group justify="space-between">
                   <Stack gap={0}>
-                    <Title order={2}>{plan.name}</Title>
+                    <When condition={!plan.isFree}>
+                      <Group gap="xs">
+                        <Title order={2}>{plan.name}</Title>
+                        <ThemeIcon variant="light" color="yellow" radius="sm">
+                          <Icon icon="tabler:star" />
+                        </ThemeIcon>
+                        <Text fw={600} c="yellow.8" size="sm">
+                          User's Choice
+                        </Text>
+                      </Group>
+                    </When>
+                    <When condition={plan.isFree}>
+                      <Title order={2}>{plan.name}</Title>
+                    </When>
                     <Text fw={500}>{plan.description}</Text>
                   </Stack>
                 </Group>
@@ -49,9 +135,7 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
                     <Title
                       order={3}
                       c={'dimmed'}
-                      style={{
-                        textDecorationLine: 'line-through',
-                      }}
+                      style={{ textDecorationLine: 'line-through' }}
                       mb={3}
                     >
                       {plan.placeholderPrice}
@@ -69,7 +153,7 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
             {plan.isFree ? (
               <Button size="sm" mt={'lg'}>
                 {' '}
-                Free{' '}
+                Continue with Basic{' '}
               </Button>
             ) : (
               <Button
@@ -106,9 +190,34 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
               Select the right plan for you business. Upgrade or downgrade at
               any time.{' '}
             </Text>
+
+            {timeLeft && (
+              <Group
+                gap="xs"
+                mt="sm"
+                p="xs"
+                style={{
+                  backgroundColor: 'var(--mantine-color-red-0)',
+                  borderRadius: 'var(--mantine-radius-md)',
+                }}
+              >
+                <Icon
+                  icon="tabler:clock-hour-4"
+                  color="var(--mantine-color-red-7)"
+                />
+                <Text c="red.7" size="sm" fw={600}>
+                  Limited Time Offer! Special price ends in:{' '}
+                  {timeLeft &&
+                    `${String(timeLeft.hours).padStart(2, '0')}:${String(timeLeft.minutes).padStart(2, '0')}:${String(timeLeft.seconds).padStart(2, '0')}`}
+                </Text>
+              </Group>
+            )}
+            <Text c="dimmed" size="sm" mt="xs">
+              {' '}
+              Join 1,000+ users who have secured their chat history.{' '}
+            </Text>
           </Stack>
           {renderPlans()}
-
           <Group justify="center">
             <Text size="sm">Already have a license key?</Text>
             <Anchor
@@ -118,7 +227,8 @@ const ModalUpgrade: React.FC<Props> = ({ opened, onClose }: Props) => {
               onClick={handleActivateClick}
             >
               <Text fw={500} size="sm">
-                Activate it here
+                {' '}
+                Activate it here{' '}
               </Text>
             </Anchor>
           </Group>

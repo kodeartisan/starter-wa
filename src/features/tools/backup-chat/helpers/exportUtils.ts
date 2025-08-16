@@ -8,7 +8,7 @@ import JSZip from 'jszip'
 import _ from 'lodash'
 
 interface ExporterParams {
-  messages: any[]
+  messages: any[] // Messages now include an `isRedacted` property
   chat: any
   filename: string
   includeMediaTypes: string[]
@@ -18,12 +18,17 @@ interface ExporterParams {
   password?: string
 }
 
+// ADDED: A constant for the redaction placeholder to ensure consistency.
+const REDACTED_PLACEHOLDER = '********'
+
 const renderQuotedMessage = (quotedMsg: any): string => {
   if (!quotedMsg) return ''
+
   const quotedSenderName = quotedMsg.sender.isMe
     ? 'You'
     : getContactName(quotedMsg.sender)
   let quotedContent = ''
+
   switch (quotedMsg.type) {
     case 'chat':
       quotedContent = _.escape(quotedMsg.body)
@@ -50,15 +55,46 @@ const renderQuotedMessage = (quotedMsg: any): string => {
         <div class="quoted-content">${quotedContent}</div>
       </div>
     </a>
-    `
+  `
 }
 
+// This function is no longer needed for the header, as redaction is inline.
+// It can be removed if not used elsewhere, but we'll leave it for now to be safe.
 const getLimitNoticeHtml = (): string => {
   return `
-  <div class="limit-notice">
-    <b></b> Only the first 10 messages are shown. Upgrade to Pro to view all content.
-  </div>
+    <div class="limit-notice">
+      <b></b> Only the first 10 messages are shown. Upgrade to Pro to view all content.
+    </div>
   `
+}
+
+const getRedactedMediaHtml = (type: string): string => {
+  const iconMap: { [key: string]: string } = {
+    image: '🖼️',
+    video: '🎬',
+    document: '📄',
+    ptt: '🎵',
+  }
+  const icon = iconMap[type] || '🔒'
+  return `
+    <div class="redacted-media-container">
+      <div class="redacted-bg">${icon}</div>
+      <div class="redacted-overlay">
+        <div class="lock-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <div class="redacted-text">Upgrade to Pro to view</div>
+      </div>
+    </div>
+  `
+}
+
+// ADDED: A helper to generate a consistent placeholder for redacted text messages in HTML.
+const getRedactedTextHtml = (): string => {
+  return `<div class="redacted-text-placeholder">${REDACTED_PLACEHOLDER}</div>`
 }
 
 const generateHtmlBody = async ({
@@ -68,7 +104,7 @@ const generateHtmlBody = async ({
   setProgress,
   validationRef,
   isForPdf = false,
-  isLimitApplied = false,
+  isLimitApplied = false, // Keep receiving this to know if redaction happened.
 }: ExporterParams & { isForPdf?: boolean }): Promise<{
   htmlBody: string
   mediaMap: Map<string, Blob>
@@ -78,9 +114,13 @@ const generateHtmlBody = async ({
       <p><b>Chat With:</b> ${_.escape(getContactName(chat.data.contact))}</p>
       <p><b>Export Date:</b> ${new Date().toLocaleString()}</p>
       <p><b>Total Messages Exported:</b> ${messages.length}</p>
-      ${isLimitApplied ? getLimitNoticeHtml() : ''}
+      ${
+        isLimitApplied
+          ? '<p style="color: #d9534f;"><b>Notice:</b>Upgrade to Pro to save all messages and media.</p>'
+          : ''
+      }
     </div>
-    `
+  `
   let messagesHtml = ''
   const mediaMap = new Map<string, Blob>()
 
@@ -93,6 +133,7 @@ const generateHtmlBody = async ({
       )
     )
       continue
+
     const progressValue = ((i + 1) / messages.length) * 90 // Reserve last 10%
     setProgress({
       value: progressValue,
@@ -126,7 +167,6 @@ const generateHtmlBody = async ({
       const blob = await wa.chat.downloadMedia(msg.id)
       if (blob) {
         mediaMap.set(msg.id, blob)
-
         const mediaType = msg.type as 'image' | 'video' | 'document' | 'ptt'
         const extension = blob.type.split('/')[1] || 'bin'
         const mediaFilename = `${msg.id}.${extension}`
@@ -173,18 +213,25 @@ const generateHtmlBody = async ({
         }
       }
     } else if (isMediaMessage) {
-      const mediaType = msg.type === 'ptt' ? 'Audio' : msg.type
-      let placeholderText = `[${
-        mediaType.charAt(0).toUpperCase() + mediaType.slice(1)
-      } not included]`
       if (msg.isRedacted) {
-        placeholderText = `[Upgrade to Pro to view this media]`
+        mediaHtml = getRedactedMediaHtml(msg.type)
+      } else {
+        const mediaType = msg.type === 'ptt' ? 'Audio' : msg.type
+        let placeholderText = `[${
+          mediaType.charAt(0).toUpperCase() + mediaType.slice(1)
+        } not included]`
+        mediaHtml = `<div class="media-placeholder">${placeholderText}</div>`
       }
-      mediaHtml = `<div class="media-placeholder">${placeholderText}</div>`
     }
 
-    const quotedHtml = renderQuotedMessage(msg.quotedMsg)
+    // MODIFIED: Use a variable to hold either the real content or the redacted placeholder.
+    const messageBodyHtml = msg.isRedacted
+      ? getRedactedTextHtml()
+      : `<span>${
+          _.escape(msg.type === 'chat' ? msg.body : msg.caption) ?? ''
+        }</span>`
 
+    const quotedHtml = renderQuotedMessage(msg.quotedMsg)
     messagesHtml += `
       <div class="message-cluster message-${direction}" id="message-${msg.id}">
         <div class="message">
@@ -197,9 +244,7 @@ const generateHtmlBody = async ({
             <div class="message-content">
               ${quotedHtml}
               ${mediaHtml}
-              <span>${
-                _.escape(msg.type === 'chat' ? msg.body : msg.caption) ?? ''
-              }</span>
+              ${messageBodyHtml}
               <span class="timestamp">${new Date(
                 msg.timestamp,
               ).toLocaleTimeString([], {
@@ -213,8 +258,9 @@ const generateHtmlBody = async ({
           </div>
         </div>
       </div>
-      `
+    `
   }
+
   return { htmlBody: headerHtml + messagesHtml, mediaMap }
 }
 
@@ -226,16 +272,7 @@ const getFullHtmlDocument = (bodyContent: string, chat: any) => {
       .export-header { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #dee2e6; font-size: 0.9em; }
       .export-header p { margin: 2px 0; color: #333; }
       .export-header b { color: #111; }
-      .limit-notice {
-        background-color: #fffbe6;
-        border: 1px solid #ffe58f;
-        border-radius: 4px;
-        padding: 10px;
-        margin-top: 10px;
-        font-size: 0.85em;
-        text-align: center;
-        color: #856404;
-      }
+      .limit-notice { background-color: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; padding: 10px; margin-top: 10px; font-size: 0.85em; text-align: center; color: #856404; }
       .message-cluster { display: flex; flex-direction: column; margin-bottom: 2px; padding: 0 9%; scroll-margin-top: 20px; }
       .message-cluster.message-out { align-items: flex-end; }
       .message-cluster.message-in { align-items: flex-start; }
@@ -255,8 +292,25 @@ const getFullHtmlDocument = (bodyContent: string, chat: any) => {
       .video-thumb-container { position: relative; display: inline-block; }
       .video-thumb-container img { display: block; width: 100%; max-width: 300px; border-radius: 6px; }
       .video-thumb-container .play-button { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: white; background-color: rgba(0, 0, 0, 0.5); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; text-shadow: 1px 1px 2px black;}
+      .redacted-media-container { position: relative; width: 100%; max-width: 300px; height: 200px; background-color: #e9ecef; border-radius: 6px; margin-top: 5px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+      .redacted-bg { font-size: 50px; filter: blur(8px); opacity: 0.3; user-select: none; }
+      .redacted-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
+      .lock-icon svg { width: 32px; height: 32px; }
+      .redacted-text { font-size: 0.9em; font-weight: 500; margin-top: 8px; }
+      /* ADDED: Style for the redacted text placeholder. */
+      .redacted-text-placeholder {
+        padding: 10px;
+        background-color: #f8f9fa;
+        border: 1px dashed #dee2e6;
+        border-radius: 6px;
+        color: #6c757d;
+        font-style: italic;
+        font-size: 0.9em;
+        margin-top: 5px;
+        text-align: center;
+      }
     </style>
-    `
+  `
   return `
     <html>
       <head>
@@ -266,11 +320,12 @@ const getFullHtmlDocument = (bodyContent: string, chat: any) => {
       </head>
       <body><div class="chat-container">${bodyContent}</div></body>
     </html>
-    `
+  `
 }
 
 export const exportToHtml = async (params: ExporterParams) => {
   const { filename, setProgress, password } = params
+
   const { htmlBody, mediaMap } = await generateHtmlBody(params)
   const fullHtml = getFullHtmlDocument(htmlBody, params.chat)
 
@@ -299,9 +354,9 @@ export const exportToHtml = async (params: ExporterParams) => {
         folder?.file(mediaFilename, blob)
       }
     }
+
     zip.file(`${filename}.html`, fullHtml)
     setProgress({ value: 98, label: 'Compressing files...' })
-
     const zipOptions: any = { type: 'blob' }
     if (password) {
       zipOptions.password = password
@@ -317,6 +372,7 @@ export const exportToHtml = async (params: ExporterParams) => {
 
 export const exportToPdf = async (params: ExporterParams) => {
   const { filename, setProgress, validationRef } = params
+
   const { htmlBody, mediaMap } = await generateHtmlBody({
     ...params,
     includeMediaTypes: ['image', 'video'],
@@ -330,7 +386,6 @@ export const exportToPdf = async (params: ExporterParams) => {
     })
     return
   }
-
   setProgress({ value: 92, label: 'Generating PDF document...' })
 
   const container = document.createElement('div')
@@ -339,17 +394,14 @@ export const exportToPdf = async (params: ExporterParams) => {
   container.style.width = '800px'
   document.body.appendChild(container)
   container.innerHTML = fullHtml
-
   try {
     const canvas = await html2canvas(container, { useCORS: true, scale: 2 })
     document.body.removeChild(container)
-
     mediaMap.forEach((blob, url) => {
       if (url.startsWith('blob:')) URL.revokeObjectURL(url)
     })
 
     if (!validationRef.current) return
-
     setProgress({ value: 95, label: 'Formatting PDF pages...' })
 
     const imgData = canvas.toDataURL('image/png')
@@ -366,7 +418,6 @@ export const exportToPdf = async (params: ExporterParams) => {
     const canvasHeightInPdf = canvasHeight / ratio
     let heightLeft = canvasHeightInPdf
     let position = 0
-
     pdf.addImage(
       imgData,
       'PNG',
@@ -378,7 +429,6 @@ export const exportToPdf = async (params: ExporterParams) => {
       'FAST',
     )
     heightLeft -= pdfHeight
-
     while (heightLeft > 0) {
       position = heightLeft - canvasHeightInPdf
       pdf.addPage()
@@ -394,6 +444,7 @@ export const exportToPdf = async (params: ExporterParams) => {
       )
       heightLeft -= pdfHeight
     }
+
     setProgress({ value: 98, label: 'Saving PDF file...' })
     pdf.save(`${filename}.pdf`)
   } catch (error) {
@@ -409,14 +460,8 @@ export const exportToPdf = async (params: ExporterParams) => {
 }
 
 export const exportToTxt = async (params: ExporterParams) => {
-  const {
-    messages,
-    chat,
-    filename,
-    setProgress,
-    validationRef,
-    isLimitApplied,
-  } = params
+  const { messages, chat, filename, setProgress, validationRef } = params
+
   let textContent = `Chat With: ${getContactName(chat.data.contact)}\r\n`
   textContent += `Export Date: ${new Date().toLocaleString()}\r\n`
   textContent += `Total Messages Exported: ${messages.length}\r\n\r\n`
@@ -433,41 +478,39 @@ export const exportToTxt = async (params: ExporterParams) => {
     const timestamp = new Date(msg.timestamp).toLocaleString()
     let content = ''
 
-    switch (msg.type) {
-      case 'chat':
-        content = msg.body
-        break
-      case 'image':
-        content = msg.isRedacted
-          ? `[Upgrade to Pro to view this media]`
-          : `[Image: ${msg.filename || 'image.jpg'}]`
-        if (msg.caption) content += `\r\n${msg.caption}`
-        break
-      case 'video':
-        content = msg.isRedacted
-          ? `[Upgrade to Pro to view this media]`
-          : `[Video: ${msg.filename || 'video.mp4'}]`
-        if (msg.caption) content += `\r\n${msg.caption}`
-        break
-      case 'document':
-        content = msg.isRedacted
-          ? `[Upgrade to Pro to view this media]`
-          : `[Document: ${msg.filename || 'file'}]`
-        if (msg.caption) content += `\r\n${msg.caption}`
-        break
-      case 'ptt':
-        const duration = new Date(msg.duration * 1000)
-          .toISOString()
-          .substr(14, 5)
-        content = msg.isRedacted
-          ? `[Upgrade to Pro to view this media]`
-          : `[Voice Message: ${duration}]`
-        break
-      default:
-        content = `[${msg.type}]`
-        break
+    // MODIFIED: Check for redaction first. If a message is redacted, use the placeholder.
+    if (msg.isRedacted) {
+      content = REDACTED_PLACEHOLDER
+    } else {
+      switch (msg.type) {
+        case 'chat':
+          content = msg.body
+          break
+        case 'image':
+          content = `[Image: ${msg.filename || 'image.jpg'}]`
+          if (msg.caption) content += `\r\n${msg.caption}`
+          break
+        case 'video':
+          content = `[Video: ${msg.filename || 'video.mp4'}]`
+          if (msg.caption) content += `\r\n${msg.caption}`
+          break
+        case 'document':
+          content = `[Document: ${msg.filename || 'file'}]`
+          if (msg.caption) content += `\r\n${msg.caption}`
+          break
+        case 'ptt':
+          const duration = new Date(msg.duration * 1000)
+            .toISOString()
+            .substr(14, 5)
+          content = `[Voice Message: ${duration}]`
+          break
+        default:
+          content = `[${msg.type}]`
+          break
+      }
     }
-    if (msg.quotedMsg) {
+
+    if (msg.quotedMsg && !msg.isRedacted) {
       const quotedSender = msg.quotedMsg.sender.isMe
         ? 'You'
         : getContactName(msg.quotedMsg.sender)
@@ -480,25 +523,16 @@ export const exportToTxt = async (params: ExporterParams) => {
 
     textContent += `[${timestamp}] ${sender}: ${content}\r\n\r\n`
   }
-
   if (validationRef.current) {
-    if (isLimitApplied) {
-      textContent += `\r\n\r\n---\r\nUpgrade to Pro to view all content.\r\n---`
-    }
+    // MODIFIED: Removed the separate limit notice at the end of the file.
     const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' })
     FileSaver.saveAs(blob, `${filename}.txt`)
   }
 }
 
 export const exportToJson = async (params: ExporterParams) => {
-  const {
-    messages,
-    chat,
-    filename,
-    setProgress,
-    validationRef,
-    isLimitApplied,
-  } = params
+  const { messages, chat, filename, setProgress, validationRef } = params
+
   const messageList: object[] = []
 
   for (let i = 0; i < messages.length; i++) {
@@ -509,22 +543,21 @@ export const exportToJson = async (params: ExporterParams) => {
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
 
-    let bodyContent = msg.body || null
-    if (msg.type !== 'chat') {
-      if (msg.isRedacted) {
-        bodyContent = `[Upgrade to Pro to view this media]`
-      } else {
-        let placeholder = `[${msg.type}]`
-        if (msg.filename) {
-          placeholder = `[${msg.type}: ${msg.filename}]`
-        } else if (msg.type === 'ptt' && msg.duration) {
-          const duration = new Date(msg.duration * 1000)
-            .toISOString()
-            .substr(14, 5)
-          placeholder = `[Voice Message: ${duration}]`
-        }
-        bodyContent = placeholder
+    // MODIFIED: Determine body content based on redaction status first.
+    let bodyContent: string | null = msg.body || null
+    if (msg.isRedacted) {
+      bodyContent = REDACTED_PLACEHOLDER
+    } else if (msg.type !== 'chat') {
+      let placeholder = `[${msg.type}]`
+      if (msg.filename) {
+        placeholder = `[${msg.type}: ${msg.filename}]`
+      } else if (msg.type === 'ptt' && msg.duration) {
+        const duration = new Date(msg.duration * 1000)
+          .toISOString()
+          .substr(14, 5)
+        placeholder = `[Voice Message: ${duration}]`
       }
+      bodyContent = placeholder
     }
 
     messageList.push({
@@ -536,19 +569,20 @@ export const exportToJson = async (params: ExporterParams) => {
         isMe: msg.contact.isMe,
       },
       type: msg.type,
+      // MODIFIED: Apply redacted content to body, and nullify other fields.
       body: bodyContent,
-      caption: msg.caption || null,
+      caption: msg.isRedacted ? null : msg.caption || null,
       filename: msg.isRedacted ? null : msg.filename || null,
-      quotedMessage: msg.quotedMsg
-        ? {
-            id: msg.quotedMsg.id,
-            sender: getContactName(msg.quotedMsg.sender),
-            body: msg.quotedMsg.body || `[${msg.quotedMsg.type}]`,
-          }
-        : null,
+      quotedMessage:
+        msg.quotedMsg && !msg.isRedacted
+          ? {
+              id: msg.quotedMsg.id,
+              sender: getContactName(msg.quotedMsg.sender),
+              body: msg.quotedMsg.body || `[${msg.quotedMsg.type}]`,
+            }
+          : null,
     })
   }
-
   if (validationRef.current) {
     const finalJson = {
       metadata: {
@@ -556,13 +590,11 @@ export const exportToJson = async (params: ExporterParams) => {
         chatId: chat.data.id,
         exportDate: new Date().toISOString(),
         totalMessages: messages.length,
-        ...(isLimitApplied && {
-          notice:
-            'Free Preview Limit Reached. Upgrade to Pro for full content.',
-        }),
+        // MODIFIED: Removed the separate limit notice from metadata.
       },
       messages: messageList,
     }
+
     const jsonString = JSON.stringify(finalJson, null, 2)
     const blob = new Blob([jsonString], {
       type: 'application/json;charset=utf-8',
@@ -572,14 +604,8 @@ export const exportToJson = async (params: ExporterParams) => {
 }
 
 export const exportToMarkdown = async (params: ExporterParams) => {
-  const {
-    messages,
-    chat,
-    filename,
-    setProgress,
-    validationRef,
-    isLimitApplied,
-  } = params
+  const { messages, chat, filename, setProgress, validationRef } = params
+
   let mdContent = `# Chat with: ${getContactName(chat.data.contact)}\n\n`
   mdContent += `**Export Date:** ${new Date().toLocaleString()}\n`
   mdContent += `**Total Messages:** ${messages.length}\n\n---\n\n`
@@ -594,9 +620,9 @@ export const exportToMarkdown = async (params: ExporterParams) => {
 
     const senderName = msg.contact.isMe ? 'You' : getContactName(msg.contact)
     const timestamp = new Date(msg.timestamp).toLocaleString()
-
     mdContent += `**${_.escape(senderName)}** (*${timestamp}*)\n\n`
-    if (msg.quotedMsg) {
+
+    if (msg.quotedMsg && !msg.isRedacted) {
       const quotedSenderName = msg.quotedMsg.sender.isMe
         ? 'You'
         : getContactName(msg.quotedMsg.sender)
@@ -610,47 +636,49 @@ export const exportToMarkdown = async (params: ExporterParams) => {
     }
 
     let mdMessageContent = ''
+    // MODIFIED: Check for redaction in each case of the switch statement.
     switch (msg.type) {
       case 'chat':
-        mdMessageContent = msg.body.replace(/\n/g, ' \n') // Markdown line breaks
+        mdMessageContent = msg.isRedacted
+          ? `*${REDACTED_PLACEHOLDER}*`
+          : msg.body.replace(/\n/g, ' \n') // Markdown line breaks
         break
       case 'image':
         mdMessageContent = msg.isRedacted
-          ? `*[Upgrade to Pro to view this media]*`
+          ? `*${REDACTED_PLACEHOLDER}*`
           : `*Image: \`${_.escape(msg.filename)}\`*`
-        if (msg.caption) mdMessageContent += `\n> ${_.escape(msg.caption)}`
+        if (msg.caption && !msg.isRedacted)
+          mdMessageContent += `\n> ${_.escape(msg.caption)}`
         break
       case 'video':
         mdMessageContent = msg.isRedacted
-          ? `*[Upgrade to Pro to view this media]*`
+          ? `*${REDACTED_PLACEHOLDER}*`
           : `*Video: \`${_.escape(msg.filename)}\`*`
-        if (msg.caption) mdMessageContent += `\n> ${_.escape(msg.caption)}`
+        if (msg.caption && !msg.isRedacted)
+          mdMessageContent += `\n> ${_.escape(msg.caption)}`
         break
       case 'document':
         mdMessageContent = msg.isRedacted
-          ? `*[Upgrade to Pro to view this media]*`
+          ? `*${REDACTED_PLACEHOLDER}*`
           : `*Document: \`${_.escape(msg.filename)}\`*`
-        if (msg.caption) mdMessageContent += `\n> ${_.escape(msg.caption)}`
+        if (msg.caption && !msg.isRedacted)
+          mdMessageContent += `\n> ${_.escape(msg.caption)}`
         break
       case 'ptt':
         const duration = new Date(msg.duration * 1000)
           .toISOString()
           .substr(14, 5)
         mdMessageContent = msg.isRedacted
-          ? `*[Upgrade to Pro to view this media]*`
+          ? `*${REDACTED_PLACEHOLDER}*`
           : `*Voice Message (${duration})*`
         break
       default:
         mdMessageContent = `*[Unsupported message type: ${msg.type}]*`
     }
-
     mdContent += `${mdMessageContent}\n\n---\n`
   }
-
   if (validationRef.current) {
-    if (isLimitApplied) {
-      mdContent += `\n---\n** Only the first 10 messages are shown. Upgrade to Pro to view all content.\n---\n`
-    }
+    // MODIFIED: Removed the separate limit notice from the end of the file.
     const blob = new Blob([mdContent], {
       type: 'text/markdown;charset=utf-8',
     })

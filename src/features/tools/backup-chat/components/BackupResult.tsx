@@ -27,7 +27,6 @@ interface Props {
 const BackupResult: React.FC<Props> = ({ result, onDone }) => {
   const { messagesExported, messagesOmitted, mediaOmitted, isLimitApplied } =
     result
-
   return (
     <Center>
       <Stack align="center" gap="lg">
@@ -39,26 +38,36 @@ const BackupResult: React.FC<Props> = ({ result, onDone }) => {
           Successfully exported {messagesExported} messages. You can find the
           file in your downloads folder.
         </Text>
-
         <When condition={isLimitApplied}>
+          {/* MODIFIED: The entire warning card has been updated for better psychological impact. */}
           <Card
             withBorder
             p="lg"
             shadow="none"
             radius="md"
             mt="md"
-            style={{ width: '100%' }}
+            style={{
+              width: '100%',
+              borderColor: 'var(--mantine-color-orange-4)',
+            }}
           >
             <Stack align="center" gap="sm">
               <Group gap="xs">
-                <Icon icon="tabler:lock" color="orange" fontSize={24} />
-                <Title order={5}>Pro Features Locked</Title>
+                {/* MODIFIED: Changed icon to an alert triangle. */}
+                <Icon
+                  icon="tabler:alert-triangle"
+                  color="orange"
+                  fontSize={24}
+                />
+                {/* MODIFIED: Changed title to be more alarming. */}
+                <Title order={5}>Warning: Your Backup is Incomplete!</Title>
               </Group>
+              {/* MODIFIED: Changed text to emphasize risk of permanent data loss. */}
               <Text ta="center" size="sm" c="dimmed">
-                Your backup is limited.{' '}
                 <b>{messagesOmitted.toLocaleString()} messages</b> and{' '}
                 <b>{mediaOmitted.toLocaleString()} media files</b> were not
-                included.
+                saved and are at risk of being lost forever. Upgrade now to
+                protect all your data.
               </Text>
               <Button
                 mt="sm"
@@ -66,12 +75,11 @@ const BackupResult: React.FC<Props> = ({ result, onDone }) => {
                 onClick={showModalUpgrade}
                 leftSection={<Icon icon="tabler:crown" fontSize={18} />}
               >
-                Upgrade to Pro to Get Everything
+                Upgrade to Protect Everything
               </Button>
             </Stack>
           </Card>
         </When>
-
         <Button variant="outline" mt="xl" onClick={onDone}>
           Start Another Backup
         </Button>
