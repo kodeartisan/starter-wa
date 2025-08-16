@@ -18,8 +18,7 @@ import ModalProfile from './Modal/ModalProfile'
 import ModalUpgrade from './Modal/ModalUpgrade'
 
 const AppMenu: React.FC = () => {
-  const wa = useWa()
-  const { setIsReady, setGroups, setProfile, setActiveChat } = useAppStore()
+  const { setIsReady, setActiveChat } = useAppStore()
   const license = useLicense()
   const [showModalMain, modalMain] = useDisclosure(true)
   const [showModalUpgrade, modalUpgrade] = useDisclosure(false)
@@ -27,7 +26,7 @@ const AppMenu: React.FC = () => {
   const [showModalFaq, modalFaq] = useDisclosure(false)
   const [showModalProfile, modalProfile] = useDisclosure(false)
   const [needToOpen, setNeedToOpen] = useStorage(Setting.NEED_TO_OPEN, false)
-  const [activeTab, setActiveTab] = useState<string | null>(Page.HOME)
+  const [activeTab, setActiveTab] = useState<string | null>(Page.CHAT_BACKUP)
 
   useWindowMessage(async (event: MessageEvent) => {
     const {
