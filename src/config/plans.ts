@@ -1,5 +1,4 @@
 // src/config/plans.ts
-
 const plans = [
   {
     name: 'Free',
@@ -8,7 +7,7 @@ const plans = [
     isFree: true,
     placeholderPrice: null,
     link: '#',
-    features: ['⚫ Basic support'],
+    features: ['⚫ Basic support', '⚫ Backup first 10 messages per chat'],
     tags: [],
   },
   {
@@ -19,8 +18,9 @@ const plans = [
     isFree: false,
     link: 'https://extdotninja.lemonsqueezy.com/buy/554f3fc2-a924-496d-9b4e-57e21e55a59a?media=0&logo=0&desc=0&discount=0',
     features: [
-      '✅ No monthly fees, No subscription',
-      '✅ Pay once, secure your chats forever', // MODIFIED: More benefit-oriented feature text.
+      '✅ Pay once, secure your WhatsApp chats forever.',
+      '✅ No monthly fees, no subscriptions.',
+      '✅ Unlimited chat & media backups.',
     ],
   },
 ]

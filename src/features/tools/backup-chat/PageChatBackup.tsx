@@ -1,27 +1,41 @@
-// src/features/tools/chat-backup/PageChatBackup.tsx
+// src/features/tools/backup-chat/PageChatBackup.tsx
 import LayoutPage from '@/components/Layout/LayoutPage'
-import { Icon } from '@iconify/react'
-import { Alert, Box, Card, Stack, Text, Title } from '@mantine/core'
+import { Stack } from '@mantine/core'
 import React from 'react'
 import BackupOptions from './components/BackupOptions'
 import BackupProgress from './components/BackupProgress'
+import BackupResult from './components/BackupResult' // ADDED: Import the new result component
 import { useChatBackup } from './hooks/useChatBackup'
 
 const PageChatBackup: React.FC = () => {
   const backup = useChatBackup()
 
+  // MODIFIED: Conditionally render the component based on the backup state.
+  const renderContent = () => {
+    if (backup.isBackingUp) {
+      return (
+        <BackupProgress
+          progress={backup.progress}
+          onCancel={backup.cancelBackup}
+        />
+      )
+    }
+
+    if (backup.backupResult) {
+      return (
+        <BackupResult
+          result={backup.backupResult}
+          onDone={backup.clearBackupResult}
+        />
+      )
+    }
+
+    return <BackupOptions backupHook={backup} onStart={backup.startBackup} />
+  }
+
   return (
     <LayoutPage width={700}>
-      <Stack>
-        {backup.isBackingUp ? (
-          <BackupProgress
-            progress={backup.progress}
-            onCancel={backup.cancelBackup}
-          />
-        ) : (
-          <BackupOptions backupHook={backup} onStart={backup.startBackup} />
-        )}
-      </Stack>
+      <Stack>{renderContent()}</Stack>
     </LayoutPage>
   )
 }

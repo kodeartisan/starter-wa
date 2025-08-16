@@ -4,11 +4,13 @@ import useWa from '@/hooks/useWa'
 import { getContactName, showModalUpgrade } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
+  Alert,
   Avatar,
   Badge,
   Button,
   Checkbox,
   Group,
+  Loader,
   Radio,
   Select,
   Stack,
@@ -17,6 +19,7 @@ import {
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
 import React, { useEffect, useState } from 'react'
+import { When } from 'react-if'
 import type { useChatBackup } from '../hooks/useChatBackup'
 
 interface Props {
@@ -26,8 +29,14 @@ interface Props {
 }
 
 const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
-  // -- MODIFIED: Removed preview-related states.
-  const { form, SUPPORTED_MESSAGE_TYPES } = backupHook
+  // Destructure new properties from the hook
+  const {
+    form,
+    SUPPORTED_MESSAGE_TYPES,
+    analyzeChat,
+    analysisResult,
+    isAnalyzing,
+  } = backupHook
   const license = useLicense()
   const wa = useWa()
   const [chatOptions, setChatOptions] =
@@ -64,6 +73,14 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
     })
   }, [wa.isReady])
 
+  // ADDED: useEffect for Smart Chat Analysis
+  useEffect(() => {
+    // When the selected chat ID changes, trigger the analysis function.
+    if (form.values.chatId) {
+      analyzeChat(form.values.chatId)
+    }
+  }, [form.values.chatId])
+
   const handleDatePresetChange = (value: string | null) => {
     if (!value) return
     const option = datePresets.find((p) => p.value === value)
@@ -98,6 +115,29 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
         renderOption={renderSelectOption}
         {...form.getInputProps('chatId')}
       />
+      {/* ADDED: Display for analysis results */}
+      <When condition={isAnalyzing}>
+        <Group justify="center" my="sm">
+          <Loader size="xs" />
+          <Text size="sm" c="dimmed">
+            Analyzing chat...
+          </Text>
+        </Group>
+      </When>
+
+      <When condition={analysisResult && !isAnalyzing}>
+        <Alert
+          variant="light"
+          color="blue"
+          title="Chat Summary"
+          icon={<Icon icon="tabler:info-circle" />}
+        >
+          This chat contains{' '}
+          <b>{analysisResult?.totalMessages.toLocaleString()} messages</b> and{' '}
+          <b>{analysisResult?.totalMedia.toLocaleString()} media files</b>. The
+          free version will only back up the first 10 messages.
+        </Alert>
+      </When>
       <TagsInput
         label="Filter by Keywords (Optional)"
         placeholder="Add keywords and press Enter"
@@ -176,7 +216,7 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
         <Button
           leftSection={<Icon icon="tabler:download" />}
           onClick={onStart}
-          disabled={!form.values.chatId} // Simplified disable logic
+          disabled={!form.values.chatId || isAnalyzing} // Disable button while analyzing
         >
           Start Backup
         </Button>
