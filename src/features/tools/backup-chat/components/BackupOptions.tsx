@@ -49,7 +49,7 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
     { value: 'html', label: 'HTML (.zip)' },
     { value: 'pdf', label: 'PDF' },
     { value: 'csv', label: 'CSV' },
-    { value: 'xlsx', label: 'Excel (XLSX)' },
+    { value: 'xlsx', label: 'Excel' },
     { value: 'txt', label: 'TXT' },
     { value: 'json', label: 'JSON' },
     { value: 'md', label: 'Markdown' },
