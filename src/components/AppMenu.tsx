@@ -28,6 +28,7 @@ import classes from './AppMenu.module.css'
 import Modal from './Modal/Modal'
 import ModalActivation from './Modal/ModalActivation'
 import ModalFaq from './Modal/ModalFaq'
+import ModalProfile from './Modal/ModalProfile'
 import ModalUpgrade from './Modal/ModalUpgrade'
 
 const AppMenu: React.FC = () => {
@@ -38,6 +39,7 @@ const AppMenu: React.FC = () => {
   const [showModalUpgrade, modalUpgrade] = useDisclosure(false)
   const [showModalActivation, modalActivation] = useDisclosure(false)
   const [showModalFaq, modalFaq] = useDisclosure(false)
+  const [showModalProfile, modalProfile] = useDisclosure(false)
   const [needToOpen, setNeedToOpen] = useStorage(Setting.NEED_TO_OPEN, false)
   const [activeTab, setActiveTab] = useState<string | null>(Page.HOME)
 
@@ -63,6 +65,9 @@ const AppMenu: React.FC = () => {
         break
       case Action.Window.SHOW_MODAL_FAQ:
         modalFaq.toggle()
+        break
+      case Action.Window.SHOW_MODAL_PROFILE:
+        modalProfile.toggle()
         break
       default:
         break
@@ -118,6 +123,11 @@ const AppMenu: React.FC = () => {
     }
     if (Page.FAQ === value) {
       modalFaq.toggle()
+      return
+    }
+
+    if (Page.PROFILE === value) {
+      modalProfile.toggle()
       return
     }
     setActiveTab(value)
@@ -265,6 +275,7 @@ const AppMenu: React.FC = () => {
         onClose={modalActivation.close}
       />
       <ModalFaq opened={showModalFaq} onClose={modalFaq.close} />
+      <ModalProfile opened={showModalProfile} onClose={modalProfile.close} />
       <BroadcastListener />
       <PrivacyListener />
     </>
