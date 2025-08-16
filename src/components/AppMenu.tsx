@@ -1,19 +1,5 @@
 import { Action, Page, Setting } from '@/constants'
-import BroadcastListener from '@/features/broadcast/components/Listeners/BroadcastListener'
-import PageBroadcast from '@/features/broadcast/PageBroadcast'
-import PageFaq from '@/features/faq/PageFaq'
-import PageHome from '@/features/home/PageHome'
-import PageLabel from '@/features/label/PageLabel'
-import PageProfile from '@/features/profile/PageProfile'
-import PageQuickReply from '@/features/quick-reply/PageQuickReply'
 import PageChatBackup from '@/features/tools/backup-chat/PageChatBackup'
-import PageDirectChat from '@/features/tools/direct-chat/PageDirectChat'
-import PageGroupLinkGenerator from '@/features/tools/group-link-generator/PageGroupLinkGenerator'
-import PageNumberValidator from '@/features/tools/number-validator/PageNumberValidator'
-import PageTools from '@/features/tools/PageTools'
-import PagePrivacy from '@/features/tools/privacy/components/PagePrivacy'
-import PrivacyListener from '@/features/tools/privacy/components/PrivacyListener'
-import PageWaMeGenerator from '@/features/tools/wa-me/PageWaMeGenerator'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
 import useWa from '@/hooks/useWa'
@@ -98,20 +84,6 @@ const AppMenu: React.FC = () => {
     }
   }, [needToOpen])
 
-  useEffect(() => {
-    ;(async function () {
-      if (!wa.isReady) return
-      setTimeout(async () => {
-        await getGroups()
-      }, 2000)
-    })()
-  }, [wa.isReady])
-
-  const getGroups = async () => {
-    const response = await wa.chat.list({ onlyGroups: true })
-    setGroups(response)
-  }
-
   const handleChangeTab = (value: string | null) => {
     if (Page.UPGRADE === value) {
       modalUpgrade.toggle()
@@ -143,33 +115,13 @@ const AppMenu: React.FC = () => {
       >
         <Stack justify="space-between" gap={0} style={{ height: '100%' }}>
           <Box>
-            <Tabs.Tab value={Page.HOME} className={classes.tab}>
-              <Tooltip label="Home" position="left">
-                <Icon icon="tabler:home" fontSize={26} color="white" />
-              </Tooltip>
-            </Tabs.Tab>
-            <Tabs.Tab value={Page.BROADCAST} className={classes.tab}>
-              <Tooltip label="Broadcast" position="left">
-                <Icon icon="tabler:broadcast" fontSize={26} color="white" />
-              </Tooltip>
-            </Tabs.Tab>
-            <Tabs.Tab value={Page.LABEL} className={classes.tab}>
-              <Tooltip label="Labels" position="left">
-                <Icon icon="tabler:tags" fontSize={26} color="white" />
-              </Tooltip>
-            </Tabs.Tab>
-            <Tabs.Tab value={Page.QUICK_REPLY} className={classes.tab}>
-              <Tooltip label="Quick Reply" position="left">
+            <Tabs.Tab value={Page.CHAT_BACKUP} className={classes.tab}>
+              <Tooltip label="Backup" position="left">
                 <Icon
-                  icon="tabler:arrow-back-up-double"
+                  icon="tabler:database-export"
                   fontSize={26}
                   color="white"
                 />
-              </Tooltip>
-            </Tabs.Tab>
-            <Tabs.Tab value={Page.TOOLS} className={classes.tab}>
-              <Tooltip label="Tools">
-                <Icon icon="tabler:tools" color="white" fontSize={26} />
               </Tooltip>
             </Tabs.Tab>
           </Box>
@@ -211,42 +163,6 @@ const AppMenu: React.FC = () => {
   const renderTabPanel = () => {
     return (
       <>
-        <Tabs.Panel value={Page.HOME}>
-          <PageHome />
-        </Tabs.Panel>
-        <Tabs.Panel value={Page.BROADCAST}>
-          <PageBroadcast />
-        </Tabs.Panel>
-        <Tabs.Panel value={Page.LABEL}>
-          <PageLabel />
-        </Tabs.Panel>
-        <Tabs.Panel value={Page.QUICK_REPLY}>
-          <PageQuickReply />
-        </Tabs.Panel>
-        <Tabs.Panel value={Page.TOOLS}>
-          <PageTools />
-        </Tabs.Panel>
-        <Tabs.Panel value={Page.FAQ}>
-          <PageFaq />
-        </Tabs.Panel>
-        <Tabs.Panel value={Page.PROFILE}>
-          <PageProfile />
-        </Tabs.Panel>
-        <Tabs.Panel value={Page.DIRECT_CHAT}>
-          <PageDirectChat />
-        </Tabs.Panel>
-        <Tabs.Panel value={Page.NUMBER_VALIDATOR}>
-          <PageNumberValidator />
-        </Tabs.Panel>
-        <Tabs.Panel value={Page.PRIVACY}>
-          <PagePrivacy />
-        </Tabs.Panel>
-        <Tabs.Panel value={Page.WA_ME_GENERATOR}>
-          <PageWaMeGenerator />
-        </Tabs.Panel>
-        <Tabs.Panel value={Page.GROUP_LINK_GENERATOR}>
-          <PageGroupLinkGenerator />
-        </Tabs.Panel>
         <Tabs.Panel value={Page.CHAT_BACKUP}>
           <PageChatBackup />
         </Tabs.Panel>
@@ -276,8 +192,6 @@ const AppMenu: React.FC = () => {
       />
       <ModalFaq opened={showModalFaq} onClose={modalFaq.close} />
       <ModalProfile opened={showModalProfile} onClose={modalProfile.close} />
-      <BroadcastListener />
-      <PrivacyListener />
     </>
   )
 }
