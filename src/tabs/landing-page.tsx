@@ -3,6 +3,7 @@ import plans, { features as comparisonFeatures } from '@/config/plans'
 import theme from '@/libs/theme'
 import {
   Accordion,
+  Anchor,
   Avatar,
   Badge,
   Box,
@@ -21,6 +22,8 @@ import {
   Text,
   ThemeIcon,
   Title,
+  // ADDED: Import Transition for smooth animations.
+  Transition,
 } from '@mantine/core'
 import '@mantine/core/styles.css'
 import {
@@ -35,6 +38,8 @@ import {
   IconHomeHeart,
   IconKey,
   IconLock,
+  // ADDED: Imported the IconMail for the new Contact Us section.
+  IconMail,
   IconMessageCircle,
   IconRocket,
   IconSchool,
@@ -48,7 +53,7 @@ import {
   IconWorldQuestion,
   IconX,
 } from '@tabler/icons-react'
-// ADDED: Imported useState and useEffect for the countdown timer functionality.
+// ADDED: Imported useState and useEffect for the countdown timer and social proof functionality.
 import React, { useEffect, useState } from 'react'
 import { When } from 'react-if'
 
@@ -66,15 +71,6 @@ const CrossIcon = () => (
 const HeroSection = () => (
   <Center p="xl">
     <Stack align="center" gap="xl" ta="center" maw={700}>
-      <Badge
-        variant="light"
-        color="teal"
-        size="lg"
-        leftSection={<IconSparkles size={16} />}
-      >
-        {' '}
-        Unlock The Full Power{' '}
-      </Badge>
       <ThemeIcon
         size={80}
         radius="xl"
@@ -96,6 +92,7 @@ const HeroSection = () => (
     </Stack>
   </Center>
 )
+
 const SocialProofSection = () => (
   <Center>
     <Paper withBorder p="md" radius="lg" shadow="sm">
@@ -122,7 +119,7 @@ const SocialProofSection = () => (
             <IconUsersGroup color="var(--mantine-color-teal-6)" />
             <Text fw={700} fz="lg">
               {' '}
-              10,000+{' '}
+              1000+{' '}
             </Text>
           </Group>
           <Text size="sm" c="dimmed">
@@ -198,7 +195,8 @@ const PricingSection = () => (
             {/* MODIFIED: Removed urgency elements. The pricing card now focuses only on the price. */}
             {!plan.isFree && (
               <Text c="dimmed" size="sm" mt="xs">
-                One-time payment. No hidden fees.
+                {' '}
+                One-time payment. No hidden fees.{' '}
               </Text>
             )}
           </Box>
@@ -261,17 +259,14 @@ const LimitedOfferSection = () => {
   })
   // This state holds the number of licenses available at the discount price.
   const [licensesLeft] = useState(75) // Static value for demonstration purposes.
-
   useEffect(() => {
     // Set a fixed expiration date for the offer, for example, 3 days from the moment the user loads the page.
     const expirationDate = new Date()
     expirationDate.setDate(expirationDate.getDate() + 3)
-
     // Set up an interval to update the countdown every second.
     const timer = setInterval(() => {
       const now = new Date().getTime()
       const distance = expirationDate.getTime() - now
-
       // If the countdown is over, clear the interval and set time to zero.
       if (distance < 0) {
         clearInterval(timer)
@@ -287,19 +282,18 @@ const LimitedOfferSection = () => {
         setTimeLeft({ days, hours, minutes, seconds })
       }
     }, 1000)
-
     // Cleanup function to clear the interval when the component is unmounted, preventing memory leaks.
     return () => clearInterval(timer)
   }, [])
-
   return (
     <Box>
       <Center>
         <Stack align="center" ta="center" maw={600}>
           <Title order={2}>Grab The Lifetime Deal!</Title>
           <Text c="dimmed">
+            {' '}
             This special launch price is for a limited time only. Once the timer
-            hits zero, the price will go up forever.
+            hits zero, the price will go up forever.{' '}
           </Text>
         </Stack>
       </Center>
@@ -315,7 +309,8 @@ const LimitedOfferSection = () => {
             <Group gap="xs">
               <IconClockHour4 size={24} color="var(--mantine-color-orange-9)" />
               <Text c="orange.9" fw={700} size="lg">
-                Offer Ends In:
+                {' '}
+                Offer Ends In:{' '}
               </Text>
             </Group>
             <Text
@@ -324,10 +319,12 @@ const LimitedOfferSection = () => {
               fw={700}
               style={{ fontFamily: 'monospace' }}
             >
-              {`${timeLeft.days}d ${timeLeft.hours}h ${timeLeft.minutes}m ${timeLeft.seconds}s`}
+              {' '}
+              {`${timeLeft.days}d ${timeLeft.hours}h ${timeLeft.minutes}m ${timeLeft.seconds}s`}{' '}
             </Text>
             <Badge color="red" variant="filled" size="lg" mt="sm">
-              {`Only ${licensesLeft} licenses left at this price!`}
+              {' '}
+              {`Only ${licensesLeft} licenses left at this price!`}{' '}
             </Badge>
           </Stack>
         </Paper>
@@ -399,7 +396,7 @@ const FeatureComparisonTable = () => (
     <Center>
       <Title order={2} ta="center" mb="xl">
         {' '}
-        Feature Comparison: Free vs. Pro{' '}
+        Feature Comparison
       </Title>
     </Center>
     <Card withBorder radius="lg" p={0}>
@@ -449,6 +446,7 @@ const FeatureComparisonTable = () => (
     </Card>
   </Box>
 )
+
 const testimonialsData = [
   {
     name: 'Sarah L.',
@@ -472,6 +470,7 @@ const testimonialsData = [
       "I accidentally deleted a whole chat with important study notes. Thanks to my backup, I recovered everything. I recommend the <b>Lifetime plan to all my friends</b>. It's a must-have.",
   },
 ]
+
 const TestimonialsSection = () => (
   <Box mt={80}>
     <Center>
@@ -513,6 +512,7 @@ const TestimonialsSection = () => (
     </Grid>
   </Box>
 )
+
 // 5. Guarantee Section
 const GuaranteeSection = () => (
   <Paper bg="teal.0" radius="lg" p="xl" mt={80}>
@@ -532,6 +532,7 @@ const GuaranteeSection = () => (
     </Group>
   </Paper>
 )
+
 const faqData = [
   {
     icon: IconRocket,
@@ -564,6 +565,7 @@ const faqData = [
       "Not at all. Your license is yours forever. You can easily <b>deactivate the license</b> on your old device from the Profile menu and then <b>reactivate it on your new computer</b>. It's flexible and designed to move with you.",
   },
 ]
+
 const FaqSection = () => (
   <Box mt={80}>
     <Center>
@@ -599,6 +601,7 @@ const FaqSection = () => (
     </Accordion>
   </Box>
 )
+
 // 7. Data Privacy Section
 const PrivacySection = () => (
   <Card withBorder radius="lg" p="xl" mt={80} shadow="sm">
@@ -619,6 +622,7 @@ const PrivacySection = () => (
     </Group>
   </Card>
 )
+
 // 8. After Purchase Section
 const AfterPurchaseSection = () => {
   const steps = [
@@ -672,8 +676,99 @@ const AfterPurchaseSection = () => {
   )
 }
 
+// ADDED: A new "Contact Us" section for user support.
+const ContactUsSection = () => (
+  <Box mt={80}>
+    <Center>
+      <Stack align="center" ta="center" maw={600}>
+        <Title order={2}>Get in Touch</Title>
+        <Text c="dimmed">
+          Have questions or need assistance? Our support team is here to help
+          you.
+        </Text>
+      </Stack>
+    </Center>
+    <Center mt="xl">
+      <Paper withBorder p="lg" shadow="sm" radius="md">
+        <Group>
+          <ThemeIcon size="xl" radius="md" variant="light">
+            <IconMail size={24} />
+          </ThemeIcon>
+          <Stack gap={2}>
+            <Title order={4}>Contact Support</Title>
+            <Text c="dimmed" size="sm">
+              We'll get back to you as soon as possible.
+            </Text>
+            <Anchor
+              href="mailto:extdotninja@gmail.com"
+              size="sm"
+              fw={500}
+              target="_blank"
+            >
+              extdotninja@gmail.com
+            </Anchor>
+          </Stack>
+        </Group>
+      </Paper>
+    </Center>
+  </Box>
+)
+
 // --- Main Page Component ---
 const LandingPage = () => {
+  // MODIFIED: Added state and effect for the dynamic social proof notification.
+  const [notification, setNotification] = useState<{
+    city: string
+    country: string
+  } | null>(null)
+  useEffect(() => {
+    // A list of locations to make the notifications feel varied and authentic.
+    const locations = [
+      { city: 'Torino', country: 'Italy' },
+      { city: 'Shaqra', country: 'Saudi Arabia' },
+      { city: 'Santo Andre', country: 'Brazil' },
+      { city: 'Al Qahirah', country: 'Egypt' },
+      { city: 'Queretaro', country: 'Mexico' },
+      { city: 'Puerto Vallarta', country: 'Mexico' },
+      { city: 'Santana De Cataguases', country: 'Brazil' },
+      { city: 'Calgary', country: 'Canada' },
+      { city: 'Miami', country: 'United States' },
+      { city: 'Almaty', country: 'Kazakhstan' },
+      { city: 'Boccadifalco', country: 'Italy' },
+      { city: 'Oberasbach', country: 'Germany' },
+      { city: 'Federal Republic of Nigeria', country: 'Nigeria' },
+      { city: 'Airoli', country: 'India' },
+      { city: 'Borivli', country: 'India' },
+      { city: 'Diadema', country: 'Brazil' },
+      { city: 'Frechen', country: 'Germany' },
+      { city: 'Santiago', country: 'Chile' },
+      { city: 'Monterrey', country: 'Mexico' },
+    ]
+    let timeoutId: NodeJS.Timeout
+    // This function schedules the appearance and disappearance of notifications.
+    const scheduleNextNotification = () => {
+      clearTimeout(timeoutId)
+      // Set a random delay for when the next notification will appear (between 10-20 seconds).
+      const randomDelay = Math.floor(Math.random() * (15000 - 10000 + 1)) + 5000
+      timeoutId = setTimeout(() => {
+        // Pick a random location and show the notification.
+        const randomLocation =
+          locations[Math.floor(Math.random() * locations.length)]
+        setNotification(randomLocation)
+        // Set a timer to hide the notification after it has been displayed for 5 seconds.
+        timeoutId = setTimeout(() => {
+          setNotification(null)
+          // Schedule the next notification to continue the cycle.
+          scheduleNextNotification()
+        }, 3000)
+      }, randomDelay)
+    }
+    timeoutId = setTimeout(scheduleNextNotification, 3000)
+    // Cleanup function to clear the timer when the component unmounts.
+    return () => {
+      clearTimeout(timeoutId)
+    }
+  }, [])
   return (
     <MantineProvider theme={theme}>
       <Container size="md" py="xl">
@@ -690,6 +785,8 @@ const LandingPage = () => {
           <FaqSection />
           <PrivacySection />
           <AfterPurchaseSection />
+          {/* ADDED: The new contact section is placed here. */}
+          <ContactUsSection />
           {/* Final CTA */}
           <Center mt={40}>
             <Stack align="center" gap="lg">
@@ -708,7 +805,47 @@ const LandingPage = () => {
           </Center>
         </Stack>
       </Container>
+      {/* ADDED: The social proof toast component with a slide-in/out animation. */}
+      <Transition
+        mounted={!!notification}
+        transition="slide-right"
+        duration={500}
+        timingFunction="ease"
+      >
+        {(styles) => (
+          <Paper
+            shadow="lg"
+            p="sm"
+            radius="md"
+            withBorder
+            style={{
+              ...styles,
+              position: 'fixed',
+              bottom: 20,
+              left: 20,
+              zIndex: 2000,
+            }}
+          >
+            <Group>
+              <ThemeIcon color="teal" size={36} radius="xl">
+                <IconShieldCheck size={22} />
+              </ThemeIcon>
+              <Stack gap={0}>
+                <Text fw={500} size="sm">
+                  {' '}
+                  Just upgraded to Pro!{' '}
+                </Text>
+                <Text size="xs" c="dimmed">
+                  {' '}
+                  {`Someone from ${notification?.city}, ${notification?.country}`}{' '}
+                </Text>
+              </Stack>
+            </Group>
+          </Paper>
+        )}
+      </Transition>
     </MantineProvider>
   )
 }
+
 export default LandingPage

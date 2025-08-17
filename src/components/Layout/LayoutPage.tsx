@@ -1,9 +1,8 @@
 // src/components/Layout/LayoutPage.tsx
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
-import { useAppStore } from '@/stores/app'
 import env from '@/utils/env'
-import { goToLandingPage, showModalUpgrade } from '@/utils/util'
+import { goToLandingPage } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   ActionIcon,

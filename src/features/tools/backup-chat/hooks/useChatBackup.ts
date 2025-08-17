@@ -1,4 +1,5 @@
 // src/features/tools/backup-chat/hooks/useChatBackup.ts
+
 import useLicense from '@/hooks/useLicense'
 import wa from '@/libs/wa'
 import toast from '@/utils/toast'
@@ -133,8 +134,8 @@ export const useChatBackup = () => {
       }
 
       const allMessages = await wa.chat.getMessages(chatId, { count: -1 })
-
       let [startDate, endDate] = effectiveDateRange
+
       if (license.isFree()) {
         const sevenDaysAgo = startOfDay(subDays(new Date(), 7))
         if (!startDate || startDate < sevenDaysAgo) {
@@ -154,6 +155,7 @@ export const useChatBackup = () => {
             start: startDate,
             end: endDate,
           })
+
         const keywordMatch =
           lowercasedKeywords.length === 0 ||
           lowercasedKeywords.some(
@@ -172,6 +174,7 @@ export const useChatBackup = () => {
       }
 
       const isLimitApplied = license.isFree() && filteredMessages.length > 10
+
       const messagesToExport = filteredMessages.map((msg, index) => ({
         ...msg,
         isRedacted: isLimitApplied && index >= 10,
@@ -238,7 +241,6 @@ export const useChatBackup = () => {
       }
 
       if (validationRef.current) {
-        // MODIFIED: Implement smart toast notification. Show a warning for limited backups.
         if (isLimitApplied) {
           toast.warning(
             'Backup Limited',

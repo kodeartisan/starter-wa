@@ -5,6 +5,7 @@ import useRuntimeMessage from '@/hooks/useRuntimeMessage'
 import useWa from '@/hooks/useWa'
 import useWindowMessage from '@/hooks/useWindowMessage'
 import { useAppStore } from '@/stores/app'
+import { goToLandingPage } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import { Box, Stack, Tabs, Tooltip } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
@@ -20,7 +21,6 @@ const AppMenu: React.FC = () => {
   const { setIsReady, setActiveChat } = useAppStore()
   const license = useLicense()
   const [showModalMain, modalMain] = useDisclosure(true)
-  const [showModalUpgrade, modalUpgrade] = useDisclosure(false)
   const [showModalActivation, modalActivation] = useDisclosure(false)
   const [showModalFaq, modalFaq] = useDisclosure(false)
   const [showModalProfile, modalProfile] = useDisclosure(false)
@@ -42,7 +42,7 @@ const AppMenu: React.FC = () => {
         setActiveTab(body)
         break
       case Action.Window.SHOW_MODAL_UPGRADE:
-        modalUpgrade.toggle()
+        goToLandingPage()
         break
       case Action.Window.SHOW_MODAL_ACTIVATION:
         modalActivation.toggle()
@@ -84,7 +84,7 @@ const AppMenu: React.FC = () => {
 
   const handleChangeTab = (value: string | null) => {
     if (Page.UPGRADE === value) {
-      modalUpgrade.toggle()
+      goToLandingPage()
       return
     }
     if (Page.ACTIVATE === value) {

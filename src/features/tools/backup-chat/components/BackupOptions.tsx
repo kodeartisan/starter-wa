@@ -1,7 +1,7 @@
 // src/features/tools/backup-chat/components/BackupOptions.tsx
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
-import { getContactName, showModalUpgrade } from '@/utils/util'
+import { getContactName, goToLandingPage } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   Avatar,
@@ -47,12 +47,11 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
   // MODIFIED: Added CSV and XLSX export formats.
   const exportFormats = [
     { value: 'html', label: 'HTML (.zip)' },
+    { value: 'txt', label: 'TXT' },
+    { value: 'json', label: 'JSON' },
     { value: 'pdf', label: 'PDF' },
     { value: 'csv', label: 'CSV' },
     { value: 'xlsx', label: 'Excel' },
-    { value: 'txt', label: 'TXT' },
-    { value: 'json', label: 'JSON' },
-    { value: 'md', label: 'Markdown' },
   ]
 
   useEffect(() => {
@@ -71,7 +70,7 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
     if (!value) return
     const option = datePresets.find((p) => p.value === value)
     if (license.isFree() && option?.pro) {
-      showModalUpgrade()
+      goToLandingPage()
       return
     }
     form.setFieldValue('datePreset', value)
