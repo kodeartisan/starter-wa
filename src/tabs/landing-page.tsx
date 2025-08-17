@@ -13,7 +13,7 @@ import {
   Divider,
   Grid,
   Group,
-  Image, // MODIFIED: Imported Image component for visual assets
+  Image,
   MantineProvider,
   Paper,
   Stack,
@@ -25,28 +25,31 @@ import {
 import '@mantine/core/styles.css'
 import {
   IconArrowRight,
-  IconBriefcase, // MODIFIED: Added for personas
+  IconBriefcase,
   IconCertificate,
   IconCheck,
   IconCircleCheck,
+  IconClockHour4,
   IconCrown,
   IconHelpOctagon,
-  IconHomeHeart, // MODIFIED: Added for personas
+  IconHomeHeart,
   IconKey,
   IconLock,
   IconMessageCircle,
   IconRocket,
-  IconSchool, // MODIFIED: Added for personas
+  IconSchool,
   IconShieldCheck,
-  IconShieldLock, // MODIFIED: Added for Hero visual
+  IconShieldLock,
   IconSparkles,
-  IconStar, // MODIFIED: Added for social proof
+  IconStar,
   IconThumbUp,
   IconUser,
-  IconUsersGroup, // MODIFIED: Added for social proof
+  IconUsersGroup,
   IconWorldQuestion,
   IconX,
 } from '@tabler/icons-react'
+// ADDED: Imported useState and useEffect for the countdown timer functionality.
+import React, { useEffect, useState } from 'react'
 import { When } from 'react-if'
 
 // Helper component for checkmark icons
@@ -69,9 +72,9 @@ const HeroSection = () => (
         size="lg"
         leftSection={<IconSparkles size={16} />}
       >
-        Unlock The Full Power
+        {' '}
+        Unlock The Full Power{' '}
       </Badge>
-      {/* MODIFIED: Added a large, conceptual icon to make the hero more visually engaging. */}
       <ThemeIcon
         size={80}
         radius="xl"
@@ -81,18 +84,18 @@ const HeroSection = () => (
         <IconShieldLock size={48} />
       </ThemeIcon>
       <Title order={1} fz={{ base: 36, sm: 48 }}>
-        Never Lose a WhatsApp Memory Again
+        {' '}
+        Never Lose a WhatsApp Memory Again{' '}
       </Title>
       <Text c="dimmed" fz="lg">
+        {' '}
         Upgrade to Pro to get unlimited backups of all your chats and media.
         Secure your conversations, export in any format, and enjoy peace of mind
-        with a simple one-time payment.
+        with a simple one-time payment.{' '}
       </Text>
     </Stack>
   </Center>
 )
-
-// MODIFIED: Added a new section for social proof to build trust immediately.
 const SocialProofSection = () => (
   <Center>
     <Paper withBorder p="md" radius="lg" shadow="sm">
@@ -104,11 +107,13 @@ const SocialProofSection = () => (
               fill="var(--mantine-color-yellow-6)"
             />
             <Text fw={700} fz="lg">
-              4.9 / 5.0
+              {' '}
+              4.9 / 5.0{' '}
             </Text>
           </Group>
           <Text size="sm" c="dimmed">
-            Rating on Web Store
+            {' '}
+            Rating on Web Store{' '}
           </Text>
         </Stack>
         <Divider orientation="vertical" />
@@ -116,11 +121,13 @@ const SocialProofSection = () => (
           <Group gap="xs">
             <IconUsersGroup color="var(--mantine-color-teal-6)" />
             <Text fw={700} fz="lg">
-              10,000+
+              {' '}
+              10,000+{' '}
             </Text>
           </Group>
           <Text size="sm" c="dimmed">
-            Happy Users Worldwide
+            {' '}
+            Happy Users Worldwide{' '}
           </Text>
         </Stack>
       </Group>
@@ -152,20 +159,20 @@ const PricingSection = () => (
           <Box>
             <Group justify="space-between">
               <Title order={3}>{plan.name}</Title>
-              {/* MODIFIED: Added a 'One-Time Payment' badge to emphasize the lifetime deal. */}
               {!plan.isFree && (
                 <Badge color="blue" variant="light" size="sm">
-                  ONE-TIME PAYMENT
+                  {' '}
+                  ONE-TIME PAYMENT{' '}
                 </Badge>
               )}
             </Group>
             <Text c="dimmed" mt={4}>
-              {plan.description}
+              {' '}
+              {plan.description}{' '}
             </Text>
           </Box>
           {/* Price */}
           <Box my="lg">
-            {/* MODIFIED: Made '/ Lifetime' text larger and more prominent. */}
             <Group gap={8} align={'baseline'}>
               {plan.placeholderPrice && (
                 <Title
@@ -173,21 +180,25 @@ const PricingSection = () => (
                   c={'dimmed'}
                   style={{ textDecorationLine: 'line-through' }}
                 >
-                  {plan.placeholderPrice}
+                  {' '}
+                  {plan.placeholderPrice}{' '}
                 </Title>
               )}
               <Title order={1} fz={48}>
-                {plan.price}
+                {' '}
+                {plan.price}{' '}
               </Title>
               {!plan.isFree && (
                 <Text c="dimmed" fz="xl" fw={500} pb={5}>
-                  / Lifetime
+                  {' '}
+                  / Lifetime{' '}
                 </Text>
               )}
             </Group>
+            {/* MODIFIED: Removed urgency elements. The pricing card now focuses only on the price. */}
             {!plan.isFree && (
-              <Text c="orange.7" fw={500} size="sm">
-                Limited Time Offer! Price will increase soon.
+              <Text c="dimmed" size="sm" mt="xs">
+                One-time payment. No hidden fees.
               </Text>
             )}
           </Box>
@@ -208,7 +219,8 @@ const PricingSection = () => (
           <Box mt="auto">
             {plan.isFree ? (
               <Button size="md" variant="default" fullWidth disabled>
-                Your Current Plan
+                {' '}
+                Your Current Plan{' '}
               </Button>
             ) : (
               <Stack gap="xs">
@@ -220,12 +232,14 @@ const PricingSection = () => (
                   fullWidth
                   leftSection={<IconCrown size={18} />}
                 >
-                  Upgrade to Pro
+                  {' '}
+                  Upgrade to Pro{' '}
                 </Button>
                 <Group justify="center" gap={6}>
                   <IconLock size={14} color="var(--mantine-color-gray-6)" />
                   <Text size="xs" c="dimmed">
-                    Secure Transaction via Lemon Squeezy
+                    {' '}
+                    Secure Transaction via Lemon Squeezy{' '}
                   </Text>
                 </Group>
               </Stack>
@@ -237,7 +251,91 @@ const PricingSection = () => (
   </Group>
 )
 
-// MODIFIED: Added a new section to help users identify with specific use cases.
+// ADDED: A new, separate section dedicated to creating urgency.
+const LimitedOfferSection = () => {
+  const [timeLeft, setTimeLeft] = useState({
+    days: 0,
+    hours: 0,
+    minutes: 0,
+    seconds: 0,
+  })
+  // This state holds the number of licenses available at the discount price.
+  const [licensesLeft] = useState(75) // Static value for demonstration purposes.
+
+  useEffect(() => {
+    // Set a fixed expiration date for the offer, for example, 3 days from the moment the user loads the page.
+    const expirationDate = new Date()
+    expirationDate.setDate(expirationDate.getDate() + 3)
+
+    // Set up an interval to update the countdown every second.
+    const timer = setInterval(() => {
+      const now = new Date().getTime()
+      const distance = expirationDate.getTime() - now
+
+      // If the countdown is over, clear the interval and set time to zero.
+      if (distance < 0) {
+        clearInterval(timer)
+        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+      } else {
+        // Calculate remaining days, hours, minutes, and seconds.
+        const days = Math.floor(distance / (1000 * 60 * 60 * 24))
+        const hours = Math.floor(
+          (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+        )
+        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
+        const seconds = Math.floor((distance % (1000 * 60)) / 1000)
+        setTimeLeft({ days, hours, minutes, seconds })
+      }
+    }, 1000)
+
+    // Cleanup function to clear the interval when the component is unmounted, preventing memory leaks.
+    return () => clearInterval(timer)
+  }, [])
+
+  return (
+    <Box>
+      <Center>
+        <Stack align="center" ta="center" maw={600}>
+          <Title order={2}>Grab The Lifetime Deal!</Title>
+          <Text c="dimmed">
+            This special launch price is for a limited time only. Once the timer
+            hits zero, the price will go up forever.
+          </Text>
+        </Stack>
+      </Center>
+      <Group justify="center" mt="lg">
+        <Paper
+          withBorder
+          p="lg"
+          radius="md"
+          shadow="sm"
+          w={{ base: '100%', sm: 400 }}
+        >
+          <Stack gap="xs" align="center">
+            <Group gap="xs">
+              <IconClockHour4 size={24} color="var(--mantine-color-orange-9)" />
+              <Text c="orange.9" fw={700} size="lg">
+                Offer Ends In:
+              </Text>
+            </Group>
+            <Text
+              c="orange.9"
+              fz={32}
+              fw={700}
+              style={{ fontFamily: 'monospace' }}
+            >
+              {`${timeLeft.days}d ${timeLeft.hours}h ${timeLeft.minutes}m ${timeLeft.seconds}s`}
+            </Text>
+            <Badge color="red" variant="filled" size="lg" mt="sm">
+              {`Only ${licensesLeft} licenses left at this price!`}
+            </Badge>
+          </Stack>
+        </Paper>
+      </Group>
+    </Box>
+  )
+}
+
 const PersonasSection = () => {
   const personas = [
     {
@@ -265,7 +363,8 @@ const PersonasSection = () => {
         <Stack align="center" ta="center" maw={600}>
           <Title order={2}>Perfect For Every Aspect of Your Life</Title>
           <Text c="dimmed">
-            Whether for work, study, or personal memories, Pro has you covered.
+            {' '}
+            Whether for work, study, or personal memories, Pro has you covered.{' '}
           </Text>
         </Stack>
       </Center>
@@ -278,10 +377,12 @@ const PersonasSection = () => {
                   <persona.icon size={24} />
                 </ThemeIcon>
                 <Text fw={700} fz="lg" mt="md">
-                  {persona.title}
+                  {' '}
+                  {persona.title}{' '}
                 </Text>
                 <Text c="dimmed" size="sm">
-                  {persona.description}
+                  {' '}
+                  {persona.description}{' '}
                 </Text>
               </Stack>
             </Card>
@@ -297,7 +398,8 @@ const FeatureComparisonTable = () => (
   <Box mt={80}>
     <Center>
       <Title order={2} ta="center" mb="xl">
-        Feature Comparison: Free vs. Pro
+        {' '}
+        Feature Comparison: Free vs. Pro{' '}
       </Title>
     </Center>
     <Card withBorder radius="lg" p={0}>
@@ -314,6 +416,7 @@ const FeatureComparisonTable = () => (
             <Table.Tr key={item.feature}>
               <Table.Td fw={500}>{item.feature}</Table.Td>
               <Table.Td ta="center">
+                {' '}
                 {typeof item.free === 'boolean' ? (
                   item.free ? (
                     <CheckIcon />
@@ -322,9 +425,10 @@ const FeatureComparisonTable = () => (
                   )
                 ) : (
                   <Text size="sm">{item.free}</Text>
-                )}
+                )}{' '}
               </Table.Td>
               <Table.Td ta="center">
+                {' '}
                 {typeof item.pro === 'boolean' ? (
                   item.pro ? (
                     <CheckIcon />
@@ -333,9 +437,10 @@ const FeatureComparisonTable = () => (
                   )
                 ) : (
                   <Badge color="teal" variant="light">
-                    {item.pro}
+                    {' '}
+                    {item.pro}{' '}
                   </Badge>
-                )}
+                )}{' '}
               </Table.Td>
             </Table.Tr>
           ))}
@@ -344,9 +449,6 @@ const FeatureComparisonTable = () => (
     </Card>
   </Box>
 )
-
-// 4. Testimonials Section
-// MODIFIED: Added <b> tags to highlight key benefits in testimonials.
 const testimonialsData = [
   {
     name: 'Sarah L.',
@@ -370,14 +472,14 @@ const testimonialsData = [
       "I accidentally deleted a whole chat with important study notes. Thanks to my backup, I recovered everything. I recommend the <b>Lifetime plan to all my friends</b>. It's a must-have.",
   },
 ]
-
 const TestimonialsSection = () => (
   <Box mt={80}>
     <Center>
       <Stack align="center" ta="center" maw={600}>
         <Title order={2}>Trusted by Users Like You</Title>
         <Text c="dimmed">
-          See what our happy customers are saying about the Pro version.
+          {' '}
+          See what our happy customers are saying about the Pro version.{' '}
         </Text>
       </Stack>
     </Center>
@@ -386,7 +488,6 @@ const TestimonialsSection = () => (
         <Grid.Col span={{ base: 12, md: 4 }} key={testimonial.name}>
           <Card withBorder radius="lg" p="xl" style={{ height: '100%' }}>
             <Stack>
-              {/* MODIFIED: Used dangerouslySetInnerHTML to render the bolded text. */}
               <Text
                 c="dimmed"
                 dangerouslySetInnerHTML={{ __html: testimonial.quote }}
@@ -400,7 +501,8 @@ const TestimonialsSection = () => (
                 <div>
                   <Text fw={500}>{testimonial.name}</Text>
                   <Text size="xs" c="dimmed">
-                    {testimonial.role}
+                    {' '}
+                    {testimonial.role}{' '}
                   </Text>
                 </div>
               </Group>
@@ -411,7 +513,6 @@ const TestimonialsSection = () => (
     </Grid>
   </Box>
 )
-
 // 5. Guarantee Section
 const GuaranteeSection = () => (
   <Paper bg="teal.0" radius="lg" p="xl" mt={80}>
@@ -420,20 +521,17 @@ const GuaranteeSection = () => (
         <IconCertificate size={32} />
       </ThemeIcon>
       <Stack gap={0} ta={{ base: 'center', sm: 'left' }}>
-        {/* MODIFIED: Changed title to be more reassuring and user-focused. */}
         <Title order={3}>100% Satisfaction Guarantee or Your Money Back</Title>
         <Text c="dimmed" maw={500}>
+          {' '}
           We're confident you'll love the Pro features. If you're not 100%
           satisfied for any reason, contact us within 30 days of your purchase
-          for a full, no-questions-asked refund.
+          for a full, no-questions-asked refund.{' '}
         </Text>
       </Stack>
     </Group>
   </Paper>
 )
-
-// 6. FAQ Section
-// MODIFIED: Added a proactive FAQ about license transferability.
 const faqData = [
   {
     icon: IconRocket,
@@ -460,18 +558,18 @@ const faqData = [
       'Immediately after your purchase, you will receive an email from our payment partner, <b>Lemon Squeezy</b>, containing your license key and instructions to activate it.',
   },
   {
-    icon: IconCircleCheck, // New icon for the new FAQ
+    icon: IconCircleCheck,
     question: 'What if I change computers? Will I lose my license?',
     answer:
       "Not at all. Your license is yours forever. You can easily <b>deactivate the license</b> on your old device from the Profile menu and then <b>reactivate it on your new computer</b>. It's flexible and designed to move with you.",
   },
 ]
-
 const FaqSection = () => (
   <Box mt={80}>
     <Center>
       <Title order={2} ta="center" mb="xl">
-        Frequently Asked Questions
+        {' '}
+        Frequently Asked Questions{' '}
       </Title>
     </Center>
     <Accordion variant="separated" radius="lg">
@@ -501,7 +599,6 @@ const FaqSection = () => (
     </Accordion>
   </Box>
 )
-
 // 7. Data Privacy Section
 const PrivacySection = () => (
   <Card withBorder radius="lg" p="xl" mt={80} shadow="sm">
@@ -512,16 +609,16 @@ const PrivacySection = () => (
       <div>
         <Title order={3}>Your Privacy is Guaranteed</Title>
         <Text mt={4} c="dimmed">
+          {' '}
           We take your privacy seriously. All your data, including chats and
           media, is processed and stored exclusively on your own computer.
           Nothing is ever uploaded to our servers. You maintain 100% control and
-          ownership of your data at all times.
+          ownership of your data at all times.{' '}
         </Text>
       </div>
     </Group>
   </Card>
 )
-
 // 8. After Purchase Section
 const AfterPurchaseSection = () => {
   const steps = [
@@ -548,7 +645,8 @@ const AfterPurchaseSection = () => {
     <Box mt={80}>
       <Center>
         <Title order={2} ta="center" mb="xl">
-          What Happens After You Buy?
+          {' '}
+          What Happens After You Buy?{' '}
         </Title>
       </Center>
       <Grid>
@@ -559,10 +657,12 @@ const AfterPurchaseSection = () => {
                 <step.icon size={24} />
               </ThemeIcon>
               <Text fw={700} fz="lg">
-                {step.title}
+                {' '}
+                {step.title}{' '}
               </Text>
               <Text c="dimmed" size="sm">
-                {step.description}
+                {' '}
+                {step.description}{' '}
               </Text>
             </Stack>
           </Grid.Col>
@@ -581,6 +681,8 @@ const LandingPage = () => {
           <HeroSection />
           <SocialProofSection />
           <PricingSection />
+          {/* ADDED: The new section for the countdown timer and scarcity message. */}
+          <LimitedOfferSection />
           <PersonasSection />
           <FeatureComparisonTable />
           <TestimonialsSection />
@@ -599,7 +701,8 @@ const LandingPage = () => {
                 target="_blank"
                 leftSection={<IconCrown size={20} />}
               >
-                Get Lifetime Access Now
+                {' '}
+                Get Lifetime Access Now{' '}
               </Button>
             </Stack>
           </Center>
@@ -608,5 +711,4 @@ const LandingPage = () => {
     </MantineProvider>
   )
 }
-
 export default LandingPage
