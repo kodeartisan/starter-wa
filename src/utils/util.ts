@@ -1,6 +1,7 @@
 // src/utils/util.ts
 import { Action, Message } from '@/constants'
 import type { UseFormReturnType } from '@mantine/form'
+import { sendToBackground } from '@plasmohq/messaging'
 import _ from 'lodash'
 
 export async function delay(timeoutMs = 1000) {
@@ -45,6 +46,13 @@ export const showModalProfile = () => {
 
 export const showModalFaq = () => {
   postMessage(Action.Window.SHOW_MODAL_FAQ)
+}
+
+export const goToLandingPage = async () => {
+  await sendToBackground({
+    name: 'landing-page',
+    body: {},
+  })
 }
 
 export const getStoreId = () => {

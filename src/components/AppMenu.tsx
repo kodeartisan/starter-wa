@@ -15,7 +15,6 @@ import Modal from './Modal/Modal'
 import ModalActivation from './Modal/ModalActivation'
 import ModalFaq from './Modal/ModalFaq'
 import ModalProfile from './Modal/ModalProfile'
-import ModalUpgrade from './Modal/ModalUpgrade'
 
 const AppMenu: React.FC = () => {
   const { setIsReady, setActiveChat } = useAppStore()
@@ -184,7 +183,6 @@ const AppMenu: React.FC = () => {
           {renderTabPanel()}
         </Tabs>
       </Modal>
-      <ModalUpgrade opened={showModalUpgrade} onClose={modalUpgrade.close} />
       <ModalActivation
         opened={showModalActivation}
         onClose={modalActivation.close}

@@ -3,7 +3,7 @@ import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
 import { useAppStore } from '@/stores/app'
 import env from '@/utils/env'
-import { showModalUpgrade } from '@/utils/util'
+import { goToLandingPage, showModalUpgrade } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   ActionIcon,
@@ -90,7 +90,7 @@ const LayoutPage: React.FC<Props> = ({
               size="xs"
               radius="md"
               leftSection={<Icon icon="tabler:crown" fontSize={16} />}
-              onClick={showModalUpgrade}
+              onClick={goToLandingPage}
             >
               Go Pro
             </Button>
