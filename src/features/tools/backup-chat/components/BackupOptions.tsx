@@ -25,6 +25,9 @@ interface Props {
   onStart: () => void
 }
 
+// ADDED: Define which message types are considered media for easier checking.
+const MEDIA_MESSAGE_TYPES = ['image', 'video', 'document', 'ptt']
+
 const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
   // Destructure properties from the hook
   const { form, SUPPORTED_MESSAGE_TYPES } = backupHook
@@ -44,14 +47,13 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
     { value: 'custom', label: 'Custom Range...', pro: true },
   ]
 
-  // MODIFIED: Added CSV and XLSX export formats.
   const exportFormats = [
-    { value: 'html', label: 'HTML (.zip)' },
-    { value: 'txt', label: 'TXT' },
-    { value: 'json', label: 'JSON' },
-    { value: 'pdf', label: 'PDF' },
-    { value: 'csv', label: 'CSV' },
-    { value: 'xlsx', label: 'Excel' },
+    { value: 'html', label: 'HTML (.zip)', pro: false },
+    { value: 'txt', label: 'TXT', pro: true },
+    { value: 'json', label: 'JSON', pro: true },
+    { value: 'pdf', label: 'PDF', pro: true },
+    { value: 'csv', label: 'CSV', pro: true },
+    { value: 'xlsx', label: 'Excel', pro: true },
   ]
 
   useEffect(() => {
@@ -74,6 +76,29 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
       return
     }
     form.setFieldValue('datePreset', value)
+  }
+
+  const handleExportFormatChange = (value: string) => {
+    const format = exportFormats.find((f) => f.value === value)
+    if (license.isFree() && format?.pro) {
+      goToLandingPage()
+      return
+    }
+    form.setFieldValue('exportFormat', value)
+  }
+
+  // ADDED: A handler to check for Pro-only message types upon selection.
+  const handleMessageTypeChange = (values: string[]) => {
+    // Find if a new type was just added to the values array.
+    const newType = values.find((v) => !form.values.messageTypes.includes(v))
+
+    // If a new type was selected, and it's a media type, and the user is on the Free plan, redirect.
+    if (license.isFree() && newType && MEDIA_MESSAGE_TYPES.includes(newType)) {
+      goToLandingPage()
+      return
+    }
+
+    form.setFieldValue('messageTypes', values)
   }
 
   const renderSelectOption = ({
@@ -100,7 +125,6 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
         renderOption={renderSelectOption}
         {...form.getInputProps('chatId')}
       />
-
       <TagsInput
         label="Filter by Keywords (Optional)"
         placeholder="Add keywords and press Enter"
@@ -112,7 +136,6 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
         error={form.errors.keywords}
         clearable
       />
-
       <Select
         label="Date Range"
         data={datePresets}
@@ -125,8 +148,7 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
               <Text>{option.label}</Text>
               {license.isFree() && preset?.pro && (
                 <Badge size="sm" variant="light" color="teal">
-                  {' '}
-                  PRO{' '}
+                  PRO
                 </Badge>
               )}
             </Group>
@@ -142,22 +164,26 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
           required
         />
       )}
+      {/* MODIFIED: Checkbox group now uses the new handler and displays PRO badges for media types. */}
       <Checkbox.Group
         label="Include Message Types"
         description="Select the types of messages to include in the backup."
         value={form.values.messageTypes}
-        onChange={(values) => {
-          form.setFieldValue('messageTypes', values)
-        }}
+        onChange={handleMessageTypeChange}
       >
         <Group mt="xs">
           {SUPPORTED_MESSAGE_TYPES.map((type) => (
-            <Group key={type} gap="xs">
+            <Group key={type} gap="xs" align="center">
               <Checkbox
                 key={type}
                 value={type}
                 label={type.charAt(0).toUpperCase() + type.slice(1)}
               />
+              {license.isFree() && MEDIA_MESSAGE_TYPES.includes(type) && (
+                <Badge size="xs" variant="light" color="teal">
+                  PRO
+                </Badge>
+              )}
             </Group>
           ))}
         </Group>
@@ -165,14 +191,17 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
       <Radio.Group
         label="Format"
         value={form.values.exportFormat}
-        onChange={(value) => {
-          form.setFieldValue('exportFormat', value)
-        }}
+        onChange={handleExportFormatChange}
       >
         <Group mt="xs">
           {exportFormats.map((format) => (
-            <Group key={format.value} gap="xs">
+            <Group key={format.value} gap="xs" align="center">
               <Radio size="sm" value={format.value} label={format.label} />
+              {license.isFree() && format.pro && (
+                <Badge size="xs" variant="light" color="teal">
+                  PRO
+                </Badge>
+              )}
             </Group>
           ))}
         </Group>

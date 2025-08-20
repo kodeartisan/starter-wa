@@ -1,5 +1,4 @@
 // src/features/tools/backup-chat/hooks/useChatBackup.ts
-
 import useLicense from '@/hooks/useLicense'
 import wa from '@/libs/wa'
 import toast from '@/utils/toast'
@@ -16,7 +15,6 @@ import {
 } from 'date-fns'
 import _ from 'lodash'
 import { useRef, useState } from 'react'
-// MODIFIED: Import new CSV and XLSX exporters.
 import {
   exportToCsv,
   exportToHtml,
@@ -28,6 +26,8 @@ import {
 } from '../helpers/exportUtils'
 
 const SUPPORTED_MESSAGE_TYPES = ['chat', 'image', 'video', 'document', 'ptt']
+const PRO_EXPORT_FORMATS = ['pdf', 'txt', 'json', 'md', 'csv', 'xlsx']
+const MEDIA_MESSAGE_TYPES = ['image', 'video', 'document', 'ptt']
 
 export interface BackupResultStats {
   messagesExported: number
@@ -52,7 +52,8 @@ export const useChatBackup = () => {
     initialValues: {
       chatId: '',
       exportFormat: 'html',
-      messageTypes: SUPPORTED_MESSAGE_TYPES,
+      // MODIFIED: Set the default selected message type to only 'chat'.
+      messageTypes: ['chat'],
       keywords: [] as string[],
       datePreset: 'today',
       dateRange: [null, null] as [Date | null, Date | null],
@@ -81,6 +82,28 @@ export const useChatBackup = () => {
   const startBackup = async () => {
     if (form.validate().hasErrors) return
 
+    if (
+      license.isFree() &&
+      PRO_EXPORT_FORMATS.includes(form.values.exportFormat)
+    ) {
+      toast.error(
+        'This export format is a Pro feature. Please upgrade to unlock.',
+        'Upgrade Required',
+      )
+      return
+    }
+
+    const hasSelectedMedia = form.values.messageTypes.some((type) =>
+      MEDIA_MESSAGE_TYPES.includes(type),
+    )
+    if (license.isFree() && hasSelectedMedia) {
+      toast.error(
+        'Including media files in backups is a Pro feature. Please upgrade to unlock.',
+        'Upgrade Required',
+      )
+      return
+    }
+
     setIsBackingUp(true)
     validationRef.current = true
     setProgress({ value: 5, label: 'Fetching and filtering messages...' })
@@ -90,11 +113,9 @@ export const useChatBackup = () => {
       mediaOmitted: 0,
       isLimitApplied: false,
     }
-
     try {
       const { chatId, dateRange, keywords, messageTypes, datePreset } =
         form.values
-
       let effectiveDateRange: [Date | null, Date | null] = [null, null]
       if (datePreset === 'custom') {
         effectiveDateRange = dateRange
@@ -132,21 +153,17 @@ export const useChatBackup = () => {
         }
         effectiveDateRange = [start, end]
       }
-
       const allMessages = await wa.chat.getMessages(chatId, { count: -1 })
       let [startDate, endDate] = effectiveDateRange
-
       if (license.isFree()) {
         const sevenDaysAgo = startOfDay(subDays(new Date(), 7))
         if (!startDate || startDate < sevenDaysAgo) {
           startDate = sevenDaysAgo
         }
       }
-
       const lowercasedKeywords = keywords
         .map((k) => k.toLowerCase().trim())
         .filter(Boolean)
-
       const filteredMessages = allMessages.filter((msg) => {
         const dateMatch =
           !startDate ||
@@ -155,7 +172,6 @@ export const useChatBackup = () => {
             start: startDate,
             end: endDate,
           })
-
         const keywordMatch =
           lowercasedKeywords.length === 0 ||
           lowercasedKeywords.some(
@@ -166,20 +182,16 @@ export const useChatBackup = () => {
         const typeMatch = messageTypes.includes(msg.type)
         return dateMatch && keywordMatch && typeMatch
       })
-
       if (filteredMessages.length === 0) {
         toast.info('No messages found matching your criteria to export.')
         setIsBackingUp(false)
         return
       }
-
       const isLimitApplied = license.isFree() && filteredMessages.length > 10
-
       const messagesToExport = filteredMessages.map((msg, index) => ({
         ...msg,
         isRedacted: isLimitApplied && index >= 10,
       }))
-
       const messagesOmittedCount = isLimitApplied
         ? filteredMessages.length - 10
         : 0
@@ -190,20 +202,17 @@ export const useChatBackup = () => {
               ['image', 'video', 'document', 'ptt'].includes(msg.type),
             ).length
         : 0
-
       resultStats = {
         messagesExported: filteredMessages.length - messagesOmittedCount,
         messagesOmitted: messagesOmittedCount,
         mediaOmitted: mediaOmittedCount,
         isLimitApplied: isLimitApplied,
       }
-
       const chat = await wa.chat.find(form.values.chatId)
       // @ts-ignore
       const filename = `backup_chat_${_.snakeCase(
         getContactName(chat.data.contact),
       )}_${new Date().toISOString().slice(0, 10)}`
-
       const exporterParams = {
         messages: messagesToExport,
         chat,
@@ -213,8 +222,6 @@ export const useChatBackup = () => {
         validationRef,
         isLimitApplied,
       }
-
-      // MODIFIED: Added cases for 'csv' and 'xlsx' export formats.
       switch (form.values.exportFormat) {
         case 'pdf':
           await exportToPdf(exporterParams)
@@ -239,7 +246,6 @@ export const useChatBackup = () => {
           await exportToHtml(exporterParams)
           break
       }
-
       if (validationRef.current) {
         if (isLimitApplied) {
           toast.warning(

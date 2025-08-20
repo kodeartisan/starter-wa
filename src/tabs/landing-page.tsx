@@ -1,6 +1,7 @@
 // src/tabs/landing-page.tsx
 import plans, { features as comparisonFeatures } from '@/config/plans'
 import theme from '@/libs/theme'
+import { Icon } from '@iconify/react'
 import {
   Accordion,
   Anchor,
@@ -14,7 +15,7 @@ import {
   Divider,
   Grid,
   Group,
-  Image,
+  List,
   MantineProvider,
   Paper,
   Stack,
@@ -22,54 +23,117 @@ import {
   Text,
   ThemeIcon,
   Title,
-  // ADDED: Import Transition for smooth animations.
+  Tooltip,
   Transition,
 } from '@mantine/core'
 import '@mantine/core/styles.css'
-import {
-  IconArrowRight,
-  IconBriefcase,
-  IconCertificate,
-  IconCheck,
-  IconCircleCheck,
-  IconClockHour4,
-  IconCrown,
-  IconHelpOctagon,
-  IconHomeHeart,
-  IconKey,
-  IconLock,
-  // ADDED: Imported the IconMail for the new Contact Us section.
-  IconMail,
-  IconMessageCircle,
-  IconRocket,
-  IconSchool,
-  IconShieldCheck,
-  IconShieldLock,
-  IconSparkles,
-  IconStar,
-  IconThumbUp,
-  IconUser,
-  IconUsersGroup,
-  IconWorldQuestion,
-  IconX,
-} from '@tabler/icons-react'
-// ADDED: Imported useState and useEffect for the countdown timer and social proof functionality.
+import { useWindowScroll } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
-import { When } from 'react-if'
 
-// Helper component for checkmark icons
+// --- Helper Components --- //
+// English: Using Icon component for consistent and clean icon rendering.
 const CheckIcon = () => (
-  <IconCheck size={20} stroke={2.5} color="var(--mantine-color-teal-6)" />
+  <Icon
+    icon="tabler:check"
+    fontSize={20}
+    strokeWidth={2.5}
+    color="var(--mantine-color-teal-6)"
+  />
 )
 const CrossIcon = () => (
-  <IconX size={20} stroke={2.5} color="var(--mantine-color-red-6)" />
+  <Icon
+    icon="tabler:x"
+    fontSize={20}
+    strokeWidth={2.5}
+    color="var(--mantine-color-red-6)"
+  />
 )
 
-// --- Section Components --- //
+// --- Countdown Timer Logic --- //
+// English: Define TimeLeft interface for type safety.
+interface TimeLeft {
+  days: number
+  hours: number
+  minutes: number
+  seconds: number
+}
 
-// 1. Hero Section: Headline and Sub-headline
+// English: Calculate the time remaining until the offer ends.
+const calculateTimeLeft = (offerEndDate: Date): TimeLeft | null => {
+  const difference = +offerEndDate - +new Date()
+  if (difference <= 0) {
+    return null
+  }
+  return {
+    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
+    hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
+    minutes: Math.floor((difference / 1000 / 60) % 60),
+    seconds: Math.floor((difference / 1000) % 60),
+  }
+}
+
+const TimeSegment: React.FC<{ value: number; label: string }> = ({
+  value,
+  label,
+}) => (
+  <Stack align="center" gap={0}>
+    <Text fz={32} fw={700} c="yellow.6">
+      {String(value).padStart(2, '0')}
+    </Text>
+    <Text size="xs" c="dimmed">
+      {label}
+    </Text>
+  </Stack>
+)
+
+const CountdownTimer: React.FC<{ offerEndDate: Date; isMini?: boolean }> = ({
+  offerEndDate,
+  isMini = false,
+}) => {
+  const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(
+    calculateTimeLeft(offerEndDate),
+  )
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(calculateTimeLeft(offerEndDate))
+    }, 1000)
+    return () => clearInterval(timer)
+  }, [offerEndDate])
+
+  if (!timeLeft) {
+    return (
+      <Text c="red.7" fw={700} size="lg">
+        Offer has ended!
+      </Text>
+    )
+  }
+
+  if (isMini) {
+    return (
+      <Text c="white" size="sm" fw={500}>
+        Offer Ends In: {String(timeLeft.days).padStart(2, '0')}:
+        {String(timeLeft.hours).padStart(2, '0')}:
+        {String(timeLeft.minutes).padStart(2, '0')}:
+        {String(timeLeft.seconds).padStart(2, '0')}
+      </Text>
+    )
+  }
+
+  return (
+    <Group justify="center" gap="lg">
+      <TimeSegment value={timeLeft.days} label="DAYS" />
+      <TimeSegment value={timeLeft.hours} label="HOURS" />
+      <TimeSegment value={timeLeft.minutes} label="MINUTES" />
+      <TimeSegment value={timeLeft.seconds} label="SECONDS" />
+    </Group>
+  )
+}
+// --- End Countdown Timer Logic --- //
+
+// --- Section Components --- //
 const HeroSection = () => (
-  <Center p="xl">
+  <Center p="xl" pt={80}>
     <Stack align="center" gap="xl" ta="center" maw={700}>
       <ThemeIcon
         size={80}
@@ -77,311 +141,106 @@ const HeroSection = () => (
         variant="gradient"
         gradient={{ from: 'teal', to: 'lime' }}
       >
-        <IconShieldLock size={48} />
+        <Icon icon="tabler:shield-lock" fontSize={48} />
       </ThemeIcon>
       <Title order={1} fz={{ base: 36, sm: 48 }}>
-        {' '}
-        Never Lose a WhatsApp Memory Again{' '}
+        Archive & Export Your WhatsApp Chats into Secure Files.
       </Title>
       <Text c="dimmed" fz="lg">
-        {' '}
-        Upgrade to Pro to get unlimited backups of all your chats and media.
-        Secure your conversations, export in any format, and enjoy peace of mind
-        with a simple one-time payment.{' '}
+        A one-time payment solution to back up and convert your WhatsApp history
+        into PDF, Excel, CSV, and more—all processed securely on your own
+        computer.
+      </Text>
+      <Stack align="center">
+        {/* MODIFIED: CTA button size is increased for more prominence. */}
+        <Button
+          size="lg"
+          component="a"
+          href={plans.find((p) => !p.isFree)?.link}
+          target="_blank"
+          leftSection={<Icon icon="tabler:crown" fontSize={20} />}
+          variant="gradient"
+          gradient={{ from: 'teal', to: 'lime' }}
+          radius="md"
+        >
+          Get Lifetime Access Now
+        </Button>
+        <Text size="xs" c="dimmed">
+          Includes 30-day money-back guarantee
+        </Text>
+      </Stack>
+      <Text size="sm" c="dimmed">
+        Trusted by 1,000+ happy users worldwide
       </Text>
     </Stack>
   </Center>
 )
 
-const SocialProofSection = () => (
-  <Center>
-    <Paper withBorder p="md" radius="lg" shadow="sm">
-      <Group>
-        <Stack align="center" gap={4}>
-          <Group gap="xs">
-            <IconStar
-              color="var(--mantine-color-yellow-6)"
-              fill="var(--mantine-color-yellow-6)"
-            />
-            <Text fw={700} fz="lg">
-              {' '}
-              4.9 / 5.0{' '}
-            </Text>
-          </Group>
-          <Text size="sm" c="dimmed">
-            {' '}
-            Rating on Web Store{' '}
-          </Text>
-        </Stack>
-        <Divider orientation="vertical" />
-        <Stack align="center" gap={4}>
-          <Group gap="xs">
-            <IconUsersGroup color="var(--mantine-color-teal-6)" />
-            <Text fw={700} fz="lg">
-              {' '}
-              1000+{' '}
-            </Text>
-          </Group>
-          <Text size="sm" c="dimmed">
-            {' '}
-            Happy Users Worldwide{' '}
-          </Text>
-        </Stack>
-      </Group>
-    </Paper>
-  </Center>
-)
-
-// 2. Pricing Section
-const PricingSection = () => (
-  <Group justify="center" align="stretch" mt="xl">
-    {plans.map((plan, index) => (
-      <Card
-        key={index}
-        withBorder
-        w={{ base: '100%', sm: 380 }}
-        radius={'lg'}
-        p="lg"
-        style={{
-          border: !plan.isFree
-            ? '2px solid var(--mantine-color-teal-6)'
-            : undefined,
-          boxShadow: !plan.isFree
-            ? 'var(--mantine-shadow-lg)'
-            : 'var(--mantine-shadow-sm)',
-        }}
-      >
-        <Stack justify="space-between" style={{ height: '100%' }}>
-          {/* Card Header */}
-          <Box>
-            <Group justify="space-between">
-              <Title order={3}>{plan.name}</Title>
-              {!plan.isFree && (
-                <Badge color="blue" variant="light" size="sm">
-                  {' '}
-                  ONE-TIME PAYMENT{' '}
-                </Badge>
-              )}
-            </Group>
-            <Text c="dimmed" mt={4}>
-              {' '}
-              {plan.description}{' '}
-            </Text>
-          </Box>
-          {/* Price */}
-          <Box my="lg">
-            <Group gap={8} align={'baseline'}>
-              {plan.placeholderPrice && (
-                <Title
-                  order={3}
-                  c={'dimmed'}
-                  style={{ textDecorationLine: 'line-through' }}
-                >
-                  {' '}
-                  {plan.placeholderPrice}{' '}
-                </Title>
-              )}
-              <Title order={1} fz={48}>
-                {' '}
-                {plan.price}{' '}
-              </Title>
-              {!plan.isFree && (
-                <Text c="dimmed" fz="xl" fw={500} pb={5}>
-                  {' '}
-                  / Lifetime{' '}
-                </Text>
-              )}
-            </Group>
-            {/* MODIFIED: Removed urgency elements. The pricing card now focuses only on the price. */}
-            {!plan.isFree && (
-              <Text c="dimmed" size="sm" mt="xs">
-                {' '}
-                One-time payment. No hidden fees.{' '}
-              </Text>
-            )}
-          </Box>
-          {/* Features List */}
-          <Stack gap="sm" mb="lg">
-            {plan.features.map((feature, idx) => (
-              <Group key={idx} gap="sm" wrap="nowrap" align="flex-start">
-                <IconCircleCheck
-                  color={'var(--mantine-color-teal-6)'}
-                  size={20}
-                  style={{ minWidth: 20, marginTop: 3 }}
-                />
-                <Text size="sm">{feature}</Text>
-              </Group>
-            ))}
-          </Stack>
-          {/* Action Button */}
-          <Box mt="auto">
-            {plan.isFree ? (
-              <Button size="md" variant="default" fullWidth disabled>
-                {' '}
-                Your Current Plan{' '}
-              </Button>
-            ) : (
-              <Stack gap="xs">
-                <Button
-                  size="md"
-                  component="a"
-                  href={plan.link}
-                  target="_blank"
-                  fullWidth
-                  leftSection={<IconCrown size={18} />}
-                >
-                  {' '}
-                  Upgrade to Pro{' '}
-                </Button>
-                <Group justify="center" gap={6}>
-                  <IconLock size={14} color="var(--mantine-color-gray-6)" />
-                  <Text size="xs" c="dimmed">
-                    {' '}
-                    Secure Transaction via Lemon Squeezy{' '}
-                  </Text>
-                </Group>
-              </Stack>
-            )}
-          </Box>
-        </Stack>
-      </Card>
-    ))}
-  </Group>
-)
-
-// ADDED: A new, separate section dedicated to creating urgency.
-const LimitedOfferSection = () => {
-  const [timeLeft, setTimeLeft] = useState({
-    days: 0,
-    hours: 0,
-    minutes: 0,
-    seconds: 0,
-  })
-  // This state holds the number of licenses available at the discount price.
-  const [licensesLeft] = useState(75) // Static value for demonstration purposes.
-  useEffect(() => {
-    // Set a fixed expiration date for the offer, for example, 3 days from the moment the user loads the page.
-    const expirationDate = new Date()
-    expirationDate.setDate(expirationDate.getDate() + 3)
-    // Set up an interval to update the countdown every second.
-    const timer = setInterval(() => {
-      const now = new Date().getTime()
-      const distance = expirationDate.getTime() - now
-      // If the countdown is over, clear the interval and set time to zero.
-      if (distance < 0) {
-        clearInterval(timer)
-        setTimeLeft({ days: 0, hours: 0, minutes: 0, seconds: 0 })
-      } else {
-        // Calculate remaining days, hours, minutes, and seconds.
-        const days = Math.floor(distance / (1000 * 60 * 60 * 24))
-        const hours = Math.floor(
-          (distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
-        )
-        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60))
-        const seconds = Math.floor((distance % (1000 * 60)) / 1000)
-        setTimeLeft({ days, hours, minutes, seconds })
-      }
-    }, 1000)
-    // Cleanup function to clear the interval when the component is unmounted, preventing memory leaks.
-    return () => clearInterval(timer)
-  }, [])
-  return (
-    <Box>
-      <Center>
-        <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>Grab The Lifetime Deal!</Title>
-          <Text c="dimmed">
-            {' '}
-            This special launch price is for a limited time only. Once the timer
-            hits zero, the price will go up forever.{' '}
-          </Text>
-        </Stack>
-      </Center>
-      <Group justify="center" mt="lg">
-        <Paper
-          withBorder
-          p="lg"
-          radius="md"
-          shadow="sm"
-          w={{ base: '100%', sm: 400 }}
-        >
-          <Stack gap="xs" align="center">
-            <Group gap="xs">
-              <IconClockHour4 size={24} color="var(--mantine-color-orange-9)" />
-              <Text c="orange.9" fw={700} size="lg">
-                {' '}
-                Offer Ends In:{' '}
-              </Text>
-            </Group>
-            <Text
-              c="orange.9"
-              fz={32}
-              fw={700}
-              style={{ fontFamily: 'monospace' }}
-            >
-              {' '}
-              {`${timeLeft.days}d ${timeLeft.hours}h ${timeLeft.minutes}m ${timeLeft.seconds}s`}{' '}
-            </Text>
-            <Badge color="red" variant="filled" size="lg" mt="sm">
-              {' '}
-              {`Only ${licensesLeft} licenses left at this price!`}{' '}
-            </Badge>
-          </Stack>
-        </Paper>
-      </Group>
-    </Box>
-  )
-}
-
-const PersonasSection = () => {
-  const personas = [
+const FeaturesSection = () => {
+  const featuresData = [
     {
-      icon: IconBriefcase,
-      title: 'For Small Business Owners',
+      icon: 'tabler:database-export',
+      title: 'Unlimited Backups',
       description:
-        'Secure all client conversations and transaction evidence without limits. Never risk losing critical business data.',
+        'Save everything. Back up unlimited messages, photos, videos, and documents from any chat.',
     },
     {
-      icon: IconSchool,
-      title: 'For Students',
+      icon: 'tabler:files',
+      title: 'Multiple Formats',
       description:
-        'Never lose important lecture notes or group project discussions shared on WhatsApp. Keep your academic work safe.',
+        'Convert your chats into professional PDF, CSV, Excel, JSON, and TXT files for any purpose.',
     },
     {
-      icon: IconHomeHeart,
-      title: 'For Family Memories',
+      icon: 'tabler:shield-lock',
+      title: 'Private & Secure',
       description:
-        "Save every precious photo, video, and message from your loved ones forever. Protect your family's digital history.",
+        'Your data never leaves your computer. All backups are processed and stored locally for maximum security.',
+    },
+    {
+      icon: 'tabler:filter',
+      title: 'Advanced Filtering',
+      description:
+        'Easily find what you need. Filter your exports by custom date ranges or multiple keywords.',
+    },
+    {
+      icon: 'tabler:device-mobile-message',
+      title: 'Media Included',
+      description:
+        'Don’t just save text. The Pro version allows you to include all media types in your backups.',
+    },
+    {
+      icon: 'tabler:headset',
+      title: 'Priority Support',
+      description:
+        'Get help when you need it. Pro users get priority access to our dedicated support team.',
     },
   ]
   return (
     <Box mt={80}>
       <Center>
         <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>Perfect For Every Aspect of Your Life</Title>
+          <Title order={2}>Powerful Features at Your Fingertips</Title>
           <Text c="dimmed">
-            {' '}
-            Whether for work, study, or personal memories, Pro has you covered.{' '}
+            Unlock the full potential of your WhatsApp data with the Pro
+            version.
           </Text>
         </Stack>
       </Center>
-      <Grid mt="xl">
-        {personas.map((persona) => (
-          <Grid.Col span={{ base: 12, md: 4 }} key={persona.title}>
+      <Grid mt="xl" gutter="xl">
+        {featuresData.map((feature) => (
+          <Grid.Col span={{ base: 12, md: 4 }} key={feature.title}>
             <Card withBorder radius="lg" p="xl" style={{ height: '100%' }}>
-              <Stack align="center" ta="center">
-                <ThemeIcon size={50} radius="xl" variant="light" color="teal">
-                  <persona.icon size={24} />
+              <Group>
+                <ThemeIcon variant="light" size={40} radius="md">
+                  <Icon icon={feature.icon} fontSize={22} />
                 </ThemeIcon>
-                <Text fw={700} fz="lg" mt="md">
-                  {' '}
-                  {persona.title}{' '}
+                <Text fw={700} fz="lg">
+                  {feature.title}
                 </Text>
-                <Text c="dimmed" size="sm">
-                  {' '}
-                  {persona.description}{' '}
-                </Text>
-              </Stack>
+              </Group>
+              <Text c="dimmed" size="sm" mt="md">
+                {feature.description}
+              </Text>
             </Card>
           </Grid.Col>
         ))}
@@ -390,13 +249,227 @@ const PersonasSection = () => {
   )
 }
 
-// 3. Feature Comparison Table
+// English: New section to address specific user needs.
+const UserPersonaSection = () => (
+  <Box mt={80}>
+    <Center>
+      <Stack align="center" ta="center" maw={600}>
+        <Title order={2}>Built For Everyone</Title>
+        <Text c="dimmed">
+          Whether for work or personal memories, we've got you covered.
+        </Text>
+      </Stack>
+    </Center>
+    <Grid mt="xl" gutter="xl">
+      <Grid.Col span={{ base: 12, md: 6 }}>
+        <Card withBorder radius="lg" p="xl" style={{ height: '100%' }}>
+          <Stack>
+            <Group>
+              <ThemeIcon variant="light" size={40} radius="md">
+                <Icon icon="tabler:briefcase" fontSize={22} />
+              </ThemeIcon>
+              <Title order={3}>For Professionals & Business</Title>
+            </Group>
+            <Text c="dimmed" size="sm" mt="md">
+              Effortlessly manage client communications, generate reports, and
+              maintain legal records.
+            </Text>
+            <List
+              spacing="xs"
+              size="sm"
+              center
+              icon={
+                <ThemeIcon color="teal" size={20} radius="xl">
+                  <Icon icon="tabler:check" fontSize={12} />
+                </ThemeIcon>
+              }
+            >
+              <List.Item>
+                Export client chats to Excel/CSV for reporting.
+              </List.Item>
+              <List.Item>
+                Backup unlimited project data without risk of loss.
+              </List.Item>
+              <List.Item>
+                Use keyword filters to find specific agreements or details.
+              </List.Item>
+            </List>
+          </Stack>
+        </Card>
+      </Grid.Col>
+      <Grid.Col span={{ base: 12, md: 6 }}>
+        <Card withBorder radius="lg" p="xl" style={{ height: '100%' }}>
+          <Stack>
+            <Group>
+              <ThemeIcon variant="light" size={40} radius="md">
+                <Icon icon="tabler:heart" fontSize={22} />
+              </ThemeIcon>
+              <Title order={3}>For Personal Use</Title>
+            </Group>
+            <Text c="dimmed" size="sm" mt="md">
+              Securely save precious conversations with loved ones, from family
+              chats to special moments.
+            </Text>
+            <List
+              spacing="xs"
+              size="sm"
+              center
+              icon={
+                <ThemeIcon color="teal" size={20} radius="xl">
+                  <Icon icon="tabler:check" fontSize={12} />
+                </ThemeIcon>
+              }
+            >
+              <List.Item>
+                Save conversations as a readable PDF, complete with photos.
+              </List.Item>
+              <List.Item>
+                Backup all your media so you never lose a precious memory.
+              </List.Item>
+              <List.Item>
+                Keep a permanent, private archive of your most important chats.
+              </List.Item>
+            </List>
+          </Stack>
+        </Card>
+      </Grid.Col>
+    </Grid>
+  </Box>
+)
+const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
+  <Group justify="center" align="stretch" mt="xl" gap="lg">
+    {plans.map((plan, index) => (
+      <Paper
+        key={index}
+        withBorder
+        w={{ base: '100%', sm: 380 }}
+        radius={'lg'}
+        p="xl"
+        style={{
+          border: !plan.isFree
+            ? '2px solid var(--mantine-color-teal-6)'
+            : undefined,
+          boxShadow: !plan.isFree
+            ? 'var(--mantine-shadow-lg)'
+            : 'var(--mantine-shadow-sm)',
+          position: 'relative',
+        }}
+      >
+        <Stack justify="space-between" style={{ height: '100%' }}>
+          <Box ta="center">
+            <Title order={2}>{plan.name}</Title>
+            <Text c="dimmed" mt={4} size="sm">
+              {plan.description}
+            </Text>
+          </Box>
+          <Box my="lg" ta="center">
+            {!plan.isFree && (
+              <Stack mb="lg">
+                {/* MODIFIED: Added a title to give context to the countdown timer. */}
+                <Title order={4} c="orange.7">
+                  LAUNCH OFFER: 45% OFF ENDS SOON!
+                </Title>
+                <CountdownTimer offerEndDate={offerEndDate} />
+                <Text size="xs" c="dimmed" mt="xs">
+                  Don't miss out on saving $39. Price returns to normal after
+                  the timer ends.
+                </Text>
+              </Stack>
+            )}
+            <Group gap={8} align={'baseline'} justify="center">
+              {plan.placeholderPrice && (
+                <Title
+                  order={3}
+                  c={'dimmed'}
+                  style={{ textDecorationLine: 'line-through' }}
+                >
+                  {plan.placeholderPrice}
+                </Title>
+              )}
+              <Title order={1} fz={52}>
+                {plan.price}
+              </Title>
+            </Group>
+            <Text c="dimmed" size="sm" mt="xs">
+              {plan.isFree
+                ? 'Forever free'
+                : 'One-time payment. Price returns to normal after offer ends.'}
+            </Text>
+          </Box>
+          <Divider label="Key Features" labelPosition="center" my="sm" />
+          <Stack gap="sm" mb="lg">
+            {plan.features.map((feature, idx) => (
+              <Group key={idx} gap="sm" wrap="nowrap" align="flex-start">
+                <ThemeIcon
+                  variant="light"
+                  color={plan.isFree ? 'gray' : 'teal'}
+                  size="sm"
+                  radius="xl"
+                >
+                  {plan.isFree ? (
+                    <Icon icon="tabler:circle-check" fontSize={16} />
+                  ) : (
+                    <Icon icon="tabler:star" fontSize={16} />
+                  )}
+                </ThemeIcon>
+                <Text size="sm">{feature}</Text>
+              </Group>
+            ))}
+          </Stack>
+          <Box mt="auto">
+            {plan.isFree ? (
+              <Button size="md" variant="default" fullWidth disabled>
+                Your Current Plan
+              </Button>
+            ) : (
+              <Stack gap="xs">
+                {/* MODIFIED: CTA button size is increased for emphasis. */}
+                <Button
+                  size="lg"
+                  component="a"
+                  href={plan.link}
+                  target="_blank"
+                  fullWidth
+                  leftSection={<Icon icon="tabler:crown" fontSize={20} />}
+                  variant="gradient"
+                  gradient={{ from: 'teal', to: 'lime' }}
+                >
+                  Upgrade to Pro
+                </Button>
+                {/* MODIFIED: Enhanced trust signals below the purchase button. */}
+                <Group justify="center" gap={6}>
+                  <Icon
+                    icon="tabler:lock"
+                    fontSize={14}
+                    color="var(--mantine-color-gray-6)"
+                  />
+                  <Text size="xs" c="dimmed">
+                    100% Secure Payment via Lemon Squeezy
+                  </Text>
+                </Group>
+                <Group justify="center" gap={6}>
+                  <Icon
+                    icon="tabler:shield-check"
+                    fontSize={14}
+                    color="var(--mantine-color-gray-6)"
+                  />
+                  <Text size="xs" c="dimmed">
+                    30-Day Money-Back Guarantee
+                  </Text>
+                </Group>
+              </Stack>
+            )}
+          </Box>
+        </Stack>
+      </Paper>
+    ))}
+  </Group>
+)
 const FeatureComparisonTable = () => (
   <Box mt={80}>
     <Center>
       <Title order={2} ta="center" mb="xl">
-        {' '}
-        Feature Comparison
+        Features Comparison
       </Title>
     </Center>
     <Card withBorder radius="lg" p={0}>
@@ -410,10 +483,33 @@ const FeatureComparisonTable = () => (
         </Table.Thead>
         <Table.Tbody>
           {comparisonFeatures.map((item) => (
-            <Table.Tr key={item.feature}>
-              <Table.Td fw={500}>{item.feature}</Table.Td>
+            <Table.Tr
+              key={item.feature}
+              style={{
+                backgroundColor:
+                  item.free === false
+                    ? 'var(--mantine-color-teal-0)'
+                    : undefined,
+              }}
+            >
+              <Table.Td>
+                <Group gap="xs" justify="space-between">
+                  <Text fw={500}>{item.feature}</Text>
+                  {item.free === false && (
+                    <Tooltip
+                      label="This feature is exclusive to the Pro version."
+                      withArrow
+                      position="top"
+                    >
+                      <Icon
+                        icon="tabler:info-circle"
+                        color="var(--mantine-color-teal-5)"
+                      />
+                    </Tooltip>
+                  )}
+                </Group>
+              </Table.Td>
               <Table.Td ta="center">
-                {' '}
                 {typeof item.free === 'boolean' ? (
                   item.free ? (
                     <CheckIcon />
@@ -422,10 +518,9 @@ const FeatureComparisonTable = () => (
                   )
                 ) : (
                   <Text size="sm">{item.free}</Text>
-                )}{' '}
+                )}
               </Table.Td>
               <Table.Td ta="center">
-                {' '}
                 {typeof item.pro === 'boolean' ? (
                   item.pro ? (
                     <CheckIcon />
@@ -434,10 +529,9 @@ const FeatureComparisonTable = () => (
                   )
                 ) : (
                   <Badge color="teal" variant="light">
-                    {' '}
-                    {item.pro}{' '}
+                    {item.pro}
                   </Badge>
-                )}{' '}
+                )}
               </Table.Td>
             </Table.Tr>
           ))}
@@ -447,365 +541,424 @@ const FeatureComparisonTable = () => (
   </Box>
 )
 
-const testimonialsData = [
-  {
-    name: 'Sarah L.',
-    role: 'Small Business Owner',
-    avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026704d',
-    quote:
-      'This tool is a lifesaver! I was terrified of losing years of client conversations. The Pro version let me <b>back up everything in minutes</b>. The peace of mind is priceless.',
-  },
-  {
-    name: 'Mike P.',
-    role: 'Freelancer',
-    avatar: 'https://i.pravatar.cc/150?u=a04258114e29026702d',
-    quote:
-      'I needed to export a long chat history for a project report. The <b>Excel export feature in Pro</b> saved me hours of manual copy-pasting. A fantastic one-time purchase, no annoying subscriptions!',
-  },
-  {
-    name: 'Jessica T.',
-    role: 'University Student',
-    avatar: 'https://i.pravatar.cc/150?u=a042581f4e29026706d',
-    quote:
-      "I accidentally deleted a whole chat with important study notes. Thanks to my backup, I recovered everything. I recommend the <b>Lifetime plan to all my friends</b>. It's a must-have.",
-  },
-]
-
-const TestimonialsSection = () => (
+// English: Added a dedicated security section for trust-building.
+const SecuritySection = () => (
   <Box mt={80}>
-    <Center>
-      <Stack align="center" ta="center" maw={600}>
-        <Title order={2}>Trusted by Users Like You</Title>
-        <Text c="dimmed">
-          {' '}
-          See what our happy customers are saying about the Pro version.{' '}
-        </Text>
-      </Stack>
-    </Center>
-    <Grid mt="xl">
-      {testimonialsData.map((testimonial) => (
-        <Grid.Col span={{ base: 12, md: 4 }} key={testimonial.name}>
-          <Card withBorder radius="lg" p="xl" style={{ height: '100%' }}>
-            <Stack>
-              <Text
-                c="dimmed"
-                dangerouslySetInnerHTML={{ __html: testimonial.quote }}
-              />
-              <Group mt="md">
-                <Avatar
-                  src={testimonial.avatar}
-                  alt={testimonial.name}
-                  radius="xl"
-                />
-                <div>
-                  <Text fw={500}>{testimonial.name}</Text>
-                  <Text size="xs" c="dimmed">
-                    {' '}
-                    {testimonial.role}{' '}
-                  </Text>
-                </div>
-              </Group>
-            </Stack>
-          </Card>
+    <Card withBorder p="xl" radius="lg" bg="gray.0">
+      <Grid align="center">
+        <Grid.Col span={{ base: 12, md: 2 }} ta="center">
+          <ThemeIcon size={80} radius="xl" variant="light" color="teal">
+            <Icon icon="tabler:shield-lock" fontSize={48} />
+          </ThemeIcon>
         </Grid.Col>
-      ))}
-    </Grid>
-  </Box>
-)
-
-// 5. Guarantee Section
-const GuaranteeSection = () => (
-  <Paper bg="teal.0" radius="lg" p="xl" mt={80}>
-    <Group justify="center" align="center">
-      <ThemeIcon variant="light" color="teal" size={60} radius="xl">
-        <IconCertificate size={32} />
-      </ThemeIcon>
-      <Stack gap={0} ta={{ base: 'center', sm: 'left' }}>
-        <Title order={3}>100% Satisfaction Guarantee or Your Money Back</Title>
-        <Text c="dimmed" maw={500}>
-          {' '}
-          We're confident you'll love the Pro features. If you're not 100%
-          satisfied for any reason, contact us within 30 days of your purchase
-          for a full, no-questions-asked refund.{' '}
-        </Text>
-      </Stack>
-    </Group>
-  </Paper>
-)
-
-const faqData = [
-  {
-    icon: IconRocket,
-    question: 'What are the main benefits of upgrading to Pro?',
-    answer:
-      "With Pro, you get <b>Total Protection</b> by backing up all messages and media without limits. You'll unlock <b>Exclusive Features</b> like PDF/Excel exports and advanced filtering. Plus, you receive <b>Priority Support</b>, ensuring our team assists you first.",
-  },
-  {
-    icon: IconKey,
-    question: 'Is this a one-time payment or a subscription?',
-    answer:
-      'It is a <b>one-time payment</b>. You pay once and get lifetime access to all current and future Pro features. No monthly fees, no subscriptions, ever.',
-  },
-  {
-    icon: IconShieldCheck,
-    question: 'Is my data secure?',
-    answer:
-      'Absolutely. Your data security is our top priority. The extension processes everything <b>locally on your computer</b>. No chat data is ever sent to our servers. You have 100% control.',
-  },
-  {
-    icon: IconHelpOctagon,
-    question: 'How do I get my license key after purchase?',
-    answer:
-      'Immediately after your purchase, you will receive an email from our payment partner, <b>Lemon Squeezy</b>, containing your license key and instructions to activate it.',
-  },
-  {
-    icon: IconCircleCheck,
-    question: 'What if I change computers? Will I lose my license?',
-    answer:
-      "Not at all. Your license is yours forever. You can easily <b>deactivate the license</b> on your old device from the Profile menu and then <b>reactivate it on your new computer</b>. It's flexible and designed to move with you.",
-  },
-]
-
-const FaqSection = () => (
-  <Box mt={80}>
-    <Center>
-      <Title order={2} ta="center" mb="xl">
-        {' '}
-        Frequently Asked Questions{' '}
-      </Title>
-    </Center>
-    <Accordion variant="separated" radius="lg">
-      {faqData.map((item, index) => (
-        <Accordion.Item key={index} value={item.question}>
-          <Accordion.Control
+        <Grid.Col span={{ base: 12, md: 10 }}>
+          <Title order={2}>Your Privacy is Our Top Priority</Title>
+          <Text c="dimmed" mt="md">
+            We designed this extension with a "privacy-first" approach. You have
+            complete and total control over your data, always.
+          </Text>
+          <List
+            mt="md"
+            spacing="xs"
+            size="sm"
             icon={
-              <ThemeIcon variant="light" size="lg">
-                <item.icon size={22} />
+              <ThemeIcon color="teal" size={20} radius="xl">
+                <Icon icon="tabler:check" fontSize={12} />
               </ThemeIcon>
             }
           >
-            <Text fw={500}>{item.question}</Text>
-          </Accordion.Control>
-          <Accordion.Panel>
-            <Text
-              c="dimmed"
-              size="sm"
-              lh={1.6}
-              dangerouslySetInnerHTML={{
-                __html: item.answer.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'),
-              }}
-            />
-          </Accordion.Panel>
-        </Accordion.Item>
-      ))}
-    </Accordion>
+            <List.Item>
+              <b>100% Local Processing:</b> Your chats and media are processed
+              directly on your computer.
+            </List.Item>
+            <List.Item>
+              <b>No Data Uploads:</b> We never see, save, or have access to your
+              conversations or files.
+            </List.Item>
+            <List.Item>
+              <b>You Are in Control:</b> Your exported files are saved only
+              where you choose—on your local device.
+            </List.Item>
+          </List>
+        </Grid.Col>
+      </Grid>
+    </Card>
   </Box>
 )
 
-// 7. Data Privacy Section
-const PrivacySection = () => (
-  <Card withBorder radius="lg" p="xl" mt={80} shadow="sm">
-    <Group wrap="nowrap" gap="xl">
-      <ThemeIcon color="teal" size={60} radius="xl" variant="light">
-        <IconShieldCheck size={32} />
-      </ThemeIcon>
-      <div>
-        <Title order={3}>Your Privacy is Guaranteed</Title>
-        <Text mt={4} c="dimmed">
-          {' '}
-          We take your privacy seriously. All your data, including chats and
-          media, is processed and stored exclusively on your own computer.
-          Nothing is ever uploaded to our servers. You maintain 100% control and
-          ownership of your data at all times.{' '}
-        </Text>
-      </div>
-    </Group>
-  </Card>
-)
-
-// 8. After Purchase Section
-const AfterPurchaseSection = () => {
-  const steps = [
+const TestimonialsSection = () => {
+  // MODIFIED: Expanded testimonials from 2 to 6 to increase social proof.
+  const testimonialsData = [
     {
-      icon: IconLock,
-      title: '1. Secure Payment',
-      description:
-        'Complete your purchase through our secure payment partner, Lemon Squeezy.',
+      avatar:
+        'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-8.png',
+      name: 'Sarah L.',
+      role: 'Small Business Owner',
+      quote:
+        'I kept putting off the upgrade. Last week, my phone died completely. I would have <b>deeply regretted losing everything</b> if I hadn’t backed up thousands of client chats with the Pro version a few days prior. The best investment for peace of mind.',
     },
     {
-      icon: IconKey,
-      title: '2. Get Your Key',
-      description:
-        'Check your email for your unique lifetime license key, delivered instantly.',
+      avatar:
+        'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png',
+      name: 'Mike P.',
+      role: 'Freelancer',
+      quote:
+        'I needed to export a long chat history for a project report. The <b>Excel export feature in Pro</b> saved me hours of manual copy-pasting. A fantastic one-time purchase, no annoying subscriptions!',
     },
     {
-      icon: IconRocket,
-      title: '3. Activate & Enjoy',
-      description:
-        'Open the extension, enter your key, and immediately unlock all Pro features!',
+      avatar:
+        'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-4.png',
+      name: 'Dr. Alisha Chen',
+      role: 'Researcher',
+      quote:
+        'For my study on communication patterns, the <b>JSON export was invaluable</b>. It provided clean, structured data that was easy to parse and analyze. This tool is surprisingly powerful for academic purposes.',
+    },
+    {
+      avatar:
+        'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-5.png',
+      name: 'David G.',
+      role: 'Family Historian',
+      quote:
+        'I wanted to create a keepsake of conversations with my grandmother. The ability to back up everything, including photos and voice notes, and export it to a single <b>beautifully formatted PDF</b>, is priceless. These are memories I now have forever.',
+    },
+    {
+      avatar:
+        'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-7.png',
+      name: 'Maria Rodriguez',
+      role: 'Legal Assistant',
+      quote:
+        'We required timestamped chat logs for a legal case. The Pro version allowed us to filter by date and export a complete, verifiable record. It was <b>straightforward, secure, and professional</b>. Highly recommended for legal compliance.',
+    },
+    {
+      avatar:
+        'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-3.png',
+      name: 'Tom B.',
+      role: 'Retiree',
+      quote:
+        "I'm not very tech-savvy, but I was worried about losing years of family photos on WhatsApp. The process was <b>incredibly simple</b>. I clicked a few buttons, and everything was saved to my computer. A huge relief!",
     },
   ]
   return (
     <Box mt={80}>
       <Center>
-        <Title order={2} ta="center" mb="xl">
-          {' '}
-          What Happens After You Buy?{' '}
-        </Title>
+        <Stack align="center" ta="center" maw={600}>
+          <Title order={2}>Trusted by Users Like You</Title>
+          <Text c="dimmed">
+            See what our happy customers are saying about the Pro version.
+          </Text>
+        </Stack>
       </Center>
-      <Grid>
-        {steps.map((step, index) => (
-          <Grid.Col span={{ base: 12, sm: 4 }} key={step.title}>
-            <Stack align="center" ta="center">
-              <ThemeIcon size={50} radius="xl" variant="light">
-                <step.icon size={24} />
-              </ThemeIcon>
-              <Text fw={700} fz="lg">
-                {' '}
-                {step.title}{' '}
-              </Text>
-              <Text c="dimmed" size="sm">
-                {' '}
-                {step.description}{' '}
-              </Text>
-            </Stack>
+      <Grid mt="xl" gutter="xl">
+        {testimonialsData.map((testimonial) => (
+          <Grid.Col span={{ base: 12, md: 6 }} key={testimonial.name}>
+            <Card withBorder radius="lg" p="xl" style={{ height: '100%' }}>
+              <Stack>
+                <Text
+                  c="dimmed"
+                  dangerouslySetInnerHTML={{ __html: testimonial.quote }}
+                />
+                <Group mt="md">
+                  <Avatar
+                    src={testimonial.avatar}
+                    alt={testimonial.name}
+                    radius="xl"
+                  />
+                  <div>
+                    <Text fw={500}>{testimonial.name}</Text>
+                    <Text size="xs" c="dimmed">
+                      {testimonial.role}
+                    </Text>
+                  </div>
+                </Group>
+              </Stack>
+            </Card>
           </Grid.Col>
         ))}
       </Grid>
     </Box>
   )
 }
-
-// ADDED: A new "Contact Us" section for user support.
-const ContactUsSection = () => (
-  <Box mt={80}>
-    <Center>
-      <Stack align="center" ta="center" maw={600}>
-        <Title order={2}>Get in Touch</Title>
-        <Text c="dimmed">
-          Have questions or need assistance? Our support team is here to help
-          you.
+const GuaranteeSection = () => (
+  <Paper bg="teal.0" radius="lg" p="xl" mt={80}>
+    <Group justify="center" align="center">
+      <ThemeIcon variant="light" color="teal" size={60} radius="xl">
+        <Icon icon="tabler:certificate" fontSize={32} />
+      </ThemeIcon>
+      <Stack gap={0} ta={{ base: 'center', sm: 'left' }}>
+        <Title order={3}>Our "Peace of Mind" Guarantee</Title>
+        <Text c="dimmed" maw={500}>
+          We're confident you'll love the Pro features. If you're not 100%
+          satisfied, contact us within 30 days of your purchase for a full,
+          no-questions-asked refund.
         </Text>
       </Stack>
-    </Center>
-    <Center mt="xl">
-      <Paper withBorder p="lg" shadow="sm" radius="md">
-        <Group>
-          <ThemeIcon size="xl" radius="md" variant="light">
-            <IconMail size={24} />
-          </ThemeIcon>
-          <Stack gap={2}>
-            <Title order={4}>Contact Support</Title>
-            <Text c="dimmed" size="sm">
-              We'll get back to you as soon as possible.
-            </Text>
-            <Anchor
-              href="mailto:extdotninja@gmail.com"
-              size="sm"
-              fw={500}
-              target="_blank"
-            >
-              extdotninja@gmail.com
-            </Anchor>
-          </Stack>
-        </Group>
-      </Paper>
-    </Center>
-  </Box>
+    </Group>
+  </Paper>
 )
 
-// --- Main Page Component ---
+const FaqSection = () => {
+  const faqData = [
+    {
+      icon: 'tabler:rocket',
+      question: 'What are the main benefits of upgrading to Pro?',
+      answer:
+        "With Pro, you get <b>Total Protection</b> by backing up all messages and media without limits. You'll unlock <b>Exclusive Features</b> like PDF/Excel exports and advanced filtering. Plus, you receive <b>Priority Support</b>, ensuring our team assists you first.",
+    },
+    {
+      icon: 'tabler:key',
+      question: 'Is this a one-time payment or a subscription?',
+      answer:
+        'It is a <b>one-time payment</b>. You pay once and get lifetime access to all current and future Pro features. No monthly fees, no subscriptions, ever.',
+    },
+    {
+      icon: 'tabler:shield-check',
+      question: 'Is my data secure?',
+      answer:
+        'Absolutely. Your data security is our top priority. The extension processes everything <b>locally on your computer</b>. No chat data is ever sent to our servers. You have 100% control.',
+    },
+    {
+      icon: 'tabler:help-octagon',
+      question: 'How do I get my license key after purchase?',
+      answer:
+        'Immediately after your purchase, you will receive an email from our payment partner, <b>Lemon Squeezy</b>, containing your license key and instructions to activate it.',
+    },
+  ]
+  return (
+    <Box mt={80}>
+      <Center>
+        <Title order={2} ta="center" mb="xl">
+          Frequently Asked Questions
+        </Title>
+      </Center>
+      <Accordion variant="separated" radius="lg">
+        {faqData.map((item, index) => (
+          <Accordion.Item key={index} value={item.question}>
+            <Accordion.Control
+              icon={
+                <ThemeIcon variant="light" size="lg">
+                  <Icon icon={item.icon} fontSize={22} />
+                </ThemeIcon>
+              }
+            >
+              <Text fw={500}>{item.question}</Text>
+            </Accordion.Control>
+            <Accordion.Panel>
+              <Text
+                c="dimmed"
+                size="sm"
+                lh={1.6}
+                dangerouslySetInnerHTML={{
+                  __html: item.answer.replace(/\*\*(.*?)\*\*/g, '<b>$1</b>'),
+                }}
+              />
+            </Accordion.Panel>
+          </Accordion.Item>
+        ))}
+      </Accordion>
+    </Box>
+  )
+}
+
+// English: New section for value stacking before the final CTA.
+const ValueStackSection = () => (
+  <Box mt={80}>
+    <Card withBorder radius="lg" p="xl">
+      <Center>
+        <Stack align="center" ta="center" maw={600}>
+          <Title order={2}>Here's Everything You Get</Title>
+          <Text c="dimmed">
+            Your Pro Lifetime License is a complete package for total peace of
+            mind.
+          </Text>
+        </Stack>
+      </Center>
+      <Grid mt="xl" gutter="xl">
+        <Grid.Col span={{ base: 12, sm: 6 }}>
+          <List
+            spacing="sm"
+            size="sm"
+            center
+            icon={
+              <ThemeIcon color="teal" size={24} radius="xl">
+                <Icon icon="tabler:check" fontSize={14} />
+              </ThemeIcon>
+            }
+          >
+            <List.Item>Unlimited Message & Media Backups</List.Item>
+            <List.Item>Export to All Formats (PDF, Excel, etc.)</List.Item>
+            <List.Item>Advanced Date & Keyword Filtering</List.Item>
+          </List>
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, sm: 6 }}>
+          <List
+            spacing="sm"
+            size="sm"
+            center
+            icon={
+              <ThemeIcon color="teal" size={24} radius="xl">
+                <Icon icon="tabler:check" fontSize={14} />
+              </ThemeIcon>
+            }
+          >
+            <List.Item>Priority Customer Support</List.Item>
+            <List.Item>All Future Updates Included</List.Item>
+            <List.Item>30-Day Money-Back Guarantee</List.Item>
+          </List>
+        </Grid.Col>
+      </Grid>
+    </Card>
+  </Box>
+)
+const ContactUsSection = () => (
+  <Box mt={80}>
+    <Card withBorder p="xl" shadow="sm" radius="lg">
+      <Group>
+        <ThemeIcon size="xl" radius="md" variant="light">
+          <Icon icon="tabler:mail-filled" fontSize={24} />
+        </ThemeIcon>
+        <Stack gap={2}>
+          <Title order={4}>Still Have Questions?</Title>
+          <Text c="dimmed" size="sm">
+            Our team is ready to help. Contact us for any inquiries.
+          </Text>
+          <Anchor
+            href="mailto:extdotninja@gmail.com"
+            size="sm"
+            fw={500}
+            target="_blank"
+          >
+            extdotninja@gmail.com
+          </Anchor>
+        </Stack>
+      </Group>
+    </Card>
+  </Box>
+)
+const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
+  const [scroll] = useWindowScroll()
+  return (
+    <Transition
+      mounted={scroll.y > 200}
+      transition="slide-down"
+      duration={300}
+      timingFunction="ease"
+    >
+      {(styles) => (
+        <Paper
+          shadow="md"
+          radius={0}
+          p="xs"
+          style={{
+            ...styles,
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1000,
+            backgroundColor: 'var(--mantine-color-dark-8)',
+          }}
+        >
+          <Container size="md">
+            <Group justify="space-between">
+              <CountdownTimer offerEndDate={offerEndDate} isMini />
+              <Button
+                size="sm"
+                component="a"
+                href={plans.find((p) => !p.isFree)?.link}
+                target="_blank"
+                leftSection={<Icon icon="tabler:crown" fontSize={18} />}
+                variant="gradient"
+                gradient={{ from: 'teal', to: 'lime' }}
+              >
+                Get Lifetime Access
+              </Button>
+            </Group>
+          </Container>
+        </Paper>
+      )}
+    </Transition>
+  )
+}
 const LandingPage = () => {
-  // MODIFIED: Added state and effect for the dynamic social proof notification.
   const [notification, setNotification] = useState<{
     city: string
     country: string
   } | null>(null)
+  // English: Set a fixed target date for the offer to end.
+  // Using useState to ensure the date is only calculated once on component mount.
+  const [offerEndDate] = useState(() => {
+    const date = new Date()
+    date.setDate(date.getDate() + 3) // Offer ends in 3 days.
+    return date
+  })
+
   useEffect(() => {
-    // A list of locations to make the notifications feel varied and authentic.
     const locations = [
       { city: 'Torino', country: 'Italy' },
       { city: 'Shaqra', country: 'Saudi Arabia' },
-      { city: 'Santo Andre', country: 'Brazil' },
-      { city: 'Al Qahirah', country: 'Egypt' },
-      { city: 'Queretaro', country: 'Mexico' },
-      { city: 'Puerto Vallarta', country: 'Mexico' },
-      { city: 'Santana De Cataguases', country: 'Brazil' },
-      { city: 'Calgary', country: 'Canada' },
       { city: 'Miami', country: 'United States' },
-      { city: 'Almaty', country: 'Kazakhstan' },
-      { city: 'Boccadifalco', country: 'Italy' },
-      { city: 'Oberasbach', country: 'Germany' },
-      { city: 'Federal Republic of Nigeria', country: 'Nigeria' },
-      { city: 'Airoli', country: 'India' },
-      { city: 'Borivli', country: 'India' },
-      { city: 'Diadema', country: 'Brazil' },
-      { city: 'Frechen', country: 'Germany' },
-      { city: 'Santiago', country: 'Chile' },
-      { city: 'Monterrey', country: 'Mexico' },
     ]
     let timeoutId: NodeJS.Timeout
-    // This function schedules the appearance and disappearance of notifications.
     const scheduleNextNotification = () => {
       clearTimeout(timeoutId)
-      // Set a random delay for when the next notification will appear (between 10-20 seconds).
-      const randomDelay = Math.floor(Math.random() * (15000 - 10000 + 1)) + 5000
+      const randomDelay = Math.floor(Math.random() * (15000 - 8000 + 1)) + 8000 // 8-15 seconds
       timeoutId = setTimeout(() => {
-        // Pick a random location and show the notification.
         const randomLocation =
           locations[Math.floor(Math.random() * locations.length)]
         setNotification(randomLocation)
-        // Set a timer to hide the notification after it has been displayed for 5 seconds.
         timeoutId = setTimeout(() => {
           setNotification(null)
-          // Schedule the next notification to continue the cycle.
           scheduleNextNotification()
-        }, 3000)
+        }, 4000) // Show for 4 seconds
       }, randomDelay)
     }
-    timeoutId = setTimeout(scheduleNextNotification, 3000)
-    // Cleanup function to clear the timer when the component unmounts.
-    return () => {
-      clearTimeout(timeoutId)
-    }
+    timeoutId = setTimeout(scheduleNextNotification, 5000) // First one after 5 seconds
+    return () => clearTimeout(timeoutId)
   }, [])
   return (
     <MantineProvider theme={theme}>
+      <StickyHeader offerEndDate={offerEndDate} />
       <Container size="md" py="xl">
         <Stack gap={80}>
           <HeroSection />
-          <SocialProofSection />
-          <PricingSection />
-          {/* ADDED: The new section for the countdown timer and scarcity message. */}
-          <LimitedOfferSection />
-          <PersonasSection />
+          <FeaturesSection />
+          <UserPersonaSection />
+          <PricingSection offerEndDate={offerEndDate} />
           <FeatureComparisonTable />
+          <SecuritySection />
           <TestimonialsSection />
           <GuaranteeSection />
           <FaqSection />
-          <PrivacySection />
-          <AfterPurchaseSection />
-          {/* ADDED: The new contact section is placed here. */}
+          <ValueStackSection />
           <ContactUsSection />
-          {/* Final CTA */}
           <Center mt={40}>
             <Stack align="center" gap="lg">
               <Title order={2}>Ready to Secure Your Chats?</Title>
-              <Button
-                size="lg"
-                component="a"
-                href={plans.find((p) => !p.isFree)?.link}
-                target="_blank"
-                leftSection={<IconCrown size={20} />}
-              >
-                {' '}
-                Get Lifetime Access Now{' '}
-              </Button>
+              {/* MODIFIED: Added text to reinforce the value before the final CTA */}
+              <Text c="dimmed" size="lg">
+                Get all Pro features for a one-time payment.
+              </Text>
+              <Stack align="center">
+                <Button
+                  size="lg"
+                  component="a"
+                  href={plans.find((p) => !p.isFree)?.link}
+                  target="_blank"
+                  leftSection={<Icon icon="tabler:crown" fontSize={20} />}
+                  variant="gradient"
+                  gradient={{ from: 'teal', to: 'lime' }}
+                  radius="md"
+                >
+                  Get Lifetime Access Now for Just $50
+                </Button>
+                <Text size="xs" c="dimmed">
+                  30-day no-questions-asked money-back guarantee.
+                </Text>
+              </Stack>
             </Stack>
           </Center>
         </Stack>
       </Container>
-      {/* ADDED: The social proof toast component with a slide-in/out animation. */}
       <Transition
         mounted={!!notification}
         transition="slide-right"
@@ -828,16 +981,14 @@ const LandingPage = () => {
           >
             <Group>
               <ThemeIcon color="teal" size={36} radius="xl">
-                <IconShieldCheck size={22} />
+                <Icon icon="tabler:shield-check" fontSize={22} />
               </ThemeIcon>
               <Stack gap={0}>
                 <Text fw={500} size="sm">
-                  {' '}
-                  Just upgraded to Pro!{' '}
+                  Just upgraded to Pro!
                 </Text>
                 <Text size="xs" c="dimmed">
-                  {' '}
-                  {`Someone from ${notification?.city}, ${notification?.country}`}{' '}
+                  {`Someone from ${notification?.city}, ${notification?.country}`}
                 </Text>
               </Stack>
             </Group>
