@@ -31,6 +31,7 @@ import { useWindowScroll } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
 
 // --- Helper Components --- //
+
 // English: Using Icon component for consistent and clean icon rendering.
 const CheckIcon = () => (
   <Icon
@@ -50,6 +51,7 @@ const CrossIcon = () => (
 )
 
 // --- Countdown Timer Logic --- //
+
 // English: Define TimeLeft interface for type safety.
 interface TimeLeft {
   days: number
@@ -93,7 +95,6 @@ const CountdownTimer: React.FC<{ offerEndDate: Date; isMini?: boolean }> = ({
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(
     calculateTimeLeft(offerEndDate),
   )
-
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft(offerEndDate))
@@ -129,6 +130,7 @@ const CountdownTimer: React.FC<{ offerEndDate: Date; isMini?: boolean }> = ({
     </Group>
   )
 }
+
 // --- End Countdown Timer Logic --- //
 
 // --- Section Components --- //
@@ -336,6 +338,7 @@ const UserPersonaSection = () => (
     </Grid>
   </Box>
 )
+
 const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
   <Group justify="center" align="stretch" mt="xl" gap="lg">
     {plans.map((plan, index) => (
@@ -367,11 +370,12 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
               <Stack mb="lg">
                 {/* MODIFIED: Added a title to give context to the countdown timer. */}
                 <Title order={4} c="orange.7">
-                  LAUNCH OFFER: 45% OFF ENDS SOON!
+                  LAUNCH OFFER: 56% OFF ENDS SOON!
                 </Title>
                 <CountdownTimer offerEndDate={offerEndDate} />
+                {/* MODIFIED: Updated the savings amount to reflect the new price. */}
                 <Text size="xs" c="dimmed" mt="xs">
-                  Don't miss out on saving $39. Price returns to normal after
+                  Don't miss out on saving $50. Price returns to normal after
                   the timer ends.
                 </Text>
               </Stack>
@@ -390,11 +394,6 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 {plan.price}
               </Title>
             </Group>
-            <Text c="dimmed" size="sm" mt="xs">
-              {plan.isFree
-                ? 'Forever free'
-                : 'One-time payment. Price returns to normal after offer ends.'}
-            </Text>
           </Box>
           <Divider label="Key Features" labelPosition="center" my="sm" />
           <Stack gap="sm" mb="lg">
@@ -465,6 +464,7 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
     ))}
   </Group>
 )
+
 const FeatureComparisonTable = () => (
   <Box mt={80}>
     <Center>
@@ -678,6 +678,7 @@ const TestimonialsSection = () => {
     </Box>
   )
 }
+
 const GuaranteeSection = () => (
   <Paper bg="teal.0" radius="lg" p="xl" mt={80}>
     <Group justify="center" align="center">
@@ -809,6 +810,7 @@ const ValueStackSection = () => (
     </Card>
   </Box>
 )
+
 const ContactUsSection = () => (
   <Box mt={80}>
     <Card withBorder p="xl" shadow="sm" radius="lg">
@@ -834,6 +836,7 @@ const ContactUsSection = () => (
     </Card>
   </Box>
 )
+
 const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
   const [scroll] = useWindowScroll()
   return (
@@ -884,6 +887,7 @@ const LandingPage = () => {
     city: string
     country: string
   } | null>(null)
+
   // English: Set a fixed target date for the offer to end.
   // Using useState to ensure the date is only calculated once on component mount.
   const [offerEndDate] = useState(() => {
@@ -915,6 +919,7 @@ const LandingPage = () => {
     timeoutId = setTimeout(scheduleNextNotification, 5000) // First one after 5 seconds
     return () => clearTimeout(timeoutId)
   }, [])
+
   return (
     <MantineProvider theme={theme}>
       <StickyHeader offerEndDate={offerEndDate} />
@@ -949,7 +954,8 @@ const LandingPage = () => {
                   gradient={{ from: 'teal', to: 'lime' }}
                   radius="md"
                 >
-                  Get Lifetime Access Now for Just $50
+                  {/* MODIFIED: Final CTA button updated with new price. */}
+                  Get Lifetime Access Now for Just $39
                 </Button>
                 <Text size="xs" c="dimmed">
                   30-day no-questions-asked money-back guarantee.
