@@ -1,22 +1,26 @@
 // src/tabs/resource-page.tsx
 // English: This file provides promotional materials for the Chrome Web Store listing.
+import PromoIcon from '@/components/Promo/PromoIcon'
 import ScreenshotWrapper from '@/components/Promo/ScreenshotWrapper'
 import theme from '@/libs/theme'
 import { Icon } from '@iconify/react'
 import {
+  Avatar,
   Badge,
-  Box,
   Button,
   Card,
+  Center,
   Checkbox,
   Code,
   Container,
   CopyButton,
   Grid,
   Group,
+  List,
   MantineProvider,
   Paper,
   Radio,
+  Select,
   Stack,
   Tabs,
   TagsInput,
@@ -27,102 +31,573 @@ import {
 } from '@mantine/core'
 import '@mantine/core/styles.css'
 import { DatePickerInput } from '@mantine/dates'
+import '@mantine/dates/styles.css'
 import FileSaver from 'file-saver'
 import html2canvas from 'html2canvas'
 import React, { useRef } from 'react'
 
-interface IconProps {
-  size: number
+// --- Promotional Tile Components (for generation) --- //
+// These components are designed to be rendered inside ScreenshotWrapper.
+// English: Using a darker gradient that matches the landing page's teal-to-lime theme with darker shades for a more prominent look.
+const PROMO_GRADIENT_BACKGROUND =
+  'linear-gradient(135deg, var(--mantine-color-teal-8), var(--mantine-color-lime-8))'
+
+// --- Small Promo Tile Options (440x280px) --- //
+// English: Three distinct design options for the small promotional tile,
+// all focused on showcasing the extension's key features in different layouts.
+
+// English: Option 1 uses a classic 2x2 grid layout for features.
+const SmallTileFeaturesGrid = () => (
+  <Paper
+    w={440}
+    h={280}
+    withBorder
+    radius="md"
+    p="lg"
+    display="flex"
+    style={{
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      textAlign: 'center',
+      background: PROMO_GRADIENT_BACKGROUND,
+    }}
+  >
+    <Text size="xl" fw={'bolder'} c="white">
+      Powerful Whatsapp Backup Tool
+    </Text>
+    <Text c="gray.2" size="sm" fw={500} mt="xs" mb="lg">
+      Export chats to PDF, Excel, and more. 100% Private.
+    </Text>
+    <Grid w="100%" gutter="sm">
+      <Grid.Col span={6}>
+        <Group gap="xs">
+          <ThemeIcon size="md" radius="sm">
+            <Icon icon="tabler:files" fontSize={16} />
+          </ThemeIcon>
+          <Text size="sm" c="white">
+            Multiple Formats
+          </Text>
+        </Group>
+      </Grid.Col>
+      <Grid.Col span={6}>
+        <Group gap="xs">
+          <ThemeIcon size="md" radius="sm">
+            <Icon icon="tabler:shield-lock" fontSize={16} />
+          </ThemeIcon>
+          <Text size="sm" c="white">
+            100% Private
+          </Text>
+        </Group>
+      </Grid.Col>
+      <Grid.Col span={6}>
+        <Group gap="xs">
+          <ThemeIcon size="md" radius="sm">
+            <Icon icon="tabler:photo-video" fontSize={16} />
+          </ThemeIcon>
+          <Text size="sm" c="white">
+            Include Media
+          </Text>
+        </Group>
+      </Grid.Col>
+      <Grid.Col span={6}>
+        <Group gap="xs">
+          <ThemeIcon size="md" radius="sm">
+            <Icon icon="tabler:filter" fontSize={16} />
+          </ThemeIcon>
+          <Text size="sm" c="white">
+            Advanced Filters
+          </Text>
+        </Group>
+      </Grid.Col>
+    </Grid>
+  </Paper>
+)
+
+// English: Option 2 uses a clean, centered vertical list for features.
+const SmallTileFeaturesList = () => (
+  <Paper
+    w={440}
+    h={280}
+    withBorder
+    radius="md"
+    p="xl"
+    display="flex"
+    style={{
+      flexDirection: 'column',
+      justifyContent: 'center',
+      background: PROMO_GRADIENT_BACKGROUND,
+    }}
+  >
+    <Title order={3} ta="center" lh={1.2} c="white" mb="xl">
+      Your Complete WhatsApp Archive
+    </Title>
+    <Stack gap="sm" align="center">
+      <Group gap="xs">
+        <Icon icon="tabler:database-export" fontSize={20} color="white" />
+        <Text size="sm" c="white">
+          Unlimited Backups
+        </Text>
+      </Group>
+      <Group gap="xs">
+        <Icon icon="tabler:photo-video" fontSize={20} color="white" />
+        <Text size="sm" c="white">
+          Export All Media
+        </Text>
+      </Group>
+      <Group gap="xs">
+        <Icon icon="tabler:files" fontSize={20} color="white" />
+        <Text size="sm" c="white">
+          Multiple Formats (PDF, Excel)
+        </Text>
+      </Group>
+      <Group gap="xs">
+        <Icon icon="tabler:shield-check" fontSize={20} color="white" />
+        <Text size="sm" c="white">
+          100% Private & Secure
+        </Text>
+      </Group>
+    </Stack>
+  </Paper>
+)
+
+// English: Option 3 uses a more visual, icon-driven horizontal layout for features.
+const SmallTileFeaturesIcons = () => (
+  <Paper
+    w={440}
+    h={280}
+    withBorder
+    radius="md"
+    p="lg"
+    display="flex"
+    style={{
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      textAlign: 'center',
+      background: PROMO_GRADIENT_BACKGROUND,
+    }}
+  >
+    <Title order={3} ta="center" lh={1.2} c="white">
+      All-in-One Backup Solution
+    </Title>
+    <Text c="gray.2" size="sm" fw={500} mt="xs" mb="xl">
+      Securely save your chats with all the features you need.
+    </Text>
+    <Group justify="center" gap="md">
+      <Stack align="center" gap={4}>
+        <ThemeIcon size="lg" radius="lg">
+          <Icon icon="tabler:files" />
+        </ThemeIcon>
+        <Text c="white" fz="xs">
+          Formats
+        </Text>
+      </Stack>
+      <Stack align="center" gap={4}>
+        <ThemeIcon size="lg" radius="lg">
+          <Icon icon="tabler:photo-video" />
+        </ThemeIcon>
+        <Text c="white" fz="xs">
+          Media
+        </Text>
+      </Stack>
+      <Stack align="center" gap={4}>
+        <ThemeIcon size="lg" radius="lg">
+          <Icon icon="tabler:filter" />
+        </ThemeIcon>
+        <Text c="white" fz="xs">
+          Filters
+        </Text>
+      </Stack>
+      <Stack align="center" gap={4}>
+        <ThemeIcon size="lg" radius="lg">
+          <Icon icon="tabler:shield-lock" />
+        </ThemeIcon>
+        <Text c="white" fz="xs">
+          Secure
+        </Text>
+      </Stack>
+    </Group>
+  </Paper>
+)
+
+// --- Marquee Promo Tiles (1280x800px) --- //
+// English: [MODIFIED] Component dimensions changed to 1280x800.
+const MarqueeTileFeatureShowcase = () => (
+  <Paper
+    w={1280}
+    h={800}
+    withBorder
+    radius="lg"
+    p={60}
+    style={{
+      // English: Applying the consistent dark theme gradient.
+      background: PROMO_GRADIENT_BACKGROUND,
+    }}
+  >
+    <Stack h="100%" justify="center">
+      <Grid align="center" gutter={40}>
+        <Grid.Col span={5}>
+          <Stack>
+            {/* English: [MODIFIED] Font size adjusted and color changed for dark background. */}
+            <Title order={1} fz={44} lh={1.2} c="white">
+              The Ultimate WhatsApp Backup & Export Tool
+            </Title>
+            <Text size="xl" c="gray.3" mt="md">
+              Securely save your conversations and media in multiple formats
+              with advanced filtering.
+            </Text>
+          </Stack>
+        </Grid.Col>
+        <Grid.Col span={7}>
+          <Grid gutter="lg">
+            <Grid.Col span={6}>
+              <Card withBorder radius="md" p="lg">
+                <Group>
+                  <ThemeIcon variant="light" size="lg">
+                    <Icon icon="tabler:files" />
+                  </ThemeIcon>
+                  <Text fw={700}>Multiple Formats</Text>
+                </Group>
+                <Text size="sm" c="dimmed" mt="xs">
+                  Export to PDF, Excel, CSV, JSON, and more.
+                </Text>
+              </Card>
+            </Grid.Col>
+            <Grid.Col span={6}>
+              <Card withBorder radius="md" p="lg">
+                <Group>
+                  <ThemeIcon variant="light" size="lg">
+                    <Icon icon="tabler:shield-lock" />
+                  </ThemeIcon>
+                  <Text fw={700}>100% Private</Text>
+                </Group>
+                <Text size="sm" c="dimmed" mt="xs">
+                  Your data never leaves your computer.
+                </Text>
+              </Card>
+            </Grid.Col>
+            <Grid.Col span={6}>
+              <Card withBorder radius="md" p="lg">
+                <Group>
+                  <ThemeIcon variant="light" size="lg">
+                    <Icon icon="tabler:photo-video" />
+                  </ThemeIcon>
+                  <Text fw={700}>Include Media</Text>
+                </Group>
+                <Text size="sm" c="dimmed" mt="xs">
+                  Save images, videos, and documents.
+                </Text>
+              </Card>
+            </Grid.Col>
+            <Grid.Col span={6}>
+              <Card withBorder radius="md" p="lg">
+                <Group>
+                  <ThemeIcon variant="light" size="lg">
+                    <Icon icon="tabler:filter" />
+                  </ThemeIcon>
+                  <Text fw={700}>Advanced Filtering</Text>
+                </Group>
+                <Text size="sm" c="dimmed" mt="xs">
+                  Filter by date range and keywords.
+                </Text>
+              </Card>
+            </Grid.Col>
+          </Grid>
+        </Grid.Col>
+      </Grid>
+    </Stack>
+  </Paper>
+)
+
+// --- Feature Mockups for Screenshots --- //
+// English: These components represent the light-themed UI and remain unchanged.
+const FeatureMockupExportFormats = () => (
+  <Card withBorder radius="md" p="xl" w={620}>
+    <Stack>
+      <Title order={5}>Export Options</Title>
+      <Text c="dimmed" size="sm">
+        Choose your desired format for the chat backup.
+      </Text>
+      <Radio.Group label="Format" defaultValue="pdf">
+        <Group mt="xs">
+          <Radio value="html" label="HTML (.zip)" />
+          <Radio value="pdf" label="PDF" />
+          <Radio value="xlsx" label="Excel" />
+          <Radio value="csv" label="CSV" />
+        </Group>
+      </Radio.Group>
+      <Button mt="lg" leftSection={<Icon icon="tabler:download" />}>
+        Start Backup
+      </Button>
+    </Stack>
+  </Card>
+)
+
+const FeatureMockupAdvancedFiltering = () => (
+  <Card withBorder radius="md" p="xl" w={620}>
+    <Stack>
+      <Title order={5}>Advanced Filtering</Title>
+      <Text c="dimmed" size="sm">
+        Pinpoint the exact messages you need.
+      </Text>
+      <DatePickerInput
+        type="range"
+        label="Filter by Date Range"
+        placeholder="Pick start and end dates"
+        value={[new Date(2025, 6, 10), new Date(2025, 6, 24)]}
+        disabled
+      />
+      <TagsInput
+        label="Filter by Keywords"
+        placeholder="Add keywords"
+        description="Only export messages containing these words."
+        value={['contract', 'invoice', 'approved']}
+        disabled
+      />
+    </Stack>
+  </Card>
+)
+
+const FeatureMockupMediaBackup = () => (
+  <Card withBorder radius="md" p="xl" w={620}>
+    <Stack>
+      <Title order={5}>Include Media in Your Backup</Title>
+      <Text c="dimmed" size="sm">
+        Don't just save text—save the whole story.
+      </Text>
+      <Checkbox.Group
+        label="Include Message Types"
+        defaultValue={['chat', 'image', 'video']}
+      >
+        <Group mt="xs">
+          <Checkbox value="chat" label="Text" />
+          <Checkbox value="image" label="Images" />
+          <Checkbox value="video" label="Videos" />
+          <Checkbox value="document" label="Documents" />
+        </Group>
+      </Checkbox.Group>
+    </Stack>
+  </Card>
+)
+
+const FeatureMockupPrivacy = () => (
+  <Card withBorder radius="md" p="xl" w={620}>
+    <Stack align="center">
+      <ThemeIcon size={60} radius="xl" variant="light" color="teal">
+        <Icon icon="tabler:shield-lock" fontSize={32} />
+      </ThemeIcon>
+      <Title order={4} mt="md">
+        100% Private & Secure
+      </Title>
+      <Text c="dimmed" size="sm" ta="center">
+        Your data is processed locally and never leaves your computer.
+      </Text>
+      <List
+        mt="lg"
+        spacing="sm"
+        size="sm"
+        center
+        icon={
+          <ThemeIcon color="teal" size={24} radius="xl">
+            <Icon icon="tabler:check" fontSize={14} />
+          </ThemeIcon>
+        }
+      >
+        <List.Item>
+          <b>100% Local Processing:</b> Your conversations are never uploaded.
+        </List.Item>
+        <List.Item>
+          <b>No Cloud Sync:</b> We have no access to your files or chats.
+        </List.Item>
+        <List.Item>
+          <b>You Are in Control:</b> Save your backups on your own device.
+        </List.Item>
+      </List>
+    </Stack>
+  </Card>
+)
+
+const FeatureMockupSimpleInterface = () => (
+  <Card withBorder radius="md" p="xl" w={620}>
+    <Stack>
+      <Title order={4}>Start Your Backup in Seconds</Title>
+      <Text c="dimmed" size="sm">
+        Our intuitive interface makes saving your chats effortless.
+      </Text>
+      <Select
+        mt="md"
+        label="1. Select Chat"
+        placeholder="Click to choose a conversation"
+        data={[{ value: 'jane', label: 'Jane Doe' }]}
+        defaultValue="jane"
+        disabled
+        leftSection={
+          <Avatar
+            src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-5.png"
+            size="sm"
+          />
+        }
+      />
+      <Select
+        label="2. Choose Date Range"
+        placeholder="Select a date range"
+        data={[{ value: 'all', label: 'All Time' }]}
+        defaultValue="all"
+        disabled
+      />
+      <Radio.Group label="3. Select Format" defaultValue="pdf">
+        <Group mt="xs">
+          <Radio value="pdf" label="PDF" />
+          <Radio value="xlsx" label="Excel" />
+          <Radio value="html" label="HTML (.zip)" />
+        </Group>
+      </Radio.Group>
+      <Button mt="lg" size="md" leftSection={<Icon icon="tabler:download" />}>
+        Start Backup
+      </Button>
+    </Stack>
+  </Card>
+)
+
+// --- New Reusable Marquee Tile for Feature Details ---
+interface MarqueeTileFeatureDetailProps {
+  icon: string
+  title: string
+  description: string
+  featureComponent: React.ReactNode
 }
 
-const PromoIcon1: React.FC<IconProps> = ({ size }) => {
-  return (
-    <ThemeIcon
-      size={size}
-      radius="lg"
-      variant="gradient"
-      gradient={{ from: 'teal', to: 'lime', deg: 105 }}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ width: '70%', height: '70%', color: 'white' }}
-      >
-        <path d="M20 17a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3.9a2 2 0 0 1-1.69-.9l-.81-1.2a2 2 0 0 0-1.67-.9H8.08a2 2 0 0 0-1.67.9l-.81 1.2a2 2 0 0 1-1.69.9H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h16z" />
-        <path d="M12 12.5a2.5 2.5 0 0 1 0-5 2.5 2.5 0 0 1 0 5Z" />
-        <path d="M12 19H6a2 2 0 0 1-2-2V9" />
-        <path d="M18 17v-2a2 2 0 0 0-2-2h-4" />
-      </svg>
-    </ThemeIcon>
-  )
-}
-
-const PromoIcon2: React.FC<IconProps> = ({ size }) => {
-  return (
-    <ThemeIcon
-      size={size}
-      radius="lg"
-      variant="gradient"
-      gradient={{ from: 'blue', to: 'cyan', deg: 105 }}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ width: '70%', height: '70%', color: 'white' }}
-      >
-        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-        <polyline points="14 2 14 8 20 8"></polyline>
-        <line x1="12" y1="18" x2="12" y2="12"></line>
-        <polyline points="9 15 12 12 15 15"></polyline>
-      </svg>
-    </ThemeIcon>
-  )
-}
-
-const PromoIcon3: React.FC<IconProps> = ({ size }) => {
-  return (
-    <ThemeIcon
-      size={size}
-      radius="lg"
-      variant="gradient"
-      gradient={{ from: 'grape', to: 'pink', deg: 105 }}
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        style={{ width: '70%', height: '70%', color: 'white' }}
-      >
-        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-        <polyline points="17 8 12 3 7 8"></polyline>
-        <line x1="12" y1="3" x2="12" y2="15"></line>
-      </svg>
-    </ThemeIcon>
-  )
-}
+const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
+  icon,
+  title,
+  description,
+  featureComponent,
+}) => (
+  <Paper
+    w={1280}
+    h={800}
+    withBorder
+    radius="lg"
+    p={60}
+    style={{
+      // English: Applying the consistent dark theme gradient.
+      background: PROMO_GRADIENT_BACKGROUND,
+    }}
+  >
+    <Stack h="100%" justify="center">
+      <Grid align="center" gutter={50}>
+        <Grid.Col span={5}>
+          <Stack>
+            <ThemeIcon size={60} radius="lg">
+              <Icon icon={icon} fontSize={40} />
+            </ThemeIcon>
+            {/* English: [MODIFIED] Font size adjusted and color changed for dark background. */}
+            <Title order={1} fz={44} lh={1.2} c="white">
+              {title}
+            </Title>
+            <Text size="xl" fw={500} c="gray.1" mt="md">
+              {description}
+            </Text>
+          </Stack>
+        </Grid.Col>
+        <Grid.Col span={7}>
+          <Center h="100%">{featureComponent}</Center>
+        </Grid.Col>
+      </Grid>
+    </Stack>
+  </Paper>
+)
 
 const ScreenshotGallery: React.FC = () => {
-  const screenshotData = []
-
+  // English: Data for generating promotional assets.
+  const screenshotData = [
+    {
+      title: 'Small Promo Tile: Option 1 (Grid Layout)',
+      filename: 'small_promo_tile_grid.png',
+      component: <SmallTileFeaturesGrid />,
+    },
+    {
+      title: 'Small Promo Tile: Option 2 (List Layout)',
+      filename: 'small_promo_tile_list.png',
+      component: <SmallTileFeaturesList />,
+    },
+    {
+      title: 'Small Promo Tile: Option 3 (Icons Layout)',
+      filename: 'small_promo_tile_icons.png',
+      component: <SmallTileFeaturesIcons />,
+    },
+    {
+      title: 'Marquee Promo Tile: Feature Showcase (1280x800)',
+      filename: 'marquee_promo_tile_features.png',
+      component: <MarqueeTileFeatureShowcase />,
+    },
+    {
+      title: 'Feature Screenshot: Multiple Export Formats (1280x800)',
+      filename: 'feature_export_formats.png',
+      component: (
+        <MarqueeTileFeatureDetail
+          icon="tabler:files"
+          title="Multiple Export Formats"
+          description="Convert your chats into professional PDF, CSV, Excel, JSON, and TXT files for any purpose."
+          featureComponent={<FeatureMockupExportFormats />}
+        />
+      ),
+    },
+    {
+      title: 'Feature Screenshot: Advanced Filtering (1280x800)',
+      filename: 'feature_advanced_filtering.png',
+      component: (
+        <MarqueeTileFeatureDetail
+          icon="tabler:filter"
+          title="Advanced Filtering"
+          description="Easily find what you need. Filter your exports by custom date ranges or multiple keywords to pinpoint specific messages."
+          featureComponent={<FeatureMockupAdvancedFiltering />}
+        />
+      ),
+    },
+    {
+      title: 'Feature Screenshot: Media Backups (1280x800)',
+      filename: 'feature_media_backups.png',
+      component: (
+        <MarqueeTileFeatureDetail
+          icon="tabler:photo-video"
+          title="Save Your Media"
+          description="Don’t just save text. The Pro version allows you to back up and include all media types in your exports."
+          featureComponent={<FeatureMockupMediaBackup />}
+        />
+      ),
+    },
+    {
+      title: 'Feature Screenshot: Privacy First (1280x800)',
+      filename: 'feature_privacy_secure.png',
+      component: (
+        <MarqueeTileFeatureDetail
+          icon="tabler:shield-lock"
+          title="Your Privacy is Our Priority"
+          description="This extension operates 100% locally on your computer. Your messages and media are never uploaded to any server, ensuring complete privacy."
+          featureComponent={<FeatureMockupPrivacy />}
+        />
+      ),
+    },
+    {
+      title: 'Feature Screenshot: Simple Interface (1280x800)',
+      filename: 'feature_simple_interface.png',
+      component: (
+        <MarqueeTileFeatureDetail
+          icon="tabler:mouse"
+          title="Easy-to-Use Interface"
+          description="A clean and straightforward design allows you to back up your important chats in just a few clicks. No complicated steps."
+          featureComponent={<FeatureMockupSimpleInterface />}
+        />
+      ),
+    },
+  ]
   return (
     <Stack>
       <Text c="dimmed" mb="md">
-        Generate and download high-resolution screenshots (1280x800px)
-        showcasing the extension's features.
+        Generate and download high-resolution promotional assets for the Chrome
+        Web Store.
       </Text>
       <Stack gap="xl">
         {screenshotData.map((item) => (
@@ -149,17 +624,17 @@ const ResourcePage = () => {
   // English: Defines the data for the three icon options to be mapped in the UI.
   const icons = [
     {
-      component: <PromoIcon1 size={128} />,
+      component: <PromoIcon size={128} icon="tabler:camera" />,
       ref: icon1Ref,
       name: 'Icon-Option-1.png',
     },
     {
-      component: <PromoIcon2 size={128} />,
+      component: <PromoIcon size={128} icon="tabler:file-export" />,
       ref: icon2Ref,
       name: 'Icon-Option-2.png',
     },
     {
-      component: <PromoIcon3 size={128} />,
+      component: <PromoIcon size={128} icon="tabler:download" />,
       ref: icon3Ref,
       name: 'Icon-Option-3.png',
     },
@@ -230,49 +705,45 @@ We believe you should have complete control over your data. This extension opera
       if (blob) FileSaver.saveAs(blob, filename)
     })
   }
+
   return (
     <MantineProvider theme={theme}>
       <Container size="lg" py="xl">
         <Stack gap="xl">
           <Title order={1} ta="center">
-            {' '}
-            Chrome Web Store - Promotional Resources{' '}
+            Chrome Web Store - Promotional Resources
           </Title>
           <Text c="dimmed" ta="center">
-            {' '}
-            Use these assets and text to create your store listing page.{' '}
+            Use these assets and text to create your store listing page.
           </Text>
-          <Tabs defaultValue="text">
+          <Tabs defaultValue="screenshots">
             <Tabs.List grow>
               <Tabs.Tab
                 value="text"
                 leftSection={<Icon icon="tabler:file-text" />}
               >
-                {' '}
-                Store Listing Text{' '}
+                Store Listing Text
               </Tabs.Tab>
               <Tabs.Tab
                 value="icons"
                 leftSection={<Icon icon="tabler:photo" />}
               >
-                {' '}
-                Promotional Icons{' '}
+                Promotional Icons
               </Tabs.Tab>
               <Tabs.Tab
                 value="screenshots"
                 leftSection={<Icon icon="tabler:camera" />}
               >
-                {' '}
-                Screenshots{' '}
+                Screenshots & Tiles
               </Tabs.Tab>
               <Tabs.Tab
                 value="keywords"
                 leftSection={<Icon icon="tabler:tags" />}
               >
-                {' '}
-                Keywords (SEO){' '}
+                Keywords (SEO)
               </Tabs.Tab>
             </Tabs.List>
+
             <Tabs.Panel value="text" pt="lg">
               <Stack gap="xl">
                 <Stack>
@@ -358,8 +829,7 @@ We believe you should have complete control over your data. This extension opera
                           color={copied ? 'teal' : 'gray'}
                           onClick={copy}
                         >
-                          {' '}
-                          {copied ? 'Copied' : 'Copy'}{' '}
+                          {copied ? 'Copied' : 'Copy'}
                         </Button>
                       )}
                     </CopyButton>
@@ -367,7 +837,6 @@ We believe you should have complete control over your data. This extension opera
                 </Card>
               </Stack>
             </Tabs.Panel>
-            {/* MODIFIED: The Icons tab now maps over the 'icons' array to display three options. */}
             <Tabs.Panel value="icons" pt="lg">
               <Grid>
                 {icons.map(({ component, ref, name }, index) => (
@@ -415,16 +884,14 @@ We believe you should have complete control over your data. This extension opera
                         onClick={copy}
                         leftSection={<Icon icon="tabler:copy" />}
                       >
-                        {' '}
-                        {copied ? 'Copied All' : 'Copy All'}{' '}
+                        {copied ? 'Copied All' : 'Copy All'}
                       </Button>
                     )}
                   </CopyButton>
                 </Group>
                 <Text c="dimmed" size="sm" mt="xs">
-                  {' '}
                   Use these keywords in your store listing's metadata to improve
-                  search visibility.{' '}
+                  search visibility.
                 </Text>
                 <Paper withBorder p="md" mt="md" radius="sm">
                   <Group gap="xs">
@@ -435,8 +902,7 @@ We believe you should have complete control over your data. This extension opera
                         color="gray"
                         size="lg"
                       >
-                        {' '}
-                        {keyword}{' '}
+                        {keyword}
                       </Badge>
                     ))}
                   </Group>

@@ -30,9 +30,6 @@ import '@mantine/core/styles.css'
 import { useWindowScroll } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
 
-// --- Helper Components --- //
-
-// English: Using Icon component for consistent and clean icon rendering.
 const CheckIcon = () => (
   <Icon
     icon="tabler:check"

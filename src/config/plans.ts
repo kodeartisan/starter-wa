@@ -26,8 +26,8 @@ export const features: PlanFeature[] = [
   },
   {
     feature: 'Multiple Keyword Filtering',
-    free: false,
-    pro: true,
+    free: '1 keyword', // MODIFIED: Changed from `false` to specify the limit.
+    pro: 'Unlimited', // MODIFIED: Changed from `true` to be more descriptive.
   },
   {
     feature: 'Export to Multiple Formats',

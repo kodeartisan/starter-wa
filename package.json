@@ -1,9 +1,9 @@
 {
-  "name": "starter-wa",
-  "displayName": "Starter wa",
-  "version": "0.0.1",
-  "description": "A basic Plasmo extension.",
-  "author": "Plasmo Corp. <foss@plasmo.com>",
+  "name": "whats-backup",
+  "displayName": "WhatsBackup - WA Chats Backup & Exporter for WhatsApp",
+  "version": "1.0.0",
+  "description": "One-click tool to save your WhatsApp chat and export to PDF, Excel, or CSV.",
+  "author": "Extninja",
   "scripts": {
     "dev": "plasmo dev --no-cs-reload",
     "build": "plasmo build",

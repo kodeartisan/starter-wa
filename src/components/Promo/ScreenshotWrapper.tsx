@@ -1,3 +1,4 @@
+// src/components/Promo/ScreenshotWrapper.tsx
 // English: A reusable wrapper to handle screenshot generation and download logic.
 // It takes a title, a child component to render, and a filename.
 import { Icon } from '@iconify/react'
@@ -23,7 +24,8 @@ const ScreenshotWrapper: React.FC<Props> = ({ title, filename, children }) => {
       const canvas = await html2canvas(screenshotRef.current, {
         scale: 2, // Higher scale for better resolution
         useCORS: true,
-        backgroundColor: '#f8f9fa',
+        // Use component's own background and handle transparency correctly.
+        backgroundColor: null,
       })
       canvas.toBlob((blob) => {
         if (blob) {
@@ -52,9 +54,12 @@ const ScreenshotWrapper: React.FC<Props> = ({ title, filename, children }) => {
             Download
           </Button>
         </Group>
+
         <div
           ref={screenshotRef}
-          style={{ padding: '20px', backgroundColor: '#f8f9fa' }}
+          style={{
+            alignSelf: 'flex-start',
+          }}
         >
           {children}
         </div>

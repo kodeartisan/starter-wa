@@ -6,9 +6,9 @@ import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 import JSZip from 'jszip'
 import _ from 'lodash'
-// ADDED: Import xlsx library for CSV and Excel export.
 import * as XLSX from 'xlsx'
 
+// MODIFIED: Added isProPreview to the interface.
 interface ExporterParams {
   messages: any[] // Messages now include an `isRedacted` property
   chat: any
@@ -18,11 +18,11 @@ interface ExporterParams {
   validationRef: React.MutableRefObject<boolean>
   isLimitApplied?: boolean
   password?: string
+  isProPreview?: boolean
 }
 
 const REDACTED_PLACEHOLDER = '********'
 
-// ... (existing functions: renderQuotedMessage, getRedactedMediaHtml, etc. remain unchanged)
 const renderQuotedMessage = (quotedMsg: any): string => {
   if (!quotedMsg) return ''
   const quotedSenderName = quotedMsg.sender.isMe
@@ -49,12 +49,12 @@ const renderQuotedMessage = (quotedMsg: any): string => {
       quotedContent = `[Unsupported message type: ${quotedMsg.type}]`
   }
   return `
-  <a href="#message-${quotedMsg.id}" class="quoted-message-link">
-    <div class="quoted-message">
-      <div class="quoted-sender">${_.escape(quotedSenderName)}</div>
-      <div class="quoted-content">${quotedContent}</div>
-    </div>
-  </a>
+    <a href="#message-${quotedMsg.id}" class="quoted-message-link">
+      <div class="quoted-message">
+        <div class="quoted-sender">${_.escape(quotedSenderName)}</div>
+        <div class="quoted-content">${quotedContent}</div>
+      </div>
+    </a>
   `
 }
 
@@ -67,24 +67,23 @@ const getRedactedMediaHtml = (type: string): string => {
   }
   const icon = iconMap[type] || '🔒'
   return `
-  <div class="redacted-media-container">
-    <div class="redacted-bg">${icon}</div>
-    <div class="redacted-overlay">
-      <div class="lock-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-        </svg>
+    <div class="redacted-media-container">
+      <div class="redacted-bg">${icon}</div>
+      <div class="redacted-overlay">
+        <div class="lock-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        </div>
+        <div class="redacted-text">Upgrade to Pro to view</div>
       </div>
-      <div class="redacted-text">Upgrade to Pro to view</div>
     </div>
-  </div>
   `
 }
 
 const getRedactedTextHtml = (): string => {
   return `<div class="redacted-text-placeholder">${REDACTED_PLACEHOLDER}</div>`
 }
+
+// MODIFIED: This function now accepts an `isProPreview` flag to render the correct header.
 const generateHtmlBody = async ({
   messages,
   chat,
@@ -92,22 +91,29 @@ const generateHtmlBody = async ({
   setProgress,
   validationRef,
   isForPdf = false,
-  isLimitApplied = false, // Keep receiving this to know if redaction happened.
+  isLimitApplied = false,
+  isProPreview = false,
 }: ExporterParams & { isForPdf?: boolean }): Promise<{
   htmlBody: string
   mediaMap: Map<string, Blob>
 }> => {
+  const exportedMessageCount = messages.filter((m) => !m.isRedacted).length
+  const proPreviewNotice = isProPreview
+    ? '<p style="color: #007bff; font-weight: bold;">Pro Preview: 1 of many media files was exported. Upgrade to Pro to back up all media without limits.</p>'
+    : ''
+
   const headerHtml = `
-  <div class="export-header">
-    <p><b>Chat With:</b> ${_.escape(getContactName(chat.data.contact))}</p>
-    <p><b>Export Date:</b> ${new Date().toLocaleString()}</p>
-    <p><b>Total Messages Exported:</b> ${messages.length}</p>
-    ${
-      isLimitApplied
-        ? '<p style="color: #d9534f;"><b>Notice:</b>Upgrade to Pro to save all messages and media.</p>'
-        : ''
-    }
-  </div>
+    <div class="export-header">
+      <p><b>Chat With:</b> ${_.escape(getContactName(chat.data.contact))}</p>
+      <p><b>Export Date:</b> ${new Date().toLocaleString()}</p>
+      <p><b>Total Messages Exported:</b> ${exportedMessageCount}</p>
+      ${
+        isLimitApplied
+          ? '<p style="color: #d9534f;"><b>Notice:</b> Free plan limit reached. Upgrade to Pro to save all messages and media.</p>'
+          : ''
+      }
+      ${proPreviewNotice}
+    </div>
   `
   let messagesHtml = ''
   const mediaMap = new Map<string, Blob>()
@@ -122,6 +128,35 @@ const generateHtmlBody = async ({
       )
     )
       continue
+
+    // Skip redacted messages from heavy processing.
+    if (msg.isRedacted) {
+      // Still need to render a placeholder for redacted text messages.
+      if (msg.type === 'chat') {
+        const direction = msg.contact.isMe ? 'out' : 'in'
+        messagesHtml += `
+          <div class="message-cluster message-${direction}" id="message-${msg.id}">
+            <div class="message">
+              <div class="message-bubble">
+                <div class="message-content">
+                  ${getRedactedTextHtml()}
+                  <span class="timestamp">${new Date(
+                    msg.timestamp,
+                  ).toLocaleTimeString([], {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric',
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        `
+      }
+      continue
+    }
 
     const progressValue = ((i + 1) / messages.length) * 90 // Reserve last 10%
     setProgress({
@@ -254,52 +289,51 @@ const generateHtmlBody = async ({
 
 const getFullHtmlDocument = (bodyContent: string, chat: any) => {
   const styles = `
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; margin: 0; background-color: #E5DDD5; }
-    .chat-container { max-width: 800px; margin: auto; padding: 20px; }
-    .export-header { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #dee2e6; font-size: 0.9em; }
-    .export-header p { margin: 2px 0; color: #333; }
-    .export-header b { color: #111; }
-    .limit-notice { background-color: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; padding: 10px; margin-top: 10px; font-size: 0.85em; text-align: center; color: #856404; }
-    .message-cluster { display: flex; flex-direction: column; margin-bottom: 2px; padding: 0 9%; scroll-margin-top: 20px; }
-    .message-cluster.message-out { align-items: flex-end; }
-    .message-cluster.message-in { align-items: flex-start; }
-    .message { max-width: 65%; word-wrap: break-word; margin-bottom: 10px; }
-    .message-bubble { padding: 6px 9px; border-radius: 7.5px; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); position: relative; }
-    .message-out .message-bubble { background-color: #d9fdd3; color: #0f1010; }
-    .message-in .message-bubble { background-color: #fff; color: #111b21; }
-    .sender-name { font-size: 0.8rem; font-weight: 500; color: #028a76; margin-bottom: 4px; }
-    .message-content img, .message-content video { width: 100%; max-width: 300px; border-radius: 6px; margin-top: 5px; display: block; }
-    .message-content a { color: #0088cc; }
-    .timestamp { font-size: 0.7rem; color: #667781; display: flex; justify-content: flex-end; padding-top: 4px; }
-    .media-placeholder { padding: 10px; background-color: #f0f0f0; border: 1px dashed #ccc; border-radius: 6px; color: #888; font-style: italic; font-size: 0.9em; margin-top: 5px; text-align: center; }
-    .quoted-message-link { text-decoration: none; color: inherit; }
-    .quoted-message { background-color: #f0f2f5; border-left: 4px solid #4CAF50; padding: 8px 10px; margin-bottom: 5px; border-radius: 4px; opacity: 0.85; }
-    .quoted-sender { font-weight: bold; font-size: 0.85em; color: #4CAF50; }
-    .quoted-content { font-size: 0.9em; white-space: pre-wrap; word-wrap: break-word; }
-    .video-thumb-container { position: relative; display: inline-block; }
-    .video-thumb-container img { display: block; width: 100%; max-width: 300px; border-radius: 6px; }
-    .video-thumb-container .play-button { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: white; background-color: rgba(0, 0, 0, 0.5); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; text-shadow: 1px 1px 2px black;}
-    .redacted-media-container { position: relative; width: 100%; max-width: 300px; height: 200px; background-color: #e9ecef; border-radius: 6px; margin-top: 5px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-    .redacted-bg { font-size: 50px; filter: blur(8px); opacity: 0.3; user-select: none; }
-    .redacted-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
-    .lock-icon svg { width: 32px; height: 32px; }
-    .redacted-text { font-size: 0.9em; font-weight: 500; margin-top: 8px; }
-    .redacted-text-placeholder { padding: 10px; background-color: #f8f9fa; border: 1px dashed #dee2e6; border-radius: 6px; color: #6c757d; font-style: italic; font-size: 0.9em; margin-top: 5px; text-align: center; }
-  </style>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; margin: 0; background-color: #E5DDD5; }
+      .chat-container { max-width: 800px; margin: auto; padding: 20px; }
+      .export-header { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #dee2e6; font-size: 0.9em; }
+      .export-header p { margin: 2px 0; color: #333; }
+      .export-header b { color: #111; }
+      .limit-notice { background-color: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; padding: 10px; margin-top: 10px; font-size: 0.85em; text-align: center; color: #856404; }
+      .message-cluster { display: flex; flex-direction: column; margin-bottom: 2px; padding: 0 9%; scroll-margin-top: 20px; }
+      .message-cluster.message-out { align-items: flex-end; }
+      .message-cluster.message-in { align-items: flex-start; }
+      .message { max-width: 65%; word-wrap: break-word; margin-bottom: 10px; }
+      .message-bubble { padding: 6px 9px; border-radius: 7.5px; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); position: relative; }
+      .message-out .message-bubble { background-color: #d9fdd3; color: #0f1010; }
+      .message-in .message-bubble { background-color: #fff; color: #111b21; }
+      .sender-name { font-size: 0.8rem; font-weight: 500; color: #028a76; margin-bottom: 4px; }
+      .message-content img, .message-content video { width: 100%; max-width: 300px; border-radius: 6px; margin-top: 5px; display: block; }
+      .message-content a { color: #0088cc; }
+      .timestamp { font-size: 0.7rem; color: #667781; display: flex; justify-content: flex-end; padding-top: 4px; }
+      .media-placeholder { padding: 10px; background-color: #f0f0f0; border: 1px dashed #ccc; border-radius: 6px; color: #888; font-style: italic; font-size: 0.9em; margin-top: 5px; text-align: center; }
+      .quoted-message-link { text-decoration: none; color: inherit; }
+      .quoted-message { background-color: #f0f2f5; border-left: 4px solid #4CAF50; padding: 8px 10px; margin-bottom: 5px; border-radius: 4px; opacity: 0.85; }
+      .quoted-sender { font-weight: bold; font-size: 0.85em; color: #4CAF50; }
+      .quoted-content { font-size: 0.9em; white-space: pre-wrap; word-wrap: break-word; }
+      .video-thumb-container { position: relative; display: inline-block; }
+      .video-thumb-container img { display: block; width: 100%; max-width: 300px; border-radius: 6px; }
+      .video-thumb-container .play-button { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: white; background-color: rgba(0, 0, 0, 0.5); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; text-shadow: 1px 1px 2px black;}
+      .redacted-media-container { position: relative; width: 100%; max-width: 300px; height: 200px; background-color: #e9ecef; border-radius: 6px; margin-top: 5px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+      .redacted-bg { font-size: 50px; filter: blur(8px); opacity: 0.3; user-select: none; }
+      .redacted-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
+      .lock-icon svg { width: 32px; height: 32px; }
+      .redacted-text { font-size: 0.9em; font-weight: 500; margin-top: 8px; }
+      .redacted-text-placeholder { padding: 10px; background-color: #f8f9fa; border: 1px dashed #dee2e6; border-radius: 6px; color: #6c757d; font-style: italic; font-size: 0.9em; margin-top: 5px; text-align: center; }
+    </style>
   `
   return `
-  <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Chat with ${_.escape(getContactName(chat.data.contact))}</title>
-      ${styles}
-    </head>
-    <body><div class="chat-container">${bodyContent}</div></body>
-  </html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Chat with ${_.escape(getContactName(chat.data.contact))}</title>
+        ${styles}
+      </head>
+      <body><div class="chat-container">${bodyContent}</div></body>
+    </html>
   `
 }
-// ... (existing exportToHtml, exportToPdf, etc. functions remain unchanged)
 
 export const exportToHtml = async (params: ExporterParams) => {
   const { filename, setProgress, password } = params
@@ -331,8 +365,10 @@ export const exportToHtml = async (params: ExporterParams) => {
         folder?.file(mediaFilename, blob)
       }
     }
+
     zip.file(`${filename}.html`, fullHtml)
     setProgress({ value: 98, label: 'Compressing files...' })
+
     const zipOptions: any = { type: 'blob' }
     if (password) {
       zipOptions.password = password
@@ -376,7 +412,6 @@ export const exportToPdf = async (params: ExporterParams) => {
     mediaMap.forEach((blob, url) => {
       if (url.startsWith('blob:')) URL.revokeObjectURL(url)
     })
-
     if (!validationRef.current) return
 
     setProgress({ value: 95, label: 'Formatting PDF pages...' })
@@ -436,16 +471,25 @@ export const exportToPdf = async (params: ExporterParams) => {
   }
 }
 
+// MODIFIED: Adds Pro Preview notice to TXT exports.
 export const exportToTxt = async (params: ExporterParams) => {
-  const { messages, chat, filename, setProgress, validationRef } = params
+  const { messages, chat, filename, setProgress, validationRef, isProPreview } =
+    params
+  const exportedMessageCount = messages.filter((m) => !m.isRedacted).length
 
   let textContent = `Chat With: ${getContactName(chat.data.contact)}\r\n`
   textContent += `Export Date: ${new Date().toLocaleString()}\r\n`
-  textContent += `Total Messages Exported: ${messages.length}\r\n\r\n`
+  textContent += `Total Messages Exported: ${exportedMessageCount}\r\n`
+
+  if (isProPreview) {
+    textContent += `\r\n--- PRO PREVIEW ---\r\n1 of many media files was exported. Upgrade to Pro to back up all media without limits.\r\n-------------------\r\n`
+  }
+  textContent += `\r\n`
 
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
+    if (msg.isRedacted) continue
 
     setProgress({
       value: ((i + 1) / messages.length) * 100,
@@ -456,38 +500,34 @@ export const exportToTxt = async (params: ExporterParams) => {
     const timestamp = new Date(msg.timestamp).toLocaleString()
     let content = ''
 
-    if (msg.isRedacted) {
-      content = REDACTED_PLACEHOLDER
-    } else {
-      switch (msg.type) {
-        case 'chat':
-          content = msg.body
-          break
-        case 'image':
-          content = `[Image: ${msg.filename || 'image.jpg'}]`
-          if (msg.caption) content += `\r\n${msg.caption}`
-          break
-        case 'video':
-          content = `[Video: ${msg.filename || 'video.mp4'}]`
-          if (msg.caption) content += `\r\n${msg.caption}`
-          break
-        case 'document':
-          content = `[Document: ${msg.filename || 'file'}]`
-          if (msg.caption) content += `\r\n${msg.caption}`
-          break
-        case 'ptt':
-          const duration = new Date(msg.duration * 1000)
-            .toISOString()
-            .substr(14, 5)
-          content = `[Voice Message: ${duration}]`
-          break
-        default:
-          content = `[${msg.type}]`
-          break
-      }
+    switch (msg.type) {
+      case 'chat':
+        content = msg.body
+        break
+      case 'image':
+        content = `[Image: ${msg.filename || 'image.jpg'}]`
+        if (msg.caption) content += `\r\n${msg.caption}`
+        break
+      case 'video':
+        content = `[Video: ${msg.filename || 'video.mp4'}]`
+        if (msg.caption) content += `\r\n${msg.caption}`
+        break
+      case 'document':
+        content = `[Document: ${msg.filename || 'file'}]`
+        if (msg.caption) content += `\r\n${msg.caption}`
+        break
+      case 'ptt':
+        const duration = new Date(msg.duration * 1000)
+          .toISOString()
+          .substr(14, 5)
+        content = `[Voice Message: ${duration}]`
+        break
+      default:
+        content = `[${msg.type}]`
+        break
     }
 
-    if (msg.quotedMsg && !msg.isRedacted) {
+    if (msg.quotedMsg) {
       const quotedSender = msg.quotedMsg.sender.isMe
         ? 'You'
         : getContactName(msg.quotedMsg.sender)
@@ -497,31 +537,33 @@ export const exportToTxt = async (params: ExporterParams) => {
       )
       content = `[Quoting ${quotedSender}: "${quotedContent}"]\r\n${content}`
     }
+
     textContent += `[${timestamp}] ${sender}: ${content}\r\n\r\n`
   }
-
   if (validationRef.current) {
     const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' })
     FileSaver.saveAs(blob, `${filename}.txt`)
   }
 }
 
+// MODIFIED: Adds Pro Preview notice to JSON exports.
 export const exportToJson = async (params: ExporterParams) => {
-  const { messages, chat, filename, setProgress, validationRef } = params
+  const { messages, chat, filename, setProgress, validationRef, isProPreview } =
+    params
   const messageList: object[] = []
 
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
+    if (msg.isRedacted) continue
+
     setProgress({
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
 
     let bodyContent: string | null = msg.body || null
-    if (msg.isRedacted) {
-      bodyContent = REDACTED_PLACEHOLDER
-    } else if (msg.type !== 'chat') {
+    if (msg.type !== 'chat') {
       let placeholder = `[${msg.type}]`
       if (msg.filename) {
         placeholder = `[${msg.type}: ${msg.filename}]`
@@ -544,16 +586,15 @@ export const exportToJson = async (params: ExporterParams) => {
       },
       type: msg.type,
       body: bodyContent,
-      caption: msg.isRedacted ? null : msg.caption || null,
-      filename: msg.isRedacted ? null : msg.filename || null,
-      quotedMessage:
-        msg.quotedMsg && !msg.isRedacted
-          ? {
-              id: msg.quotedMsg.id,
-              sender: getContactName(msg.quotedMsg.sender),
-              body: msg.quotedMsg.body || `[${msg.quotedMsg.type}]`,
-            }
-          : null,
+      caption: msg.caption || null,
+      filename: msg.filename || null,
+      quotedMessage: msg.quotedMsg
+        ? {
+            id: msg.quotedMsg.id,
+            sender: getContactName(msg.quotedMsg.sender),
+            body: msg.quotedMsg.body || `[${msg.quotedMsg.type}]`,
+          }
+        : null,
     })
   }
 
@@ -563,11 +604,13 @@ export const exportToJson = async (params: ExporterParams) => {
         chatWith: getContactName(chat.data.contact),
         chatId: chat.data.id,
         exportDate: new Date().toISOString(),
-        totalMessages: messages.length,
+        totalMessages: messageList.length,
+        notice: isProPreview
+          ? 'Pro Preview: 1 of many media files was exported. Upgrade to Pro to back up all media without limits.'
+          : undefined,
       },
       messages: messageList,
     }
-
     const jsonString = JSON.stringify(finalJson, null, 2)
     const blob = new Blob([jsonString], {
       type: 'application/json;charset=utf-8',
@@ -576,26 +619,35 @@ export const exportToJson = async (params: ExporterParams) => {
   }
 }
 
+// MODIFIED: Adds Pro Preview notice to Markdown exports.
 export const exportToMarkdown = async (params: ExporterParams) => {
-  const { messages, chat, filename, setProgress, validationRef } = params
+  const { messages, chat, filename, setProgress, validationRef, isProPreview } =
+    params
+  const exportedMessageCount = messages.filter((m) => !m.isRedacted).length
 
   let mdContent = `# Chat with: ${getContactName(chat.data.contact)}\n\n`
   mdContent += `**Export Date:** ${new Date().toLocaleString()}\n`
-  mdContent += `**Total Messages:** ${messages.length}\n\n---\n\n`
+  mdContent += `**Total Messages:** ${exportedMessageCount}\n\n`
+  if (isProPreview) {
+    mdContent += `> **Pro Preview:** 1 of many media files was exported. Upgrade to Pro to back up all media without limits.\n\n`
+  }
+  mdContent += `---\n\n`
 
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
+    if (msg.isRedacted) continue
 
     setProgress({
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
+
     const senderName = msg.contact.isMe ? 'You' : getContactName(msg.contact)
     const timestamp = new Date(msg.timestamp).toLocaleString()
     mdContent += `**${_.escape(senderName)}** (*${timestamp}*)\n\n`
 
-    if (msg.quotedMsg && !msg.isRedacted) {
+    if (msg.quotedMsg) {
       const quotedSenderName = msg.quotedMsg.sender.isMe
         ? 'You'
         : getContactName(msg.quotedMsg.sender)
@@ -611,38 +663,25 @@ export const exportToMarkdown = async (params: ExporterParams) => {
     let mdMessageContent = ''
     switch (msg.type) {
       case 'chat':
-        mdMessageContent = msg.isRedacted
-          ? `*${REDACTED_PLACEHOLDER}*`
-          : msg.body.replace(/\n/g, ' \n') // Markdown line breaks
+        mdMessageContent = msg.body.replace(/\n/g, ' \n') // Markdown line breaks
         break
       case 'image':
-        mdMessageContent = msg.isRedacted
-          ? `*${REDACTED_PLACEHOLDER}*`
-          : `*Image: \`${_.escape(msg.filename)}\`*`
-        if (msg.caption && !msg.isRedacted)
-          mdMessageContent += `\n> ${_.escape(msg.caption)}`
+        mdMessageContent = `*Image: \`${_.escape(msg.filename)}\`*`
+        if (msg.caption) mdMessageContent += `\n> ${_.escape(msg.caption)}`
         break
       case 'video':
-        mdMessageContent = msg.isRedacted
-          ? `*${REDACTED_PLACEHOLDER}*`
-          : `*Video: \`${_.escape(msg.filename)}\`*`
-        if (msg.caption && !msg.isRedacted)
-          mdMessageContent += `\n> ${_.escape(msg.caption)}`
+        mdMessageContent = `*Video: \`${_.escape(msg.filename)}\`*`
+        if (msg.caption) mdMessageContent += `\n> ${_.escape(msg.caption)}`
         break
       case 'document':
-        mdMessageContent = msg.isRedacted
-          ? `*${REDACTED_PLACEHOLDER}*`
-          : `*Document: \`${_.escape(msg.filename)}\`*`
-        if (msg.caption && !msg.isRedacted)
-          mdMessageContent += `\n> ${_.escape(msg.caption)}`
+        mdMessageContent = `*Document: \`${_.escape(msg.filename)}\`*`
+        if (msg.caption) mdMessageContent += `\n> ${_.escape(msg.caption)}`
         break
       case 'ptt':
         const duration = new Date(msg.duration * 1000)
           .toISOString()
           .substr(14, 5)
-        mdMessageContent = msg.isRedacted
-          ? `*${REDACTED_PLACEHOLDER}*`
-          : `*Voice Message (${duration})*`
+        mdMessageContent = `*Voice Message (${duration})*`
         break
       default:
         mdMessageContent = `*[Unsupported message type: ${msg.type}]*`
@@ -658,10 +697,18 @@ export const exportToMarkdown = async (params: ExporterParams) => {
   }
 }
 
-// ADDED: A shared helper to prepare data for CSV/XLSX to avoid code duplication.
+// MODIFIED: Adds Pro Preview notice to CSV/Excel exports.
 const prepareSheetData = (params: ExporterParams): any[] => {
-  const { messages, setProgress, validationRef } = params
+  const { messages, setProgress, validationRef, isProPreview } = params
   const sheetData: any[] = []
+
+  // Add a notice row at the top for the preview
+  if (isProPreview) {
+    sheetData.push([
+      'Pro Preview: 1 of many media files was exported. Upgrade to Pro to back up all media without limits.',
+    ])
+    sheetData.push([]) // Add a blank row for spacing
+  }
 
   // Define headers
   sheetData.push([
@@ -673,42 +720,37 @@ const prepareSheetData = (params: ExporterParams): any[] => {
     'Content',
     'Quoted Message ID',
   ])
-
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
+    if (msg.isRedacted) continue
 
     setProgress({
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
-
     const senderName = msg.contact.isMe ? 'You' : getContactName(msg.contact)
     const timestamp = new Date(msg.timestamp).toISOString()
-    let content = ''
 
-    if (msg.isRedacted) {
-      content = REDACTED_PLACEHOLDER
-    } else {
-      switch (msg.type) {
-        case 'chat':
-          content = msg.body
-          break
-        case 'image':
-        case 'video':
-        case 'document':
-          content = `[${msg.type.toUpperCase()}] ${msg.caption || ''}`.trim()
-          break
-        case 'ptt':
-          const duration = new Date(msg.duration * 1000)
-            .toISOString()
-            .substr(14, 5)
-          content = `[VOICE MESSAGE] Duration: ${duration}`
-          break
-        default:
-          content = `[${msg.type.toUpperCase()}]`
-          break
-      }
+    let content = ''
+    switch (msg.type) {
+      case 'chat':
+        content = msg.body
+        break
+      case 'image':
+      case 'video':
+      case 'document':
+        content = `[${msg.type.toUpperCase()}] ${msg.caption || ''}`.trim()
+        break
+      case 'ptt':
+        const duration = new Date(msg.duration * 1000)
+          .toISOString()
+          .substr(14, 5)
+        content = `[VOICE MESSAGE] Duration: ${duration}`
+        break
+      default:
+        content = `[${msg.type.toUpperCase()}]`
+        break
     }
 
     sheetData.push([
@@ -724,11 +766,9 @@ const prepareSheetData = (params: ExporterParams): any[] => {
   return sheetData
 }
 
-// ADDED: Export function for CSV format.
 export const exportToCsv = async (params: ExporterParams) => {
   const { filename, validationRef } = params
   const sheetData = prepareSheetData(params)
-
   if (validationRef.current) {
     const worksheet = XLSX.utils.aoa_to_sheet(sheetData)
     const csvString = XLSX.utils.sheet_to_csv(worksheet)
@@ -737,11 +777,9 @@ export const exportToCsv = async (params: ExporterParams) => {
   }
 }
 
-// ADDED: Export function for XLSX format.
 export const exportToXlsx = async (params: ExporterParams) => {
   const { filename, validationRef } = params
   const sheetData = prepareSheetData(params)
-
   if (validationRef.current) {
     const worksheet = XLSX.utils.aoa_to_sheet(sheetData)
     const workbook = XLSX.utils.book_new()

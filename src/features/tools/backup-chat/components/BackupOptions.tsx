@@ -1,7 +1,8 @@
 // src/features/tools/backup-chat/components/BackupOptions.tsx
+import ModalUpgrade from '@/components/Modal/ModalUpgrade'
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
-import { getContactName, goToLandingPage } from '@/utils/util'
+import { getContactName } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   Avatar,
@@ -14,8 +15,10 @@ import {
   Stack,
   TagsInput,
   Text,
+  Tooltip,
 } from '@mantine/core'
 import { DatePickerInput } from '@mantine/dates'
+import { useDisclosure } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
 import type { useChatBackup } from '../hooks/useChatBackup'
 
@@ -25,8 +28,14 @@ interface Props {
   onStart: () => void
 }
 
-// ADDED: Define which message types are considered media for easier checking.
+// English: Define which message types are considered media for easier checking.
 const MEDIA_MESSAGE_TYPES = ['image', 'video', 'document', 'ptt']
+
+// English: Define a type for the feature details to display in the upgrade modal.
+interface ProFeatureInfo {
+  name: string
+  benefit: string
+}
 
 const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
   // Destructure properties from the hook
@@ -35,6 +44,22 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
   const wa = useWa()
   const [chatOptions, setChatOptions] =
     useState<{ label: string; value: string; avatar: string }[]>()
+
+  // MODIFIED: Added state management for the new upgrade modal.
+  const [
+    isUpgradeModalOpen,
+    { open: openUpgradeModal, close: closeUpgradeModal },
+  ] = useDisclosure(false)
+  const [selectedFeature, setSelectedFeature] = useState<ProFeatureInfo>({
+    name: '',
+    benefit: '',
+  })
+
+  // English: A helper function to set feature details and open the upgrade modal.
+  const triggerUpgradeModal = (name: string, benefit: string) => {
+    setSelectedFeature({ name, benefit })
+    openUpgradeModal()
+  }
 
   const datePresets = [
     { value: 'today', label: 'Today', pro: false },
@@ -68,36 +93,48 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
     })
   }, [wa.isReady])
 
+  // MODIFIED: Instead of redirecting, this now shows a contextual modal.
   const handleDatePresetChange = (value: string | null) => {
     if (!value) return
     const option = datePresets.find((p) => p.value === value)
     if (license.isFree() && option?.pro) {
-      goToLandingPage()
-      return
+      triggerUpgradeModal(
+        `"${option.label}" Date Range`,
+        'Gain the flexibility to back up your chats from any period, not just the last 7 days. Perfect for archiving older conversations.',
+      )
+      return // English: Prevent setting the form value for the Pro feature.
     }
     form.setFieldValue('datePreset', value)
   }
 
+  // MODIFIED: Instead of redirecting, this now shows a contextual modal.
   const handleExportFormatChange = (value: string) => {
     const format = exportFormats.find((f) => f.value === value)
     if (license.isFree() && format?.pro) {
-      goToLandingPage()
-      return
+      triggerUpgradeModal(
+        `${format.label} Export`,
+        `Exporting as ${
+          format.label.split(' ')[0]
+        } allows for professional, easily shareable, or data-friendly archives of your chats.`,
+      )
+      return // English: Prevent setting the form value for the Pro feature.
     }
     form.setFieldValue('exportFormat', value)
   }
 
-  // ADDED: A handler to check for Pro-only message types upon selection.
+  // MODIFIED: Instead of redirecting, this now shows a contextual modal for media types.
   const handleMessageTypeChange = (values: string[]) => {
     // Find if a new type was just added to the values array.
     const newType = values.find((v) => !form.values.messageTypes.includes(v))
 
     // If a new type was selected, and it's a media type, and the user is on the Free plan, redirect.
     if (license.isFree() && newType && MEDIA_MESSAGE_TYPES.includes(newType)) {
-      goToLandingPage()
-      return
+      triggerUpgradeModal(
+        'Media Backups',
+        'Save not just the text, but also the photos, videos, documents, and voice notes that make your conversations complete.',
+      )
+      return // English: Prevent setting the form value for the Pro feature.
     }
-
     form.setFieldValue('messageTypes', values)
   }
 
@@ -113,109 +150,119 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
       </div>
     </Group>
   )
-
   return (
-    <Stack>
-      <Select
-        label="Select chat"
-        data={chatOptions ?? []}
-        searchable
-        clearable
-        required
-        renderOption={renderSelectOption}
-        {...form.getInputProps('chatId')}
+    <>
+      {/* ADDED: Render the new upgrade modal, controlled by component state. */}
+      <ModalUpgrade
+        opened={isUpgradeModalOpen}
+        onClose={closeUpgradeModal}
+        featureName={selectedFeature.name}
+        featureBenefit={selectedFeature.benefit}
       />
-      <TagsInput
-        label="Filter by Keywords (Optional)"
-        placeholder="Add keywords and press Enter"
-        description="Only export messages containing any of these keywords. Case-insensitive."
-        value={form.values.keywords}
-        onChange={(newKeywords) => {
-          form.setFieldValue('keywords', newKeywords)
-        }}
-        error={form.errors.keywords}
-        clearable
-      />
-      <Select
-        label="Date Range"
-        data={datePresets}
-        value={form.values.datePreset}
-        onChange={handleDatePresetChange}
-        renderOption={({ option }) => {
-          const preset = datePresets.find((p) => p.value === option.value)
-          return (
-            <Group justify="space-between">
-              <Text>{option.label}</Text>
-              {license.isFree() && preset?.pro && (
-                <Badge size="sm" variant="light" color="teal">
-                  PRO
-                </Badge>
-              )}
-            </Group>
-          )
-        }}
-      />
-      {form.values.datePreset === 'custom' && (
-        <DatePickerInput
-          type="range"
-          label="Custom Date Range"
-          placeholder="Pick a start and end date"
-          {...form.getInputProps('dateRange')}
+      <Stack>
+        <Select
+          label="Select chat"
+          data={chatOptions ?? []}
+          searchable
+          clearable
           required
+          renderOption={renderSelectOption}
+          {...form.getInputProps('chatId')}
         />
-      )}
-      {/* MODIFIED: Checkbox group now uses the new handler and displays PRO badges for media types. */}
-      <Checkbox.Group
-        label="Include Message Types"
-        description="Select the types of messages to include in the backup."
-        value={form.values.messageTypes}
-        onChange={handleMessageTypeChange}
-      >
-        <Group mt="xs">
-          {SUPPORTED_MESSAGE_TYPES.map((type) => (
-            <Group key={type} gap="xs" align="center">
-              <Checkbox
-                key={type}
-                value={type}
-                label={type.charAt(0).toUpperCase() + type.slice(1)}
-              />
-              {license.isFree() && MEDIA_MESSAGE_TYPES.includes(type) && (
-                <Badge size="xs" variant="light" color="teal">
-                  PRO
-                </Badge>
-              )}
-            </Group>
-          ))}
+        <Group justify="space-between" align="flex-end" wrap="nowrap">
+          <TagsInput
+            label="Filter by Keywords (Optional)"
+            placeholder={
+              license.isFree() && form.values.keywords.length > 0
+                ? 'Upgrade for more keywords'
+                : 'Add keyword and press Enter'
+            }
+            description="Only export messages containing any of these keywords."
+            value={form.values.keywords}
+            // MODIFIED: Show modal if a free user exceeds the keyword limit.
+            onChange={(newKeywords) => {
+              if (license.isFree() && newKeywords.length > 1) {
+                triggerUpgradeModal(
+                  'Multiple Keyword Filtering',
+                  'Search your backups with unlimited keywords to find exactly what you need, instantly.',
+                )
+                // English: Only allow the first keyword to be set for free users.
+                form.setFieldValue('keywords', [newKeywords[0]])
+                return
+              }
+              form.setFieldValue('keywords', newKeywords)
+            }}
+            maxTags={license.isFree() ? 1 : undefined} // English: Limit free users to one keyword.
+            error={form.errors.keywords}
+            clearable
+            style={{ flexGrow: 1 }}
+          />
         </Group>
-      </Checkbox.Group>
-      <Radio.Group
-        label="Format"
-        value={form.values.exportFormat}
-        onChange={handleExportFormatChange}
-      >
-        <Group mt="xs">
-          {exportFormats.map((format) => (
-            <Group key={format.value} gap="xs" align="center">
-              <Radio size="sm" value={format.value} label={format.label} />
-              {license.isFree() && format.pro && (
-                <Badge size="xs" variant="light" color="teal">
-                  PRO
-                </Badge>
-              )}
-            </Group>
-          ))}
-        </Group>
-      </Radio.Group>
-      <Group justify="flex-end" mt={'xl'}>
-        <Button
-          leftSection={<Icon icon="tabler:download" />}
-          onClick={onStart}
-          disabled={!form.values.chatId}
+        <Select
+          label="Date Range"
+          data={datePresets}
+          value={form.values.datePreset}
+          onChange={handleDatePresetChange}
+          renderOption={({ option }) => {
+            const preset = datePresets.find((p) => p.value === option.value)
+            return (
+              <Group justify="space-between">
+                <Text>{option.label}</Text>
+              </Group>
+            )
+          }}
+        />
+        {form.values.datePreset === 'custom' && (
+          <DatePickerInput
+            type="range"
+            label="Custom Date Range"
+            placeholder="Pick a start and end date"
+            {...form.getInputProps('dateRange')}
+            required
+          />
+        )}
+        <Checkbox.Group
+          label="Include Message Types"
+          description="Select the types of messages to include in the backup."
+          value={form.values.messageTypes}
+          onChange={handleMessageTypeChange}
         >
-          Start Backup
-        </Button>
-      </Group>
-    </Stack>
+          <Group mt="xs">
+            {SUPPORTED_MESSAGE_TYPES.map((type) => (
+              <Group key={type} gap="xs" align="center">
+                <Checkbox
+                  key={type}
+                  value={type}
+                  label={type.charAt(0).toUpperCase() + type.slice(1)}
+                />
+              </Group>
+            ))}
+          </Group>
+        </Checkbox.Group>
+        <Radio.Group
+          label="Format"
+          value={form.values.exportFormat}
+          onChange={handleExportFormatChange}
+        >
+          <Group mt="xs">
+            {exportFormats.map((format) => (
+              <Group key={format.value} gap="xs" align="center">
+                <Radio size="sm" value={format.value} label={format.label} />
+              </Group>
+            ))}
+          </Group>
+        </Radio.Group>
+        <Group justify="flex-end" mt={'xl'}>
+          <Button
+            leftSection={<Icon icon="tabler:download" />}
+            onClick={onStart}
+            disabled={!form.values.chatId}
+          >
+            Start Backup
+          </Button>
+        </Group>
+      </Stack>
+    </>
   )
 }
 
