@@ -150,6 +150,7 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
       </div>
     </Group>
   )
+
   return (
     <>
       {/* ADDED: Render the new upgrade modal, controlled by component state. */}
@@ -175,25 +176,25 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
             placeholder={'Add keyword and press Enter'}
             description="Only export messages containing any of these keywords."
             value={form.values.keywords}
-            // MODIFIED: Show modal if a free user exceeds the keyword limit.
             onChange={(newKeywords) => {
+              console.log(newKeywords)
               if (license.isFree() && newKeywords.length > 1) {
                 triggerUpgradeModal(
                   'Multiple Keyword Filtering',
                   'Search your backups with unlimited keywords to find exactly what you need, instantly.',
                 )
-                // English: Only allow the first keyword to be set for free users.
+
                 form.setFieldValue('keywords', [newKeywords[0]])
                 return
               }
               form.setFieldValue('keywords', newKeywords)
             }}
-            maxTags={license.isFree() ? 1 : undefined} // English: Limit free users to one keyword.
             error={form.errors.keywords}
             clearable
             style={{ flexGrow: 1 }}
           />
         </Group>
+
         <Select
           label="Date Range"
           data={datePresets}
@@ -208,6 +209,7 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
             )
           }}
         />
+
         {form.values.datePreset === 'custom' && (
           <DatePickerInput
             type="range"
@@ -217,6 +219,7 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
             required
           />
         )}
+
         <Checkbox.Group
           label="Include Message Types"
           description="Select the types of messages to include in the backup."
@@ -235,6 +238,7 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
             ))}
           </Group>
         </Checkbox.Group>
+
         <Radio.Group
           label="Format"
           value={form.values.exportFormat}

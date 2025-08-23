@@ -150,8 +150,8 @@ export const useChatBackup = () => {
         }
         effectiveDateRange = [start, end]
       }
-
       const allMessages = await wa.chat.getMessages(chatId, { count: -1 })
+
       let [startDate, endDate] = effectiveDateRange
 
       if (license.isFree()) {
@@ -173,7 +173,6 @@ export const useChatBackup = () => {
             start: startDate,
             end: endDate,
           })
-
         const keywordMatch =
           lowercasedKeywords.length === 0 ||
           lowercasedKeywords.some(
@@ -181,7 +180,6 @@ export const useChatBackup = () => {
               (msg.body && msg.body.toLowerCase().includes(k)) ||
               (msg.caption && msg.caption.toLowerCase().includes(k)),
           )
-
         const typeMatch = messageTypes.includes(msg.type)
         return dateMatch && keywordMatch && typeMatch
       })
@@ -218,7 +216,6 @@ export const useChatBackup = () => {
             return { ...msg, isRedacted: true }
           }
         }
-
         return { ...msg, isRedacted: false }
       })
 
@@ -227,7 +224,6 @@ export const useChatBackup = () => {
       ).length
       const messagesOmittedCount =
         filteredMessages.length - exportedMessageCount
-
       resultStats = {
         messagesExported: exportedMessageCount,
         messagesOmitted: messagesOmittedCount,
