@@ -6,6 +6,7 @@ import useRuntimeMessage from '@/hooks/useRuntimeMessage'
 import useWa from '@/hooks/useWa'
 import useWindowMessage from '@/hooks/useWindowMessage'
 import { useAppStore } from '@/stores/app'
+import env from '@/utils/env'
 import { goToLandingPage } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import { Box, Stack, Tabs, Tooltip } from '@mantine/core'
@@ -21,7 +22,7 @@ import ModalProfile from './Modal/ModalProfile'
 const AppMenu: React.FC = () => {
   const { setIsReady, setActiveChat } = useAppStore()
   const license = useLicense()
-  const [showModalMain, modalMain] = useDisclosure(true)
+  const [showModalMain, modalMain] = useDisclosure(env.isDevelopment())
   const [showModalActivation, modalActivation] = useDisclosure(false)
   const [showModalFaq, modalFaq] = useDisclosure(false)
   const [showModalProfile, modalProfile] = useDisclosure(false)
