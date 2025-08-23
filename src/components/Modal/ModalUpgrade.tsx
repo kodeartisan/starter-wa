@@ -55,19 +55,33 @@ const ModalUpgrade: React.FC<Props> = ({
         <Text size="sm" ta="center" fw={500}>
           Upgrade to Pro to unlock this feature and many more!
         </Text>
-        <Group mt="md" justify="center" style={{ width: '100%' }}>
-          <Button variant="outline" onClick={onClose}>
-            Maybe Later
-          </Button>
-          <Button
-            onClick={handleUpgrade}
-            leftSection={<Icon icon="tabler:crown" fontSize={20} />}
-            variant="gradient"
-            gradient={{ from: 'teal', to: 'lime' }}
-          >
-            Upgrade Now
-          </Button>
-        </Group>
+        {/* MODIFIED: Wrapped CTA button and added trust signals. */}
+        <Stack align="center" gap="xs" mt="md" w="100%">
+          <Group justify="center" style={{ width: '100%' }}>
+            <Button variant="outline" onClick={onClose}>
+              Maybe Later
+            </Button>
+            <Button
+              onClick={handleUpgrade}
+              leftSection={<Icon icon="tabler:crown" fontSize={20} />}
+              variant="gradient"
+              gradient={{ from: 'teal', to: 'lime' }}
+            >
+              Upgrade Now
+            </Button>
+          </Group>
+          {/* English: Add trust signals below the CTA to increase user confidence. */}
+          <Group justify="center" gap={6} mt="xs">
+            <Icon
+              icon="tabler:lock"
+              fontSize={14}
+              color="var(--mantine-color-gray-6)"
+            />
+            <Text size="xs" c="dimmed">
+              Secure Payment & 30-Day Money-Back Guarantee
+            </Text>
+          </Group>
+        </Stack>
       </Stack>
     </Modal>
   )

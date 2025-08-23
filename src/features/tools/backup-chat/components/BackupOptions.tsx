@@ -172,11 +172,7 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
         <Group justify="space-between" align="flex-end" wrap="nowrap">
           <TagsInput
             label="Filter by Keywords (Optional)"
-            placeholder={
-              license.isFree() && form.values.keywords.length > 0
-                ? 'Upgrade for more keywords'
-                : 'Add keyword and press Enter'
-            }
+            placeholder={'Add keyword and press Enter'}
             description="Only export messages containing any of these keywords."
             value={form.values.keywords}
             // MODIFIED: Show modal if a free user exceeds the keyword limit.
