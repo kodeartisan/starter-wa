@@ -9,10 +9,6 @@ browser.runtime.onInstalled.addListener(async (details) => {
     await storage.set(Setting.LICENSE_KEY, null)
     await storage.set(Setting.IS_FIRST_TIME, true)
     await storage.set(Setting.NEED_TO_OPEN, true)
-    await storage.set(Setting.BLUR_PROFILE_PICTURES, false)
-    await storage.set(Setting.BLUR_MESSAGES, false)
-    await storage.set(Setting.BLUR_USER_GROUP_NAMES, false)
-    await storage.set(Setting.BLUR_RECENT_MESSAGES, false)
     await openWa()
   }
 })
