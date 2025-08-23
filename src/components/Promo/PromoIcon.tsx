@@ -12,10 +12,10 @@ interface Props {
 const PromoIcon: React.FC<Props> = ({ size, icon }) => {
   return (
     <ThemeIcon
-      size={size}
-      radius="lg"
       variant="gradient"
-      gradient={{ from: 'teal', to: 'lime', deg: 105 }}
+      gradient={{ from: 'teal', to: 'lime' }}
+      radius={100}
+      size={size}
     >
       {/* Use the Icon component for dynamic icon rendering */}
       <Icon

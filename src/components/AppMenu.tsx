@@ -1,3 +1,4 @@
+// src/components/AppMenu.tsx
 import { Action, Page, Setting } from '@/constants'
 import PageChatBackup from '@/features/tools/backup-chat/PageChatBackup'
 import useLicense from '@/hooks/useLicense'
@@ -92,10 +93,9 @@ const AppMenu: React.FC = () => {
       return
     }
     if (Page.FAQ === value) {
-      modalFaq.toggle()
+      goToLandingPage()
       return
     }
-
     if (Page.PROFILE === value) {
       modalProfile.toggle()
       return
@@ -108,7 +108,9 @@ const AppMenu: React.FC = () => {
       <Tabs.List
         style={{
           gap: 10,
-          background: 'var(--mantine-primary-color-filled)',
+          // MODIFIED: Changed solid background to a vertical gradient for better aesthetics.
+          background:
+            'linear-gradient(180deg, var(--mantine-color-teal-7) 0%, var(--mantine-color-teal-9) 100%)',
         }}
       >
         <Stack justify="space-between" gap={0} style={{ height: '100%' }}>

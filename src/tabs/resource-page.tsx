@@ -32,197 +32,19 @@ import {
 import '@mantine/core/styles.css'
 import { DatePickerInput } from '@mantine/dates'
 import '@mantine/dates/styles.css'
+import { PRIMARY_ICON } from '@/constants'
 import FileSaver from 'file-saver'
 import html2canvas from 'html2canvas'
 import React, { useRef } from 'react'
 
-// --- Promotional Tile Components (for generation) --- //
-// These components are designed to be rendered inside ScreenshotWrapper.
 // English: Using a darker gradient that matches the landing page's teal-to-lime theme with darker shades for a more prominent look.
 const PROMO_GRADIENT_BACKGROUND =
   'linear-gradient(135deg, var(--mantine-color-teal-8), var(--mantine-color-lime-8))'
 
-// --- Small Promo Tile Options (440x280px) --- //
-// English: Three distinct design options for the small promotional tile,
-// all focused on showcasing the extension's key features in different layouts.
-
-// English: Option 1 uses a classic 2x2 grid layout for features.
-const SmallTileFeaturesGrid = () => (
-  <Paper
-    w={440}
-    h={280}
-    withBorder
-    radius="md"
-    p="lg"
-    display="flex"
-    style={{
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      textAlign: 'center',
-      background: PROMO_GRADIENT_BACKGROUND,
-    }}
-  >
-    <Text size="xl" fw={'bolder'} c="white">
-      Powerful Whatsapp Backup Tool
-    </Text>
-    <Text c="gray.2" size="sm" fw={500} mt="xs" mb="lg">
-      Export chats to PDF, Excel, and more. 100% Private.
-    </Text>
-    <Grid w="100%" gutter="sm">
-      <Grid.Col span={6}>
-        <Group gap="xs">
-          <ThemeIcon size="md" radius="sm">
-            <Icon icon="tabler:files" fontSize={16} />
-          </ThemeIcon>
-          <Text size="sm" c="white">
-            Multiple Formats
-          </Text>
-        </Group>
-      </Grid.Col>
-      <Grid.Col span={6}>
-        <Group gap="xs">
-          <ThemeIcon size="md" radius="sm">
-            <Icon icon="tabler:shield-lock" fontSize={16} />
-          </ThemeIcon>
-          <Text size="sm" c="white">
-            100% Private
-          </Text>
-        </Group>
-      </Grid.Col>
-      <Grid.Col span={6}>
-        <Group gap="xs">
-          <ThemeIcon size="md" radius="sm">
-            <Icon icon="tabler:photo-video" fontSize={16} />
-          </ThemeIcon>
-          <Text size="sm" c="white">
-            Include Media
-          </Text>
-        </Group>
-      </Grid.Col>
-      <Grid.Col span={6}>
-        <Group gap="xs">
-          <ThemeIcon size="md" radius="sm">
-            <Icon icon="tabler:filter" fontSize={16} />
-          </ThemeIcon>
-          <Text size="sm" c="white">
-            Advanced Filters
-          </Text>
-        </Group>
-      </Grid.Col>
-    </Grid>
-  </Paper>
-)
-
-// English: Option 2 uses a clean, centered vertical list for features.
-const SmallTileFeaturesList = () => (
-  <Paper
-    w={440}
-    h={280}
-    withBorder
-    radius="md"
-    p="xl"
-    display="flex"
-    style={{
-      flexDirection: 'column',
-      justifyContent: 'center',
-      background: PROMO_GRADIENT_BACKGROUND,
-    }}
-  >
-    <Title order={3} ta="center" lh={1.2} c="white" mb="xl">
-      Your Complete WhatsApp Archive
-    </Title>
-    <Stack gap="sm" align="center">
-      <Group gap="xs">
-        <Icon icon="tabler:database-export" fontSize={20} color="white" />
-        <Text size="sm" c="white">
-          Unlimited Backups
-        </Text>
-      </Group>
-      <Group gap="xs">
-        <Icon icon="tabler:photo-video" fontSize={20} color="white" />
-        <Text size="sm" c="white">
-          Export All Media
-        </Text>
-      </Group>
-      <Group gap="xs">
-        <Icon icon="tabler:files" fontSize={20} color="white" />
-        <Text size="sm" c="white">
-          Multiple Formats (PDF, Excel)
-        </Text>
-      </Group>
-      <Group gap="xs">
-        <Icon icon="tabler:shield-check" fontSize={20} color="white" />
-        <Text size="sm" c="white">
-          100% Private & Secure
-        </Text>
-      </Group>
-    </Stack>
-  </Paper>
-)
-
-// English: Option 3 uses a more visual, icon-driven horizontal layout for features.
-const SmallTileFeaturesIcons = () => (
-  <Paper
-    w={440}
-    h={280}
-    withBorder
-    radius="md"
-    p="lg"
-    display="flex"
-    style={{
-      flexDirection: 'column',
-      alignItems: 'center',
-      justifyContent: 'center',
-      textAlign: 'center',
-      background: PROMO_GRADIENT_BACKGROUND,
-    }}
-  >
-    <Title order={3} ta="center" lh={1.2} c="white">
-      All-in-One Backup Solution
-    </Title>
-    <Text c="gray.2" size="sm" fw={500} mt="xs" mb="xl">
-      Securely save your chats with all the features you need.
-    </Text>
-    <Group justify="center" gap="md">
-      <Stack align="center" gap={4}>
-        <ThemeIcon size="lg" radius="lg">
-          <Icon icon="tabler:files" />
-        </ThemeIcon>
-        <Text c="white" fz="xs">
-          Formats
-        </Text>
-      </Stack>
-      <Stack align="center" gap={4}>
-        <ThemeIcon size="lg" radius="lg">
-          <Icon icon="tabler:photo-video" />
-        </ThemeIcon>
-        <Text c="white" fz="xs">
-          Media
-        </Text>
-      </Stack>
-      <Stack align="center" gap={4}>
-        <ThemeIcon size="lg" radius="lg">
-          <Icon icon="tabler:filter" />
-        </ThemeIcon>
-        <Text c="white" fz="xs">
-          Filters
-        </Text>
-      </Stack>
-      <Stack align="center" gap={4}>
-        <ThemeIcon size="lg" radius="lg">
-          <Icon icon="tabler:shield-lock" />
-        </ThemeIcon>
-        <Text c="white" fz="xs">
-          Secure
-        </Text>
-      </Stack>
-    </Group>
-  </Paper>
-)
-
 // --- Marquee Promo Tiles (1280x800px) --- //
+
 // English: [MODIFIED] Component dimensions changed to 1280x800.
+// English: The feature card grid has been changed to a vertical stack.
 const MarqueeTileFeatureShowcase = () => (
   <Paper
     w={1280}
@@ -239,71 +61,109 @@ const MarqueeTileFeatureShowcase = () => (
       <Grid align="center" gutter={40}>
         <Grid.Col span={5}>
           <Stack>
-            {/* English: [MODIFIED] Font size adjusted and color changed for dark background. */}
+            <ThemeIcon
+              size={90}
+              radius="xl"
+              variant="gradient"
+              gradient={{ from: 'teal', to: 'lime' }}
+            >
+              <Icon icon={PRIMARY_ICON} fontSize={62} />
+            </ThemeIcon>
             <Title order={1} fz={44} lh={1.2} c="white">
-              The Ultimate WhatsApp Backup & Export Tool
+              {' '}
+              The Ultimate WhatsApp Backup & Export Tool{' '}
             </Title>
-            <Text size="xl" c="gray.3" mt="md">
+            <Text size="xl" c="white" fw={500} mt="md">
+              {' '}
               Securely save your conversations and media in multiple formats
-              with advanced filtering.
+              with advanced filtering.{' '}
             </Text>
           </Stack>
         </Grid.Col>
-        <Grid.Col span={7}>
-          <Grid gutter="lg">
-            <Grid.Col span={6}>
-              <Card withBorder radius="md" p="lg">
-                <Group>
-                  <ThemeIcon variant="light" size="lg">
-                    <Icon icon="tabler:files" />
-                  </ThemeIcon>
-                  <Text fw={700}>Multiple Formats</Text>
-                </Group>
-                <Text size="sm" c="dimmed" mt="xs">
-                  Export to PDF, Excel, CSV, JSON, and more.
+        <Grid.Col span={4}>
+          {/* English: Changed the Grid layout to a Stack for a vertical list of features. */}
+          <Stack gap="lg">
+            <Card withBorder shadow="lg" p="lg">
+              <Group>
+                <ThemeIcon
+                  variant="gradient"
+                  gradient={{ from: 'teal', to: 'lime' }}
+                  radius="xl"
+                  size={36}
+                >
+                  <Icon icon="tabler:files" fontSize={22} />
+                </ThemeIcon>
+                <Text size="lg" fw={700}>
+                  {' '}
+                  Multiple Formats{' '}
                 </Text>
-              </Card>
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <Card withBorder radius="md" p="lg">
-                <Group>
-                  <ThemeIcon variant="light" size="lg">
-                    <Icon icon="tabler:shield-lock" />
-                  </ThemeIcon>
-                  <Text fw={700}>100% Private</Text>
-                </Group>
-                <Text size="sm" c="dimmed" mt="xs">
-                  Your data never leaves your computer.
+              </Group>
+              <Text size="sm" c="gray.6" fw={500} mt="xs">
+                {' '}
+                Export to PDF, Excel, CSV, JSON, and more.{' '}
+              </Text>
+            </Card>
+            <Card withBorder shadow="lg" p="lg">
+              <Group>
+                <ThemeIcon
+                  variant="gradient"
+                  gradient={{ from: 'teal', to: 'lime' }}
+                  radius="xl"
+                  size={36}
+                >
+                  <Icon icon="tabler:shield-lock" fontSize={22} />
+                </ThemeIcon>
+                <Text fw={700} size="lg">
+                  {' '}
+                  100% Private{' '}
                 </Text>
-              </Card>
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <Card withBorder radius="md" p="lg">
-                <Group>
-                  <ThemeIcon variant="light" size="lg">
-                    <Icon icon="tabler:photo-video" />
-                  </ThemeIcon>
-                  <Text fw={700}>Include Media</Text>
-                </Group>
-                <Text size="sm" c="dimmed" mt="xs">
-                  Save images, videos, and documents.
+              </Group>
+              <Text size="sm" c="gray.6" fw={500} mt="xs">
+                {' '}
+                Your data never leaves your computer.{' '}
+              </Text>
+            </Card>
+            <Card withBorder shadow="lg" p="lg">
+              <Group>
+                <ThemeIcon
+                  variant="gradient"
+                  gradient={{ from: 'teal', to: 'lime' }}
+                  radius="xl"
+                  size={36}
+                >
+                  <Icon icon="tabler:photo-video" fontSize={22} />
+                </ThemeIcon>
+                <Text fw={700} size="lg">
+                  {' '}
+                  Include Media{' '}
                 </Text>
-              </Card>
-            </Grid.Col>
-            <Grid.Col span={6}>
-              <Card withBorder radius="md" p="lg">
-                <Group>
-                  <ThemeIcon variant="light" size="lg">
-                    <Icon icon="tabler:filter" />
-                  </ThemeIcon>
-                  <Text fw={700}>Advanced Filtering</Text>
-                </Group>
-                <Text size="sm" c="dimmed" mt="xs">
-                  Filter by date range and keywords.
+              </Group>
+              <Text size="sm" c="gray.6" fw={500} mt="xs">
+                {' '}
+                Save images, videos, and documents.{' '}
+              </Text>
+            </Card>
+            <Card withBorder shadow="lg" p="lg">
+              <Group>
+                <ThemeIcon
+                  variant="gradient"
+                  gradient={{ from: 'teal', to: 'lime' }}
+                  radius="xl"
+                  size={36}
+                >
+                  <Icon icon="tabler:filter" fontSize={22} />
+                </ThemeIcon>
+                <Text fw={700} size="lg">
+                  {' '}
+                  Advanced Filtering{' '}
                 </Text>
-              </Card>
-            </Grid.Col>
-          </Grid>
+              </Group>
+              <Text size="sm" c="gray.6" fw={500} mt="xs">
+                {' '}
+                Filter by date range and keywords.{' '}
+              </Text>
+            </Card>
+          </Stack>
         </Grid.Col>
       </Grid>
     </Stack>
@@ -311,13 +171,15 @@ const MarqueeTileFeatureShowcase = () => (
 )
 
 // --- Feature Mockups for Screenshots --- //
+
 // English: These components represent the light-themed UI and remain unchanged.
 const FeatureMockupExportFormats = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
       <Title order={5}>Export Options</Title>
       <Text c="dimmed" size="sm">
-        Choose your desired format for the chat backup.
+        {' '}
+        Choose your desired format for the chat backup.{' '}
       </Text>
       <Radio.Group label="Format" defaultValue="pdf">
         <Group mt="xs">
@@ -328,7 +190,8 @@ const FeatureMockupExportFormats = () => (
         </Group>
       </Radio.Group>
       <Button mt="lg" leftSection={<Icon icon="tabler:download" />}>
-        Start Backup
+        {' '}
+        Start Backup{' '}
       </Button>
     </Stack>
   </Card>
@@ -339,7 +202,8 @@ const FeatureMockupAdvancedFiltering = () => (
     <Stack>
       <Title order={5}>Advanced Filtering</Title>
       <Text c="dimmed" size="sm">
-        Pinpoint the exact messages you need.
+        {' '}
+        Pinpoint the exact messages you need.{' '}
       </Text>
       <DatePickerInput
         type="range"
@@ -364,7 +228,8 @@ const FeatureMockupMediaBackup = () => (
     <Stack>
       <Title order={5}>Include Media in Your Backup</Title>
       <Text c="dimmed" size="sm">
-        Don't just save text—save the whole story.
+        {' '}
+        Don't just save text—save the whole story.{' '}
       </Text>
       <Checkbox.Group
         label="Include Message Types"
@@ -388,10 +253,12 @@ const FeatureMockupPrivacy = () => (
         <Icon icon="tabler:shield-lock" fontSize={32} />
       </ThemeIcon>
       <Title order={4} mt="md">
-        100% Private & Secure
+        {' '}
+        100% Private & Secure{' '}
       </Title>
       <Text c="dimmed" size="sm" ta="center">
-        Your data is processed locally and never leaves your computer.
+        {' '}
+        Your data is processed locally and never leaves your computer.{' '}
       </Text>
       <List
         mt="lg"
@@ -405,13 +272,16 @@ const FeatureMockupPrivacy = () => (
         }
       >
         <List.Item>
-          <b>100% Local Processing:</b> Your conversations are never uploaded.
+          {' '}
+          <b>100% Local Processing:</b> Your conversations are never uploaded.{' '}
         </List.Item>
         <List.Item>
-          <b>No Cloud Sync:</b> We have no access to your files or chats.
+          {' '}
+          <b>No Cloud Sync:</b> We have no access to your files or chats.{' '}
         </List.Item>
         <List.Item>
-          <b>You Are in Control:</b> Save your backups on your own device.
+          {' '}
+          <b>You Are in Control:</b> Save your backups on your own device.{' '}
         </List.Item>
       </List>
     </Stack>
@@ -423,7 +293,8 @@ const FeatureMockupSimpleInterface = () => (
     <Stack>
       <Title order={4}>Start Your Backup in Seconds</Title>
       <Text c="dimmed" size="sm">
-        Our intuitive interface makes saving your chats effortless.
+        {' '}
+        Our intuitive interface makes saving your chats effortless.{' '}
       </Text>
       <Select
         mt="md"
@@ -454,7 +325,8 @@ const FeatureMockupSimpleInterface = () => (
         </Group>
       </Radio.Group>
       <Button mt="lg" size="md" leftSection={<Icon icon="tabler:download" />}>
-        Start Backup
+        {' '}
+        Start Backup{' '}
       </Button>
     </Stack>
   </Card>
@@ -467,7 +339,6 @@ interface MarqueeTileFeatureDetailProps {
   description: string
   featureComponent: React.ReactNode
 }
-
 const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
   icon,
   title,
@@ -494,10 +365,12 @@ const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
             </ThemeIcon>
             {/* English: [MODIFIED] Font size adjusted and color changed for dark background. */}
             <Title order={1} fz={44} lh={1.2} c="white">
-              {title}
+              {' '}
+              {title}{' '}
             </Title>
             <Text size="xl" fw={500} c="gray.1" mt="md">
-              {description}
+              {' '}
+              {description}{' '}
             </Text>
           </Stack>
         </Grid.Col>
@@ -511,22 +384,8 @@ const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
 
 const ScreenshotGallery: React.FC = () => {
   // English: Data for generating promotional assets.
+  // MODIFIED: Removed the small promo tiles as requested.
   const screenshotData = [
-    {
-      title: 'Small Promo Tile: Option 1 (Grid Layout)',
-      filename: 'small_promo_tile_grid.png',
-      component: <SmallTileFeaturesGrid />,
-    },
-    {
-      title: 'Small Promo Tile: Option 2 (List Layout)',
-      filename: 'small_promo_tile_list.png',
-      component: <SmallTileFeaturesList />,
-    },
-    {
-      title: 'Small Promo Tile: Option 3 (Icons Layout)',
-      filename: 'small_promo_tile_icons.png',
-      component: <SmallTileFeaturesIcons />,
-    },
     {
       title: 'Marquee Promo Tile: Feature Showcase (1280x800)',
       filename: 'marquee_promo_tile_features.png',
@@ -593,11 +452,13 @@ const ScreenshotGallery: React.FC = () => {
       ),
     },
   ]
+
   return (
     <Stack>
       <Text c="dimmed" mb="md">
+        {' '}
         Generate and download high-resolution promotional assets for the Chrome
-        Web Store.
+        Web Store.{' '}
       </Text>
       <Stack gap="xl">
         {screenshotData.map((item) => (
@@ -617,26 +478,16 @@ const ScreenshotGallery: React.FC = () => {
 // --- End of Embedded Screenshot Components ---
 
 const ResourcePage = () => {
-  const icon1Ref = useRef<HTMLDivElement>(null)
-  const icon2Ref = useRef<HTMLDivElement>(null)
-  const icon3Ref = useRef<HTMLDivElement>(null)
+  // English: A single ref for the promotional icon.
+  const iconRef = useRef<HTMLDivElement>(null)
 
-  // English: Defines the data for the three icon options to be mapped in the UI.
+  // English: Defines the data for the single icon option to be mapped in the UI.
+  // MODIFIED: Reduced to a single, preferred icon.
   const icons = [
     {
-      component: <PromoIcon size={128} icon="tabler:camera" />,
-      ref: icon1Ref,
-      name: 'Icon-Option-1.png',
-    },
-    {
-      component: <PromoIcon size={128} icon="tabler:file-export" />,
-      ref: icon2Ref,
-      name: 'Icon-Option-2.png',
-    },
-    {
-      component: <PromoIcon size={128} icon="tabler:download" />,
-      ref: icon3Ref,
-      name: 'Icon-Option-3.png',
+      component: <PromoIcon size={128} icon={PRIMARY_ICON} />,
+      ref: iconRef,
+      name: 'promotional_icon.png',
     },
   ]
 
@@ -651,9 +502,10 @@ const ResourcePage = () => {
       'One-click tool to save your WhatsApp chat history. Export conversations and media to PDF, Excel, or CSV locally & privately.',
       'Never lose your chat history. Archive any WhatsApp conversation with media into multiple file formats. 100% secure & private.',
     ],
+    // MODIFIED: Emojis have been re-added to the long description for better visual appeal.
     longDescription: `🛡️ Secure Your WhatsApp Conversations Forever
 
-Never lose important conversations or precious memories again. Backup & Export for WhatsApp is the ultimate tool for archiving your WhatsApp chats securely and easily. With a single click, convert your chat history into professional, organized files like PDF, Excel, and CSV, all processed 100% locally on your computer for maximum privacy.
+Never lose important conversations or precious memories again. WhatsBackup - WA Chats Backup & Exporter for WhatsApp is the ultimate tool for archiving your WhatsApp chats securely and easily. With a single click, convert your chat history into professional, organized files like PDF, Excel, and CSV, all processed 100% locally on your computer for maximum privacy.
 
 ✨ Key Features
 💾 Unlimited Backups: Archive entire conversations with no message limits.
@@ -661,8 +513,6 @@ Never lose important conversations or precious memories again. Backup & Export f
 📄 Multiple Export Formats: Export to PDF, Excel (XLSX), CSV, JSON, HTML, and TXT.
 🔍 Advanced Filtering: Pinpoint messages with custom date ranges and keyword searches.
 🔐 100% Secure: Your data never leaves your computer.
-💬 Priority Support: Get faster, dedicated support when you need it.
-💎 Lifetime Access: A one-time purchase gets you all features and future updates forever. No subscriptions!
 
 🔒 Your Privacy is Our Priority
 We believe you should have complete control over your data. This extension operates entirely within your browser.
@@ -676,7 +526,24 @@ We believe you should have complete control over your data. This extension opera
 🔬 Researchers: Export chat data into structured formats like CSV or JSON for analysis.
 🙋‍♀️ Anyone who values their data: Protect yourself from accidental data loss from a lost or broken phone.
 
-🚀 Get peace of mind knowing your WhatsApp history is safe, secure, and accessible in any format you need.`,
+🚀 Get peace of mind knowing your WhatsApp history is safe, secure, and accessible in any format you need.
+
+WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other countries. This extension has no relationship to WhatsApp or WhatsApp Inc.`,
+  }
+
+  // English: Added justification texts for the new Privacy tab.
+  const justificationTexts = {
+    singlePurpose: `The core purpose of this extension is to provide users with a secure and private way to back up their WhatsApp chats and export them into various file formats (PDF, CSV, Excel, etc.). All features, including chat selection, date filtering, keyword searching, and format conversion, are directly related to this single purpose of creating local, user-controlled backups of their WhatsApp data.`,
+    storage: `The 'storage' permission is used to store essential user settings and license information locally on the user's device. This includes:
+- The user's license key to unlock Pro features.
+- An instance ID for license activation management.
+- User preferences, such as default export settings.
+This data is stored only on the user's computer and is crucial for providing a persistent and personalized experience without requiring a remote server or user accounts.`,
+    scripting: `Content scripts are essential for the extension's functionality. They are used exclusively on web.whatsapp.com to:
+1. Inject the user interface (the main modal for backup options) onto the page, allowing users to interact with the extension directly within the WhatsApp Web environment.
+2. Communicate with the WhatsApp Web application's JavaScript context to securely fetch chat and message data for the backup process. This data is handled locally and is necessary to fulfill the extension's core purpose of exporting chats.`,
+    hostWhatsapp: `The permission for "https://web.whatsapp.com/*" is required to allow the extension's content scripts to run on WhatsApp Web. The extension needs to access the DOM and interact with the page to inject its UI and retrieve chat data for the user to back up. The extension's functionality is entirely dependent on its ability to operate on this specific domain.`,
+    hostLemonSqueezy: `The permission for "https://api.lemonsqueezy.com/*" is used to securely communicate with the Lemon Squeezy API for license validation and management. When a user activates a Pro license, the extension sends a request to this domain to verify, activate, or deactivate the license key. This is a standard and secure method for handling software licensing and does not transmit any personal chat data.`,
   }
 
   const keywords = [
@@ -705,16 +572,17 @@ We believe you should have complete control over your data. This extension opera
       if (blob) FileSaver.saveAs(blob, filename)
     })
   }
-
   return (
     <MantineProvider theme={theme}>
       <Container size="lg" py="xl">
         <Stack gap="xl">
           <Title order={1} ta="center">
-            Chrome Web Store - Promotional Resources
+            {' '}
+            Chrome Web Store - Promotional Resources{' '}
           </Title>
           <Text c="dimmed" ta="center">
-            Use these assets and text to create your store listing page.
+            {' '}
+            Use these assets and text to create your store listing page.{' '}
           </Text>
           <Tabs defaultValue="screenshots">
             <Tabs.List grow>
@@ -722,25 +590,37 @@ We believe you should have complete control over your data. This extension opera
                 value="text"
                 leftSection={<Icon icon="tabler:file-text" />}
               >
-                Store Listing Text
+                {' '}
+                Store Listing Text{' '}
               </Tabs.Tab>
               <Tabs.Tab
                 value="icons"
                 leftSection={<Icon icon="tabler:photo" />}
               >
-                Promotional Icons
+                {' '}
+                Promotional Icons{' '}
               </Tabs.Tab>
               <Tabs.Tab
                 value="screenshots"
                 leftSection={<Icon icon="tabler:camera" />}
               >
-                Screenshots & Tiles
+                {' '}
+                Screenshots & Tiles{' '}
               </Tabs.Tab>
               <Tabs.Tab
                 value="keywords"
                 leftSection={<Icon icon="tabler:tags" />}
               >
-                Keywords (SEO)
+                {' '}
+                Keywords (SEO){' '}
+              </Tabs.Tab>
+              {/* ADDED: New tab for privacy justifications. */}
+              <Tabs.Tab
+                value="privacy"
+                leftSection={<Icon icon="tabler:shield-lock" />}
+              >
+                {' '}
+                Privacy Justifications{' '}
               </Tabs.Tab>
             </Tabs.List>
 
@@ -756,7 +636,8 @@ We believe you should have complete control over your data. This extension opera
                           size="sm"
                           c={title.length > 30 ? 'red' : 'dimmed'}
                         >
-                          {title.length} / 30 chars
+                          {' '}
+                          {title.length} / 30 chars{' '}
                         </Text>
                       </Group>
                       <Group mt="sm" justify="space-between">
@@ -768,7 +649,8 @@ We believe you should have complete control over your data. This extension opera
                               color={copied ? 'teal' : 'gray'}
                               onClick={copy}
                             >
-                              {copied ? 'Copied' : 'Copy'}
+                              {' '}
+                              {copied ? 'Copied' : 'Copy'}{' '}
                             </Button>
                           )}
                         </CopyButton>
@@ -786,7 +668,8 @@ We believe you should have complete control over your data. This extension opera
                           size="sm"
                           c={desc.length > 132 ? 'red' : 'dimmed'}
                         >
-                          {desc.length} / 132 chars
+                          {' '}
+                          {desc.length} / 132 chars{' '}
                         </Text>
                       </Group>
                       <Textarea
@@ -804,7 +687,8 @@ We believe you should have complete control over your data. This extension opera
                               color={copied ? 'teal' : 'gray'}
                               onClick={copy}
                             >
-                              {copied ? 'Copied' : 'Copy'}
+                              {' '}
+                              {copied ? 'Copied' : 'Copy'}{' '}
                             </Button>
                           )}
                         </CopyButton>
@@ -829,7 +713,8 @@ We believe you should have complete control over your data. This extension opera
                           color={copied ? 'teal' : 'gray'}
                           onClick={copy}
                         >
-                          {copied ? 'Copied' : 'Copy'}
+                          {' '}
+                          {copied ? 'Copied' : 'Copy'}{' '}
                         </Button>
                       )}
                     </CopyButton>
@@ -837,37 +722,27 @@ We believe you should have complete control over your data. This extension opera
                 </Card>
               </Stack>
             </Tabs.Panel>
+            {/* MODIFIED: The layout is simplified and centered for a single icon. */}
             <Tabs.Panel value="icons" pt="lg">
-              <Grid>
-                {icons.map(({ component, ref, name }, index) => (
-                  <Grid.Col span={{ base: 12, sm: 4 }} key={index}>
-                    <Card
-                      withBorder
-                      radius="md"
-                      p="xl"
-                      style={{ height: '100%' }}
-                    >
-                      <Stack
-                        align="center"
-                        justify="space-between"
-                        style={{ height: '100%' }}
+              <Center>
+                <Card withBorder radius="md" p="xl" w={300}>
+                  <Stack align="center" justify="space-between">
+                    <div ref={iconRef}>{icons[0].component}</div>
+                    <Stack align="center" gap="md" mt="md">
+                      <Text fw={500}>Promotional Icon (128x128 px)</Text>
+                      <Button
+                        variant="light"
+                        onClick={() =>
+                          handleDownloadIcon(icons[0].ref, icons[0].name)
+                        }
                       >
-                        <div ref={ref}>{component}</div>
-                        <Stack align="center" gap="md">
-                          <Text fw={500}>Option {index + 1} (128x128 px)</Text>
-                          <Button
-                            mt="md"
-                            variant="light"
-                            onClick={() => handleDownloadIcon(ref, name)}
-                          >
-                            Download
-                          </Button>
-                        </Stack>
-                      </Stack>
-                    </Card>
-                  </Grid.Col>
-                ))}
-              </Grid>
+                        {' '}
+                        Download{' '}
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Card>
+              </Center>
             </Tabs.Panel>
             <Tabs.Panel value="screenshots" pt="lg">
               <ScreenshotGallery />
@@ -884,14 +759,16 @@ We believe you should have complete control over your data. This extension opera
                         onClick={copy}
                         leftSection={<Icon icon="tabler:copy" />}
                       >
-                        {copied ? 'Copied All' : 'Copy All'}
+                        {' '}
+                        {copied ? 'Copied All' : 'Copy All'}{' '}
                       </Button>
                     )}
                   </CopyButton>
                 </Group>
                 <Text c="dimmed" size="sm" mt="xs">
+                  {' '}
                   Use these keywords in your store listing's metadata to improve
-                  search visibility.
+                  search visibility.{' '}
                 </Text>
                 <Paper withBorder p="md" mt="md" radius="sm">
                   <Group gap="xs">
@@ -902,12 +779,137 @@ We believe you should have complete control over your data. This extension opera
                         color="gray"
                         size="lg"
                       >
-                        {keyword}
+                        {' '}
+                        {keyword}{' '}
                       </Badge>
                     ))}
                   </Group>
                 </Paper>
               </Card>
+            </Tabs.Panel>
+            {/* ADDED: New panel with privacy justification content. */}
+            <Tabs.Panel value="privacy" pt="lg">
+              <Stack gap="xl">
+                <Card withBorder radius="md">
+                  <Group justify="space-between">
+                    <Title order={4}>Single Purpose Justification</Title>
+                    <CopyButton value={justificationTexts.singlePurpose}>
+                      {({ copied, copy }) => (
+                        <Button
+                          size="xs"
+                          color={copied ? 'teal' : 'gray'}
+                          onClick={copy}
+                        >
+                          {copied ? 'Copied' : 'Copy'}
+                        </Button>
+                      )}
+                    </CopyButton>
+                  </Group>
+                  <Textarea
+                    mt="sm"
+                    readOnly
+                    value={justificationTexts.singlePurpose}
+                    autosize
+                    minRows={4}
+                  />
+                </Card>
+                <Card withBorder radius="md">
+                  <Group justify="space-between">
+                    <Title order={4}>Storage Permission Justification</Title>
+                    <CopyButton value={justificationTexts.storage}>
+                      {({ copied, copy }) => (
+                        <Button
+                          size="xs"
+                          color={copied ? 'teal' : 'gray'}
+                          onClick={copy}
+                        >
+                          {copied ? 'Copied' : 'Copy'}
+                        </Button>
+                      )}
+                    </CopyButton>
+                  </Group>
+                  <Textarea
+                    mt="sm"
+                    readOnly
+                    value={justificationTexts.storage}
+                    autosize
+                    minRows={5}
+                  />
+                </Card>
+                <Card withBorder radius="md">
+                  <Group justify="space-between">
+                    <Title order={4}>Content Scripting Justification</Title>
+                    <CopyButton value={justificationTexts.scripting}>
+                      {({ copied, copy }) => (
+                        <Button
+                          size="xs"
+                          color={copied ? 'teal' : 'gray'}
+                          onClick={copy}
+                        >
+                          {copied ? 'Copied' : 'Copy'}
+                        </Button>
+                      )}
+                    </CopyButton>
+                  </Group>
+                  <Textarea
+                    mt="sm"
+                    readOnly
+                    value={justificationTexts.scripting}
+                    autosize
+                    minRows={5}
+                  />
+                </Card>
+                <Card withBorder radius="md">
+                  <Group justify="space-between">
+                    <Title order={4}>
+                      Host Permission: https://web.whatsapp.com/*
+                    </Title>
+                    <CopyButton value={justificationTexts.hostWhatsapp}>
+                      {({ copied, copy }) => (
+                        <Button
+                          size="xs"
+                          color={copied ? 'teal' : 'gray'}
+                          onClick={copy}
+                        >
+                          {copied ? 'Copied' : 'Copy'}
+                        </Button>
+                      )}
+                    </CopyButton>
+                  </Group>
+                  <Textarea
+                    mt="sm"
+                    readOnly
+                    value={justificationTexts.hostWhatsapp}
+                    autosize
+                    minRows={4}
+                  />
+                </Card>
+                <Card withBorder radius="md">
+                  <Group justify="space-between">
+                    <Title order={4}>
+                      Host Permission: https://api.lemonsqueezy.com/*
+                    </Title>
+                    <CopyButton value={justificationTexts.hostLemonSqueezy}>
+                      {({ copied, copy }) => (
+                        <Button
+                          size="xs"
+                          color={copied ? 'teal' : 'gray'}
+                          onClick={copy}
+                        >
+                          {copied ? 'Copied' : 'Copy'}
+                        </Button>
+                      )}
+                    </CopyButton>
+                  </Group>
+                  <Textarea
+                    mt="sm"
+                    readOnly
+                    value={justificationTexts.hostLemonSqueezy}
+                    autosize
+                    minRows={4}
+                  />
+                </Card>
+              </Stack>
             </Tabs.Panel>
           </Tabs>
         </Stack>
