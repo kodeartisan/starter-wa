@@ -109,7 +109,6 @@ const AppMenu: React.FC = () => {
       <Tabs.List
         style={{
           gap: 10,
-          // MODIFIED: Changed solid background to a vertical gradient for better aesthetics.
           background:
             'linear-gradient(180deg, var(--mantine-color-teal-7) 0%, var(--mantine-color-teal-9) 100%)',
         }}
