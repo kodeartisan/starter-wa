@@ -27,6 +27,7 @@ interface Props {
 const BackupResult: React.FC<Props> = ({ result, onDone }) => {
   const { messagesExported, messagesOmitted, mediaOmitted, isLimitApplied } =
     result
+
   return (
     <Center>
       <Stack align="center" gap="lg">
@@ -40,7 +41,6 @@ const BackupResult: React.FC<Props> = ({ result, onDone }) => {
         </Text>
 
         <When condition={isLimitApplied}>
-          {/* MODIFIED: The entire warning card has been updated for better psychological impact. */}
           <Card
             withBorder
             p="lg"
@@ -60,12 +60,10 @@ const BackupResult: React.FC<Props> = ({ result, onDone }) => {
                   color="var(--mantine-color-orange-7)"
                   fontSize={24}
                 />
-                {/* MODIFIED: Changed title to be more alarming and personal. */}
                 <Title order={5} c="orange.9">
                   Warning: Some Memories Are At Risk!
                 </Title>
               </Group>
-              {/* MODIFIED: Changed text to emphasize the risk of permanent data loss. */}
               <Text ta="center" size="sm" c="dimmed">
                 <b>{messagesOmitted.toLocaleString()} messages</b> and{' '}
                 <b>{mediaOmitted.toLocaleString()} media files</b> were NOT
