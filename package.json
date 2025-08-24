@@ -65,6 +65,7 @@
       "https://web.whatsapp.com/*",
       "https://api.lemonsqueezy.com/*"
     ],
-    "permissions": []
+    "permissions": [],
+    "default_locale": "en"
   }
 }
