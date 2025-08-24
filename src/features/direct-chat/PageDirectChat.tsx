@@ -1,6 +1,6 @@
 // src/features/direct-chat/PageDirectChat.tsx
-import InputMessage from '@/components/Input/Message/InputMessage'
-import useInputMessage from '@/components/Input/Message/useInputMessage'
+import InputMessage from '@/components/Broadcast/Input/Message/InputMessage'
+import useInputMessage from '@/components/Broadcast/Input/Message/useInputMessage'
 import LayoutPage from '@/components/Layout/LayoutPage'
 import ModalUpgrade from '@/components/Modal/ModalUpgrade'
 import { Message } from '@/constants'
@@ -229,21 +229,6 @@ const PageDirectChat: React.FC = () => {
       />
       <LayoutPage title="Direct Chat">
         <Stack>
-          <Stack align="center" gap={4} mb={'xl'}>
-            <Icon
-              icon="tabler:message-circle-plus"
-              fontSize={48}
-              color="var(--mantine-color-teal-6)"
-            />
-            <Title order={3} ta="center">
-              {' '}
-              Direct Chat{' '}
-            </Title>
-            <Text c="dimmed" size="sm" ta="center">
-              {' '}
-              Start a conversation without saving the number to your contacts.{' '}
-            </Text>
-          </Stack>
           <TextInput
             label="WhatsApp Number"
             placeholder="e.g., 6281234567890"
@@ -253,7 +238,10 @@ const PageDirectChat: React.FC = () => {
           />
           {/* Use InputMessage component for message composition */}
           <Stack gap="xs" mt="md">
-            <InputMessage form={inputMessageForm} />
+            <InputMessage
+              form={inputMessageForm}
+              disabledTemplateButton={false}
+            />
           </Stack>
           <Group justify="flex-end" mt="md">
             <Button

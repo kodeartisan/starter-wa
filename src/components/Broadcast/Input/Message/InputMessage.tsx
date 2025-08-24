@@ -18,6 +18,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { useLiveQuery } from 'dexie-react-hooks'
 import React, { useMemo } from 'react'
 import { When } from 'react-if'
+import ModalManageTemplate from '../../Template/ModalManageTemplate'
 import FormDocument from './FormFile'
 import FormImage from './FormImage'
 import FormLocation from './FormLocation'
@@ -109,8 +110,7 @@ const InputMessage: React.FC<Props> = ({
   }
   const renderMenuMessage = () => {
     return (
-      // ++ MODIFIED: Increased grid columns to 7 to accommodate the new button
-      <SimpleGrid cols={7}>
+      <SimpleGrid cols={5}>
         <Tooltip label="Text" position="top">
           <Button
             size="sm"
@@ -144,19 +144,19 @@ const InputMessage: React.FC<Props> = ({
           icon="tabler:map-pin"
           messageType={Message.LOCATION}
         />
-        <ProFeatureButton
+        {/* <ProFeatureButton
           form={form}
           label="Poll"
           icon="tabler:list-details"
           messageType={Message.POLL}
         />
-        {/* ++ ADDED: The new button for sending a contact VCard */}
+
         <ProFeatureButton
           form={form}
           label="Contact (VCard)"
           icon="tabler:user-square"
           messageType={Message.VCARD}
-        />
+        /> */}
       </SimpleGrid>
     )
   }
@@ -165,10 +165,49 @@ const InputMessage: React.FC<Props> = ({
       <Stack>
         <Group justify="space-between">
           <Text fw={500}>Message</Text>
+          <When condition={!disabledTemplateButton}>
+            <Popover width={300} position="top-end" withArrow shadow="md">
+              <Popover.Target>
+                <Tooltip label="Get template" position="top">
+                  <Button size={'compact-sm'} variant="outline">
+                    <Icon icon={'tabler:template'} fontSize={26} />
+                  </Button>
+                </Tooltip>
+              </Popover.Target>
+              <Popover.Dropdown>
+                <Stack>
+                  <Select
+                    label={
+                      <Group justify="space-between" w={270}>
+                        <Text>Use a template</Text>
+                        <Tooltip label="Manage Templates">
+                          <ActionIcon
+                            variant="transparent"
+                            onClick={modalManageTemplate.toggle}
+                          >
+                            <Icon icon={'tabler:settings'} fontSize={18} />
+                          </ActionIcon>
+                        </Tooltip>
+                      </Group>
+                    }
+                    searchable
+                    placeholder="Select a template to use"
+                    data={labelValueTemplates}
+                    onChange={(value) => handleSelectTemplate(value!)}
+                    comboboxProps={{ withinPortal: false }}
+                  />
+                </Stack>
+              </Popover.Dropdown>
+            </Popover>
+          </When>
         </Group>
       </Stack>
       {renderMenuMessage()}
       {renderInputMessage()}
+      <ModalManageTemplate
+        opened={showModalManageTemplate}
+        onClose={modalManageTemplate.close}
+      />
     </>
   )
 }

@@ -1,4 +1,4 @@
-import plans, { features as comparisonFeatures } from '@/config/plans'
+import { PRIMARY_ICON } from '@/constants'
 import theme from '@/libs/theme'
 import { Icon } from '@iconify/react'
 import {
@@ -29,6 +29,84 @@ import '@mantine/core/styles.css'
 import { useWindowScroll } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
 
+// --- Start: Updated Config for Direct Chat Focus ---
+
+// Define a structured feature type for the comparison table
+export interface PlanFeature {
+  feature: string
+  free: string | boolean
+  pro: string | boolean
+}
+
+// Centralized list of features for easy management and comparison
+const comparisonFeatures: PlanFeature[] = [
+  {
+    feature: 'Start Chats Without Saving Numbers',
+    free: true,
+    pro: true,
+  },
+  {
+    feature: 'Send Text Messages',
+    free: true,
+    pro: true,
+  },
+  {
+    feature: 'Send Media (Images, Videos, Docs)',
+    free: false,
+    pro: true,
+  },
+  {
+    feature: 'Share Location Pins',
+    free: false,
+    pro: true,
+  },
+
+  {
+    feature: 'Save Unlimited Message Templates',
+    free: '1 Template',
+    pro: 'Unlimited',
+  },
+  {
+    feature: 'Customer Support',
+    free: 'Standard Support',
+    pro: 'Priority Support',
+  },
+]
+
+// Define plan objects for the pricing cards.
+const plans = [
+  {
+    name: 'Free',
+    isFree: true,
+    description: 'For basic direct messaging needs.',
+    price: '$0',
+    placeholderPrice: null,
+    link: '#',
+    features: [
+      'Start unlimited chats',
+      'No need to save contacts',
+      'Send text messages only',
+      'Standard support',
+    ],
+  },
+  {
+    name: 'Pro Lifetime',
+    isFree: false,
+    description: 'Pay once, unlock powerful messaging features forever.',
+    placeholderPrice: '$89',
+    price: '$39',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?media=0&logo=0&desc=0&discount=0',
+    features: [
+      'Send All Media Types (Images, Videos, Files)',
+      'Share Locations',
+      'Save Unlimited Message Templates',
+      'Priority Customer Support',
+      'All Future Updates Included',
+    ],
+  },
+]
+// --- End: Updated Config ---
+
 const CheckIcon = () => (
   <Icon
     icon="tabler:check"
@@ -46,8 +124,7 @@ const CrossIcon = () => (
   />
 )
 
-// --- Countdown Timer Logic --- //
-// English: Define TimeLeft interface for type safety.
+// --- Countdown Timer Logic ---
 interface TimeLeft {
   days: number
   hours: number
@@ -55,7 +132,6 @@ interface TimeLeft {
   seconds: number
 }
 
-// English: Calculate the time remaining until the offer ends.
 const calculateTimeLeft = (offerEndDate: Date): TimeLeft | null => {
   const difference = +offerEndDate - +new Date()
   if (difference <= 0) {
@@ -92,7 +168,6 @@ const CountdownTimer: React.FC<{ offerEndDate: Date; isMini?: boolean }> = ({
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(
     calculateTimeLeft(offerEndDate),
   )
-
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft(offerEndDate))
@@ -131,9 +206,9 @@ const CountdownTimer: React.FC<{ offerEndDate: Date; isMini?: boolean }> = ({
   )
 }
 
-// --- End Countdown Timer Logic --- //
+// --- End Countdown Timer Logic ---
 
-// --- Section Components --- //
+// --- Section Components ---
 const HeroSection = () => (
   <Center p="xl" pt={80}>
     <Stack align="center" gap="xl" ta="center" maw={700}>
@@ -143,17 +218,17 @@ const HeroSection = () => (
         variant="gradient"
         gradient={{ from: 'teal', to: 'lime' }}
       >
-        <Icon icon="tabler:message-2-down" fontSize={48} />
+        <Icon icon="tabler:message-circle-plus" fontSize={48} />
       </ThemeIcon>
       <Title order={1} fz={{ base: 36, sm: 48 }}>
         {' '}
-        Archive & Export Your WhatsApp Chats into Secure Files.{' '}
+        Instantly Start WhatsApp Chats Without Saving Numbers.{' '}
       </Title>
       <Text c="dimmed" fz="lg">
         {' '}
-        A one-time payment solution to back up and convert your WhatsApp history
-        into PDF, Excel, CSV, and more—all processed securely on your own
-        computer.{' '}
+        The fastest way to send messages, images, videos, and files to any
+        WhatsApp number. No more cluttering your contact list for one-time
+        conversations.{' '}
       </Text>
       <Stack align="center">
         <Button
@@ -181,51 +256,46 @@ const HeroSection = () => (
 const FeaturesSection = () => {
   const featuresData = [
     {
-      icon: 'tabler:database-export',
-      title: 'Unlimited Backups',
+      icon: 'tabler:address-book-off',
+      title: 'No More "Ghost" Contacts',
       description:
-        'Save everything. Back up unlimited messages, photos, videos, and documents from any chat.',
+        'Message any number without saving it. Perfect for business inquiries, customer support, or one-time contacts.',
     },
     {
-      icon: 'tabler:files',
-      title: 'Multiple Formats',
+      icon: 'tabler:paperclip',
+      title: 'Send Anything, Instantly',
       description:
-        'Convert your chats into professional PDF, CSV, Excel, JSON, and TXT files for any purpose.',
+        'Go beyond text. The Pro version lets you send images, videos, documents.',
     },
     {
       icon: 'tabler:shield-lock',
       title: 'Private & Secure',
       description:
-        'Your data never leaves your computer. All backups are processed and stored locally for maximum security.',
+        'Your messages are sent directly via WhatsApp Web. We never see, store, or have access to your conversations.',
+    },
+
+    {
+      icon: 'tabler:template',
+      title: 'Save Time with Templates',
+      description:
+        'Create and reuse message templates for common replies, greetings, or information. (Pro Feature)',
     },
     {
-      icon: 'tabler:filter',
-      title: 'Advanced Filtering',
+      icon: 'tabler:rocket',
+      title: 'Simple & Fast',
       description:
-        'Easily find what you need. Filter your exports by custom date ranges or multiple keywords.',
-    },
-    {
-      icon: 'tabler:device-mobile-message',
-      title: 'Media Included',
-      description:
-        'Don’t just save text. The Pro version allows you to include all media types in your backups.',
-    },
-    {
-      icon: 'tabler:headset',
-      title: 'Priority Support',
-      description:
-        'Get help when you need it. Pro users get priority access to our dedicated support team.',
+        'A clean, intuitive interface designed to get your message sent in seconds, right from WhatsApp Web.',
     },
   ]
   return (
     <Box mt={80}>
       <Center>
         <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>Powerful Features at Your Fingertips</Title>
+          <Title order={2}>A Smarter Way to Chat</Title>
           <Text c="dimmed">
             {' '}
-            Unlock the full potential of your WhatsApp data with the Pro
-            version.{' '}
+            Unlock powerful features that make direct messaging faster and more
+            efficient.{' '}
           </Text>
         </Stack>
       </Center>
@@ -254,7 +324,6 @@ const FeaturesSection = () => {
   )
 }
 
-// English: New section to address specific user needs.
 const UserPersonaSection = () => (
   <Box mt={80}>
     <Center>
@@ -262,14 +331,13 @@ const UserPersonaSection = () => (
         <Title order={2}>Built For Everyone</Title>
         <Text c="dimmed">
           {' '}
-          Whether for work or personal memories, we've got you covered.{' '}
+          Whether for work or personal convenience, we've got you covered.{' '}
         </Text>
       </Stack>
     </Center>
     <Grid mt="xl" gutter="xl">
       <Grid.Col span={{ base: 12, md: 6 }}>
         <Card withBorder radius="lg" p="xl" style={{ height: '100%' }}>
-          {/* English: Use a Stack with 100% height to allow the button to be pushed to the bottom. */}
           <Stack style={{ height: '100%' }}>
             <Group>
               <ThemeIcon variant="light" size={40} radius="md">
@@ -279,8 +347,8 @@ const UserPersonaSection = () => (
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Effortlessly manage client communications, generate reports, and
-              maintain legal records.{' '}
+              Quickly follow up with leads, send quotes, or provide support
+              without adding every number to your business phone.{' '}
             </Text>
             <List
               spacing="xs"
@@ -294,18 +362,14 @@ const UserPersonaSection = () => (
             >
               <List.Item>
                 {' '}
-                Export client chats to Excel/CSV for reporting.{' '}
+                Send promotional images or PDF invoices directly.{' '}
               </List.Item>
+
               <List.Item>
                 {' '}
-                Backup unlimited project data without risk of loss.{' '}
-              </List.Item>
-              <List.Item>
-                {' '}
-                Use keyword filters to find specific agreements or details.{' '}
+                Keep your professional contacts list clean and organized.{' '}
               </List.Item>
             </List>
-            {/* ADDED: Contextual CTA for professionals that links to the pricing section. */}
             <Button
               component="a"
               href="#pricing"
@@ -321,7 +385,6 @@ const UserPersonaSection = () => (
       </Grid.Col>
       <Grid.Col span={{ base: 12, md: 6 }}>
         <Card withBorder radius="lg" p="xl" style={{ height: '100%' }}>
-          {/* English: Use a Stack with 100% height to allow the button to be pushed to the bottom. */}
           <Stack style={{ height: '100%' }}>
             <Group>
               <ThemeIcon variant="light" size={40} radius="md">
@@ -331,8 +394,8 @@ const UserPersonaSection = () => (
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Securely save precious conversations with loved ones, from family
-              chats to special moments.{' '}
+              Contact a seller on a marketplace, RSVP to an event, or message a
+              new acquaintance without filling your address book.{' '}
             </Text>
             <List
               spacing="xs"
@@ -346,18 +409,17 @@ const UserPersonaSection = () => (
             >
               <List.Item>
                 {' '}
-                Save conversations as a readable PDF, complete with photos.{' '}
+                Quickly message someone from a classifieds ad.{' '}
               </List.Item>
               <List.Item>
                 {' '}
-                Backup all your media so you never lose a precious memory.{' '}
+                Send your location to a friend you're meeting.{' '}
               </List.Item>
               <List.Item>
                 {' '}
-                Keep a permanent, private archive of your most important chats.{' '}
+                Keep your personal contacts for people you actually know.{' '}
               </List.Item>
             </List>
-            {/* ADDED: Contextual CTA for personal users that links to the pricing section. */}
             <Button
               component="a"
               href="#pricing"
@@ -366,7 +428,7 @@ const UserPersonaSection = () => (
               color="teal"
             >
               {' '}
-              Secure Your Precious Memories{' '}
+              Get More Convenience{' '}
             </Button>
           </Stack>
         </Card>
@@ -375,42 +437,41 @@ const UserPersonaSection = () => (
   </Box>
 )
 
-// ADDED: New Case Study section to show practical, result-focused user scenarios.
 const CaseStudySection = () => {
   const caseStudies = [
     {
-      icon: 'tabler:gavel',
-      title: 'Secure Evidence & Reports',
+      icon: 'tabler:building-store',
+      title: 'Contacting a Marketplace Seller',
       description:
-        'A lawyer needs to archive client conversations as evidence. With one click, she exports the entire chat history into a clean, time-stamped PDF for court records.',
-      features: ['PDF Export', 'Date Filtering'],
-      persona: 'For Legal & Business Professionals',
+        "A user wants to ask about an item on an online marketplace. Instead of saving the seller's number, they use the extension to instantly send a message and a picture of the item.",
+      features: ['No Contact Saving', 'Send Images'],
+      persona: 'For Online Shoppers',
     },
     {
-      icon: 'tabler:gift',
-      title: 'Preserve Family Memories',
+      icon: 'tabler:users',
+      title: 'Following Up with a Lead',
       description:
-        'A mother wants to create a digital scrapbook from years of family group chats. She easily backs up all priceless messages, photos, videos, and voice notes.',
-      features: ['Unlimited Media Backups'],
-      persona: 'For Family Memories',
+        'A sales professional meets a new lead and needs to send them a company brochure. She quickly sends the PDF  without cluttering her personal contacts.',
+      features: ['Send Documents'],
+      persona: 'For Sales & Business',
     },
     {
-      icon: 'tabler:search',
-      title: 'Track Projects with Ease',
+      icon: 'tabler:tools-kitchen-2',
+      title: 'Coordinating with a Technician',
       description:
-        "A freelancer searches for all client feedback and approvals in a long chat. Using keyword filters for 'approved,' 'revision,' and 'invoice,' he finds every key message in seconds and exports it to Excel.",
-      features: ['Multiple Keyword Filtering', 'Excel Export'],
-      persona: 'For Freelancers & Project Managers',
+        'A homeowner needs to send their address to a repairman. They use the extension to share a location pin directly, ensuring the technician finds their house without any hassle.',
+      features: ['Send Location', 'Quick Messaging'],
+      persona: 'For Everyday Tasks',
     },
   ]
   return (
     <Box mt={80}>
       <Center>
         <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>Built for Your Important Moments</Title>
+          <Title order={2}>Solves Real-World Problems</Title>
           <Text c="dimmed">
             {' '}
-            See how people use our tool to solve real-world problems.{' '}
+            See how people use our tool to make communication faster and easier.{' '}
           </Text>
         </Stack>
       </Center>
@@ -455,7 +516,6 @@ const CaseStudySection = () => {
 }
 
 const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
-  // ADDED: Added an ID for anchor links from the persona section.
   <Box mt={80} id="pricing">
     <Center>
       <Stack align="center" ta="center" maw={600}>
@@ -489,6 +549,7 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 {plan.description}{' '}
               </Text>
             </Box>
+
             <Box my="lg" ta="center">
               {!plan.isFree && (
                 <Stack mb="lg">
@@ -504,7 +565,6 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                   </Text>
                 </Stack>
               )}
-              {/* MODIFIED: Wrapped price in a Box with relative positioning to place the savings badge. */}
               <Box pos="relative">
                 <Group gap={8} align={'baseline'} justify="center">
                   {plan.placeholderPrice && (
@@ -524,7 +584,9 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 </Group>
               </Box>
             </Box>
+
             <Divider label="Key Features" labelPosition="center" my="sm" />
+
             <Stack gap="sm" mb="lg">
               {plan.features.map((feature, idx) => (
                 <Group key={idx} gap="sm" wrap="nowrap" align="flex-start">
@@ -544,6 +606,7 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 </Group>
               ))}
             </Stack>
+
             <Box mt="auto">
               {plan.isFree ? (
                 <Button size="md" variant="default" fullWidth disabled>
@@ -565,7 +628,6 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                     {' '}
                     Upgrade to Pro{' '}
                   </Button>
-                  {/* MODIFIED: Enhanced trust signals below the purchase button for clarity. */}
                   <Stack gap={4} align="center" mt="xs">
                     <Group justify="center" gap={6}>
                       <Icon
@@ -600,7 +662,6 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
   </Box>
 )
 
-// ADDED: New section to highlight the "one-time payment" value proposition.
 const NoSubscriptionSection = () => (
   <Box mt={80}>
     <Center>
@@ -720,6 +781,7 @@ const FeatureComparisonTable = () => (
     </Card>
   </Box>
 )
+
 const SecuritySection = () => (
   <Box mt={80}>
     <Card withBorder p="xl" radius="lg" bg="gray.0">
@@ -748,18 +810,18 @@ const SecuritySection = () => (
           >
             <List.Item>
               {' '}
-              <b>100% Local Processing:</b> Your chats and media are processed
-              directly on your computer.{' '}
+              <b>Direct Sending:</b> Your messages are sent directly through the
+              official WhatsApp Web interface.{' '}
             </List.Item>
             <List.Item>
               {' '}
-              <b>No Data Uploads:</b> We never see, save, or have access to your
-              conversations or files.{' '}
+              <b>No Data Storage:</b> We never see, save, or have access to your
+              conversations, contacts, or files.{' '}
             </List.Item>
             <List.Item>
               {' '}
-              <b>You Are in Control:</b> Your exported files are saved only
-              where you choose—on your local device.{' '}
+              <b>You Are in Control:</b> All actions happen on your own
+              computer, under your control.{' '}
             </List.Item>
           </List>
         </Grid.Col>
@@ -767,6 +829,7 @@ const SecuritySection = () => (
     </Card>
   </Box>
 )
+
 const TestimonialsSection = () => {
   const testimonialsData = [
     {
@@ -775,47 +838,31 @@ const TestimonialsSection = () => {
       name: 'Sarah L.',
       role: 'Small Business Owner',
       quote:
-        'I kept putting off the upgrade. Last week, my phone died completely. I would have <b>deeply regretted losing everything</b> if I hadn’t backed up thousands of client chats with the Pro version a few days prior. The best investment for peace of mind.',
+        'This has been a lifesaver for my business. I contact dozens of new people a day, and <b>not having to save every single number is a huge time-saver</b>. The ability to send a PDF quote directly with the Pro version is a game-changer.',
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png',
       name: 'Mike P.',
-      role: 'Freelancer',
+      role: 'Online Seller',
       quote:
-        'I needed to export a long chat history for a project report. The <b>Excel export feature in Pro</b> saved me hours of manual copy-pasting. A fantastic one-time purchase, no annoying subscriptions!',
+        "I use this all the time for marketplace listings and one-off inquiries. <b>So simple and fast</b>. It's how WhatsApp should have worked from the beginning! The Pro upgrade was a no-brainer to send product videos.",
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-4.png',
-      name: 'Dr. Alisha Chen',
-      role: 'Researcher',
+      name: 'Alisha C.',
+      role: 'Event Coordinator',
       quote:
-        'For my study on communication patterns, the <b>JSON export was invaluable</b>. It provided clean, structured data that was easy to parse and analyze. This tool is surprisingly powerful for academic purposes.',
+        "Coordinating with vendors and clients means contacting lots of new numbers. This tool keeps my phone's address book from becoming a mess. <b>Scheduling reminders with the Pro version</b> is also an incredible feature.",
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-5.png',
       name: 'David G.',
-      role: 'Family Historian',
+      role: 'Community Manager',
       quote:
-        'I wanted to create a keepsake of conversations with my grandmother. The ability to back up everything, including photos and voice notes, and export it to a single <b>beautifully formatted PDF</b>, is priceless. These are memories I now have forever.',
-    },
-    {
-      avatar:
-        'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-7.png',
-      name: 'Maria Rodriguez',
-      role: 'Legal Assistant',
-      quote:
-        'We required timestamped chat logs for a legal case. The Pro version allowed us to filter by date and export a complete, verifiable record. It was <b>straightforward, secure, and professional</b>. Highly recommended for legal compliance.',
-    },
-    {
-      avatar:
-        'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-3.png',
-      name: 'Tom B.',
-      role: 'Retiree',
-      quote:
-        "I'm not very tech-savvy, but I was worried about losing years of family photos on WhatsApp. The process was <b>incredibly simple</b>. I clicked a few buttons, and everything was saved to my computer. A huge relief!",
+        'I need to message new members without saving all their numbers. This extension makes it effortless. The <b>ability to use message templates</b> saves me so much time every day. Worth every penny for the lifetime license.',
     },
   ]
   return (
@@ -834,7 +881,6 @@ const TestimonialsSection = () => {
           <Grid.Col span={{ base: 12, md: 6 }} key={testimonial.name}>
             <Card withBorder radius="lg" p="xl" style={{ height: '100%' }}>
               <Stack>
-                {/* ADDED: 5-star rating for immediate social proof. */}
                 <Text
                   c="dimmed"
                   dangerouslySetInnerHTML={{ __html: testimonial.quote }}
@@ -862,7 +908,6 @@ const TestimonialsSection = () => {
   )
 }
 
-// MODIFIED: Guarantee section redesigned to be more visually convincing.
 const GuaranteeSection = () => (
   <Paper
     bg="teal.0"
@@ -894,7 +939,7 @@ const FaqSection = () => {
       icon: 'tabler:rocket',
       question: 'What are the main benefits of upgrading to Pro?',
       answer:
-        "With Pro, you get <b>Total Protection</b> by backing up all messages and media without limits. You'll unlock <b>Exclusive Features</b> like PDF/Excel exports and advanced filtering. Plus, you receive <b>Priority Support</b>, ensuring our team assists you first.",
+        'Pro unlocks powerful messaging features. You can <b>send files like images, videos, and documents</b> and locations, and <b>schedule messages</b> to be sent later. It turns a simple convenience into a powerful communication tool.',
     },
     {
       icon: 'tabler:key',
@@ -903,16 +948,16 @@ const FaqSection = () => {
         'It is a <b>one-time payment</b>. You pay once and get lifetime access to all current and future Pro features. No monthly fees, no subscriptions, ever.',
     },
     {
-      icon: 'tabler:shield-check',
-      question: 'Is my data secure?',
+      icon: 'tabler:alert-circle',
+      question: 'Do I need to save the number in my contacts first?',
       answer:
-        'Absolutely. Your data security is our top priority. The extension processes everything <b>locally on your computer</b>. No chat data is ever sent to our servers. You have 100% control.',
+        "No! That's the main feature of the extension. You can type in any valid WhatsApp number and start a chat immediately without adding it to your address book.",
     },
     {
-      icon: 'tabler:help-octagon',
-      question: 'How do I get my license key after purchase?',
+      icon: 'tabler:shield-check',
+      question: 'Is it safe to use?',
       answer:
-        'Immediately after your purchase, you will receive an email from our payment partner, <b>Lemon Squeezy</b>, containing your license key and instructions to activate it.',
+        'Absolutely. The extension uses the official WhatsApp Web interface to send messages. It operates <b>locally on your computer</b>, and we do not store your messages or have access to your account.',
     },
   ]
   return (
@@ -960,8 +1005,8 @@ const ValueStackSection = () => (
           <Title order={2}>Here's Everything You Get</Title>
           <Text c="dimmed">
             {' '}
-            Your Pro Lifetime License is a complete package for total peace of
-            mind.{' '}
+            Your Pro Lifetime License is a complete package for powerful, direct
+            communication.{' '}
           </Text>
         </Stack>
       </Center>
@@ -977,9 +1022,8 @@ const ValueStackSection = () => (
               </ThemeIcon>
             }
           >
-            <List.Item>Unlimited Message & Media Backups</List.Item>
-            <List.Item>Export to All Formats (PDF, Excel, etc.)</List.Item>
-            <List.Item>Advanced Date & Keyword Filtering</List.Item>
+            <List.Item>Start Chats Without Saving Numbers</List.Item>
+            <List.Item>Send All Media Types (Images, Videos, etc.)</List.Item>
           </List>
         </Grid.Col>
         <Grid.Col span={{ base: 12, sm: 6 }}>
@@ -993,8 +1037,8 @@ const ValueStackSection = () => (
               </ThemeIcon>
             }
           >
+            <List.Item>Schedule Messages for Later</List.Item>
             <List.Item>Priority Customer Support</List.Item>
-            <List.Item>All Future Updates Included</List.Item>
             <List.Item>30-Day Money-Back Guarantee</List.Item>
           </List>
         </Grid.Col>
@@ -1031,7 +1075,6 @@ const ContactUsSection = () => (
   </Box>
 )
 
-// ADDED: A simple, clean footer for copyright and disclaimers.
 const Footer = () => (
   <Box mt={80} py="xl">
     <Divider />
@@ -1049,10 +1092,8 @@ const Footer = () => (
   </Box>
 )
 
-// MODIFIED: Sticky header CTA optimized for conversion.
 const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
   const [scroll] = useWindowScroll()
-
   return (
     <Transition
       mounted={scroll.y > 200}
@@ -1078,7 +1119,6 @@ const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
           <Container size="md">
             <Group justify="space-between">
               <CountdownTimer offerEndDate={offerEndDate} isMini />
-              {/* MODIFIED: Button text is more specific and value-oriented. */}
               <Button
                 size="sm"
                 component="a"
@@ -1099,16 +1139,11 @@ const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
   )
 }
 
-// English: Get the offer end date from local storage, or create a new one if it doesn't exist or is in the past.
 const getOfferEndDate = (): Date => {
   const storedEndDate = localStorage.getItem('offerEndDate')
-
-  // English: If a valid end date is stored, use it.
   if (storedEndDate && new Date(storedEndDate) > new Date()) {
     return new Date(storedEndDate)
   }
-
-  // English: Otherwise, create a new end date 3 days from now and store it.
   const newEndDate = new Date()
   newEndDate.setDate(newEndDate.getDate() + 3)
   localStorage.setItem('offerEndDate', newEndDate.toISOString())
@@ -1120,7 +1155,6 @@ const LandingPage = () => {
     city: string
     country: string
   } | null>(null)
-  // English: Get the persistent offer end date. It will be created and stored on the first visit.
   const [offerEndDate] = useState(getOfferEndDate)
 
   useEffect(() => {
@@ -1129,7 +1163,9 @@ const LandingPage = () => {
       { city: 'Shaqra', country: 'Saudi Arabia' },
       { city: 'Miami', country: 'United States' },
     ]
+
     let timeoutId: NodeJS.Timeout
+
     const scheduleNextNotification = () => {
       clearTimeout(timeoutId)
       const randomDelay = Math.floor(Math.random() * (15000 - 8000 + 1)) + 8000 // 8-15 seconds
@@ -1169,7 +1205,7 @@ const LandingPage = () => {
           <ContactUsSection />
           <Center mt={40}>
             <Stack align="center" gap="lg">
-              <Title order={2}>Ready to Secure Your Chats?</Title>
+              <Title order={2}>Ready to Supercharge Your Messaging?</Title>
               <Text c="dimmed" size="lg">
                 {' '}
                 Get all Pro features for a one-time payment.{' '}
@@ -1195,7 +1231,6 @@ const LandingPage = () => {
               </Stack>
             </Stack>
           </Center>
-          {/* ADDED: Footer component at the end of the page content. */}
           <Footer />
         </Stack>
       </Container>

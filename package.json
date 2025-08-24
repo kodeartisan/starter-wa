@@ -1,9 +1,9 @@
 {
-  "name": "starter-wa",
-  "shortName": "StaterWa",
-  "displayName": "StaterWa",
+  "name": "whats-direct",
+  "shortName": "WhatsDirect",
+  "displayName": "WhatsDirect - WA Direct Chats for WhatsApp",
   "version": "1.0.0",
-  "description": "Your description",
+  "description": "Start WhatsApp Chats Without Saving Numbers with Media and Templates",
   "author": "Extninja",
   "scripts": {
     "dev": "plasmo dev --no-cs-reload",
