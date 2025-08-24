@@ -244,11 +244,7 @@ const PageDirectChat: React.FC = () => {
             />
           </Stack>
           <Group justify="flex-end" mt="md">
-            <Button
-              loading={loading}
-              onClick={handleSubmit}
-              leftSection={<Icon icon="tabler:brand-whatsapp" fontSize={20} />}
-            >
+            <Button loading={loading} onClick={handleSubmit}>
               {' '}
               Send Message{' '}
             </Button>

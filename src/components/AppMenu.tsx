@@ -1,7 +1,6 @@
 // src/components/AppMenu.tsx
 import { Action, Page, Setting } from '@/constants'
 import PageDirectChat from '@/features/direct-chat/PageDirectChat'
-import PageChatBackup from '@/features/tools/backup-chat/PageChatBackup'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
 import useWindowMessage from '@/hooks/useWindowMessage'
