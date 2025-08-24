@@ -1,6 +1,6 @@
 {
-  "name": "whats-backup",
-  "shortName": "WhatsBackup",
+  "name": "whats-direct",
+  "shortName": "WhatsDirect",
   "displayName": "WhatsBackup - WA Chats Backup & Exporter for WhatsApp",
   "version": "1.0.0",
   "description": "Save your WhatsApp chat and export to PDF, Excel, or CSV.",
