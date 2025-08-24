@@ -1,9 +1,9 @@
 // src/components/AppMenu.tsx
 import { Action, Page, Setting } from '@/constants'
+import PageDirectChat from '@/features/direct-chat/PageDirectChat'
 import PageChatBackup from '@/features/tools/backup-chat/PageChatBackup'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
-import useWa from '@/hooks/useWa'
 import useWindowMessage from '@/hooks/useWindowMessage'
 import { useAppStore } from '@/stores/app'
 import env from '@/utils/env'
@@ -27,7 +27,7 @@ const AppMenu: React.FC = () => {
   const [showModalFaq, modalFaq] = useDisclosure(false)
   const [showModalProfile, modalProfile] = useDisclosure(false)
   const [needToOpen, setNeedToOpen] = useStorage(Setting.NEED_TO_OPEN, false)
-  const [activeTab, setActiveTab] = useState<string | null>(Page.CHAT_BACKUP)
+  const [activeTab, setActiveTab] = useState<string | null>(Page.HOME)
 
   useWindowMessage(async (event: MessageEvent) => {
     const {
@@ -115,10 +115,10 @@ const AppMenu: React.FC = () => {
       >
         <Stack justify="space-between" gap={0} style={{ height: '100%' }}>
           <Box>
-            <Tabs.Tab value={Page.CHAT_BACKUP} className={classes.tab}>
-              <Tooltip label="Backup" position="left">
+            <Tabs.Tab value={Page.HOME} className={classes.tab}>
+              <Tooltip label="Direct Chat" position="left">
                 <Icon
-                  icon="tabler:database-export"
+                  icon="tabler:message-circle-plus"
                   fontSize={26}
                   color="white"
                 />
@@ -163,8 +163,8 @@ const AppMenu: React.FC = () => {
   const renderTabPanel = () => {
     return (
       <>
-        <Tabs.Panel value={Page.CHAT_BACKUP}>
-          <PageChatBackup />
+        <Tabs.Panel value={Page.HOME}>
+          <PageDirectChat />
         </Tabs.Panel>
       </>
     )

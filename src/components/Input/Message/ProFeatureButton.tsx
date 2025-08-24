@@ -24,10 +24,6 @@ const ProFeatureButton = ({
         size="sm"
         variant={form.values.type === messageType ? 'filled' : 'default'}
         onClick={() => {
-          if (license.isFree()) {
-            showModalUpgrade()
-            return
-          }
           form.setFieldValue('type', messageType)
         }}
         rightSection={

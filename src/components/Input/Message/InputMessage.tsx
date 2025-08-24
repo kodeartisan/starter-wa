@@ -1,5 +1,4 @@
 import { Media, Message } from '@/constants'
-import ModalManageTemplate from '@/features/broadcast/components/Modal/ModalManageTemplate'
 import useLicense from '@/hooks/useLicense'
 import db, { type BroadcastTemplate } from '@/libs/db'
 import { Icon } from '@iconify/react'
@@ -166,49 +165,10 @@ const InputMessage: React.FC<Props> = ({
       <Stack>
         <Group justify="space-between">
           <Text fw={500}>Message</Text>
-          <When condition={!disabledTemplateButton}>
-            <Popover width={300} position="top-end" withArrow shadow="md">
-              <Popover.Target>
-                <Tooltip label="Get template" position="top">
-                  <Button size={'compact-sm'} variant="outline">
-                    <Icon icon={'tabler:template'} fontSize={26} />
-                  </Button>
-                </Tooltip>
-              </Popover.Target>
-              <Popover.Dropdown>
-                <Stack>
-                  <Select
-                    label={
-                      <Group justify="space-between" w={270}>
-                        <Text>Use a template</Text>
-                        <Tooltip label="Manage Templates">
-                          <ActionIcon
-                            variant="transparent"
-                            onClick={modalManageTemplate.toggle}
-                          >
-                            <Icon icon={'tabler:settings'} fontSize={18} />
-                          </ActionIcon>
-                        </Tooltip>
-                      </Group>
-                    }
-                    searchable
-                    placeholder="Select a template to use"
-                    data={labelValueTemplates}
-                    onChange={(value) => handleSelectTemplate(value!)}
-                    comboboxProps={{ withinPortal: false }}
-                  />
-                </Stack>
-              </Popover.Dropdown>
-            </Popover>
-          </When>
         </Group>
       </Stack>
       {renderMenuMessage()}
       {renderInputMessage()}
-      <ModalManageTemplate
-        opened={showModalManageTemplate}
-        onClose={modalManageTemplate.close}
-      />
     </>
   )
 }

@@ -1,9 +1,9 @@
 {
-  "name": "whats-direct",
-  "shortName": "WhatsDirect",
-  "displayName": "WhatsBackup - WA Chats Backup & Exporter for WhatsApp",
+  "name": "starter-wa",
+  "shortName": "StaterWa",
+  "displayName": "StaterWa",
   "version": "1.0.0",
-  "description": "Save your WhatsApp chat and export to PDF, Excel, or CSV.",
+  "description": "Your description",
   "author": "Extninja",
   "scripts": {
     "dev": "plasmo dev --no-cs-reload",

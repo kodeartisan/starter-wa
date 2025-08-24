@@ -1,26 +1,56 @@
+// src/features/direct-chat/PageDirectChat.tsx
 import InputMessage from '@/components/Input/Message/InputMessage'
 import useInputMessage from '@/components/Input/Message/useInputMessage'
 import LayoutPage from '@/components/Layout/LayoutPage'
+import ModalUpgrade from '@/components/Modal/ModalUpgrade'
 import { Message } from '@/constants'
+import useLicense from '@/hooks/useLicense'
 import wa from '@/libs/wa'
 import toast from '@/utils/toast'
 import { formHasErrors } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import { Button, Group, Stack, Text, TextInput, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import { useDisclosure } from '@mantine/hooks'
 import _ from 'lodash'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 const defaultValues = {
   number: '',
 }
 
+// English: Define which message types are pro features.
+const PRO_MESSAGE_TYPES = [
+  Message.IMAGE,
+  Message.VIDEO,
+  Message.FILE,
+  Message.LOCATION,
+  Message.POLL,
+  Message.VCARD,
+]
+
+// English: Define a type for the feature details to display in the upgrade modal.
+interface ProFeatureInfo {
+  name: string
+  benefit: string
+}
+
 /**
  * @component PageDirectChat
  * @description Allows users to start a chat without saving the number, now with support for sending text, media, and VCards.
+ * It also displays an upgrade modal for Pro features.
  */
 const PageDirectChat: React.FC = () => {
   const { form: inputMessageForm, getMessage } = useInputMessage()
+  const license = useLicense()
+  const [
+    isUpgradeModalOpen,
+    { open: openUpgradeModal, close: closeUpgradeModal },
+  ] = useDisclosure(false)
+  const [selectedFeature, setSelectedFeature] = useState<ProFeatureInfo>({
+    name: '',
+    benefit: '',
+  })
 
   const form = useForm({
     initialValues: defaultValues,
@@ -32,6 +62,54 @@ const PageDirectChat: React.FC = () => {
 
   const [loading, setLoading] = useState<boolean>(false)
 
+  // English: A helper function to set feature details and open the upgrade modal.
+  const triggerUpgradeModal = (name: string, benefit: string) => {
+    setSelectedFeature({ name, benefit })
+    openUpgradeModal()
+  }
+
+  // English: This effect watches for changes in the message type. If a user on the
+  // free plan selects a Pro feature, it shows the upgrade modal and reverts the selection.
+  useEffect(() => {
+    const { type } = inputMessageForm.values
+    if (license.isFree() && PRO_MESSAGE_TYPES.includes(type)) {
+      const featureNameMap: Record<string, ProFeatureInfo> = {
+        [Message.IMAGE]: {
+          name: 'Sending Images',
+          benefit: 'Share photos and screenshots directly in your messages.',
+        },
+        [Message.VIDEO]: {
+          name: 'Sending Videos',
+          benefit: 'Send video files to your contacts.',
+        },
+        [Message.FILE]: {
+          name: 'Sending Files',
+          benefit:
+            'Attach documents, archives, and other files to your messages.',
+        },
+        [Message.LOCATION]: {
+          name: 'Sending Locations',
+          benefit: 'Share a map with a specific location.',
+        },
+        [Message.POLL]: {
+          name: 'Creating Polls',
+          benefit: 'Create polls to easily gather opinions from a contact.',
+        },
+        [Message.VCARD]: {
+          name: 'Sending Contacts (VCard)',
+          benefit: 'Share contact information quickly and easily.',
+        },
+      }
+      const featureInfo = featureNameMap[type]
+
+      if (featureInfo) {
+        triggerUpgradeModal(featureInfo.name, featureInfo.benefit)
+        // Revert to the default message type after showing the modal.
+        inputMessageForm.setFieldValue('type', Message.TEXT)
+      }
+    }
+  }, [inputMessageForm.values.type, license])
+
   // Handles sending the message directly using wa-js functions
   const handleSubmit = async () => {
     // Validate both the number input form and the message input form
@@ -41,7 +119,6 @@ const PageDirectChat: React.FC = () => {
 
     setLoading(true)
     form.clearErrors()
-
     try {
       const fullNumber = form.values.number.replace(/\D/g, '') // Remove non-numeric chars
       const chatId = `${fullNumber}@c.us`
@@ -129,9 +206,7 @@ const PageDirectChat: React.FC = () => {
 
       if (result.status === 'SUCCESS') {
         toast.success('Message sent successfully!')
-        // Open the chat to see the sent message
         await wa.chat.openChatBottom(chatId)
-        // Reset message form, but keep the number
         inputMessageForm.reset()
       } else {
         toast.error(result.error || 'Failed to send message.')
@@ -146,6 +221,12 @@ const PageDirectChat: React.FC = () => {
 
   return (
     <>
+      <ModalUpgrade
+        opened={isUpgradeModalOpen}
+        onClose={closeUpgradeModal}
+        featureName={selectedFeature.name}
+        featureBenefit={selectedFeature.benefit}
+      />
       <LayoutPage title="Direct Chat">
         <Stack>
           <Stack align="center" gap={4} mb={'xl'}>
@@ -155,13 +236,14 @@ const PageDirectChat: React.FC = () => {
               color="var(--mantine-color-teal-6)"
             />
             <Title order={3} ta="center">
-              Direct Chat
+              {' '}
+              Direct Chat{' '}
             </Title>
             <Text c="dimmed" size="sm" ta="center">
-              Start a conversation without saving the number to your contacts.
+              {' '}
+              Start a conversation without saving the number to your contacts.{' '}
             </Text>
           </Stack>
-
           <TextInput
             label="WhatsApp Number"
             placeholder="e.g., 6281234567890"
@@ -169,19 +251,18 @@ const PageDirectChat: React.FC = () => {
             required
             {...form.getInputProps('number')}
           />
-
           {/* Use InputMessage component for message composition */}
           <Stack gap="xs" mt="md">
             <InputMessage form={inputMessageForm} />
           </Stack>
-
           <Group justify="flex-end" mt="md">
             <Button
               loading={loading}
               onClick={handleSubmit}
               leftSection={<Icon icon="tabler:brand-whatsapp" fontSize={20} />}
             >
-              Send Message
+              {' '}
+              Send Message{' '}
             </Button>
           </Group>
         </Stack>

@@ -19,9 +19,6 @@ export const Status = {
 
 export const Page = {
   HOME: 'Page.HOME',
-  BROADCAST: 'Page.BROADCAST',
-  TOOLS: 'Page.TOOLS',
-  NUMBER_VALIDATOR: 'Page.NUMBER_VALIDATOR',
   DIRECT_CHAT: 'Page.DIRECT_CHAT',
   PRIVACY: 'Page.PRIVACY',
   EXPORT: 'Page.EXPORT',
@@ -29,11 +26,6 @@ export const Page = {
   UPGRADE: 'Page.UPGRADE',
   ACTIVATE: 'Page.ACTIVATE',
   PROFILE: 'Page.PROFILE',
-  QUICK_REPLY: 'Page.QUICK_REPLY',
-  WA_ME_GENERATOR: 'Page.WA_ME_GENERATOR',
-  LABEL: 'Page.LABEL',
-  GROUP_LINK_GENERATOR: 'Page.GROUP_LINK_GENERATOR',
-  CHAT_BACKUP: 'Page.CHAT_BACKUP', // ++ ADDED
 }
 
 export const Account = {
