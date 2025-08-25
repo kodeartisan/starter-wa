@@ -3,9 +3,9 @@ import wa from '@/libs/wa'
 import { generateVideoThumbnail, getContactName } from '@/utils/util'
 import FileSaver from 'file-saver'
 import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
 import JSZip from 'jszip'
 import _ from 'lodash'
+import { PDFDocument } from 'pdf-lib'
 import * as XLSX from 'xlsx'
 
 // MODIFIED: Added isProPreview to the interface.
@@ -98,6 +98,7 @@ const generateHtmlBody = async ({
   mediaMap: Map<string, Blob>
 }> => {
   const exportedMessageCount = messages.filter((m) => !m.isRedacted).length
+
   const proPreviewNotice = isProPreview
     ? '<p style="color: #007bff; font-weight: bold;">Pro Preview: 1 of many media files was exported. Upgrade to Pro to back up all media without limits.</p>'
     : ''
@@ -121,7 +122,6 @@ const generateHtmlBody = async ({
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
-
     if (
       !['chat', 'image', 'video', 'document', 'ptt', 'location'].includes(
         msg.type,
@@ -169,13 +169,11 @@ const generateHtmlBody = async ({
       !msg.fromMe && chat.data.isGroup
         ? msg.contact?.pushname || msg.contact?.formattedName || 'Unknown'
         : ''
-
     let mediaHtml = ''
     const isMediaMessage = ['image', 'video', 'document', 'ptt'].includes(
       msg.type,
     )
     const shouldIncludeThisMedia = includeMediaTypes.includes(msg.type)
-
     if (
       isMediaMessage &&
       shouldIncludeThisMedia &&
@@ -247,14 +245,12 @@ const generateHtmlBody = async ({
         mediaHtml = `<div class="media-placeholder">${placeholderText}</div>`
       }
     }
-
     const messageBodyHtml = msg.isRedacted
       ? getRedactedTextHtml()
       : `<span>${
           _.escape(msg.type === 'chat' ? msg.body : msg.caption) ?? ''
         }</span>`
     const quotedHtml = renderQuotedMessage(msg.quotedMsg)
-
     messagesHtml += `
       <div class="message-cluster message-${direction}" id="message-${msg.id}">
         <div class="message">
@@ -283,7 +279,6 @@ const generateHtmlBody = async ({
       </div>
     `
   }
-
   return { htmlBody: headerHtml + messagesHtml, mediaMap }
 }
 
@@ -365,10 +360,8 @@ export const exportToHtml = async (params: ExporterParams) => {
         folder?.file(mediaFilename, blob)
       }
     }
-
     zip.file(`${filename}.html`, fullHtml)
     setProgress({ value: 98, label: 'Compressing files...' })
-
     const zipOptions: any = { type: 'blob' }
     if (password) {
       zipOptions.password = password
@@ -382,6 +375,9 @@ export const exportToHtml = async (params: ExporterParams) => {
   }
 }
 
+// =================================================================
+// MODIFIED FUNCTION
+// =================================================================
 export const exportToPdf = async (params: ExporterParams) => {
   const { filename, setProgress, validationRef } = params
   const { htmlBody, mediaMap } = await generateHtmlBody({
@@ -389,6 +385,7 @@ export const exportToPdf = async (params: ExporterParams) => {
     includeMediaTypes: ['image', 'video'],
     isForPdf: true,
   })
+
   const fullHtml = getFullHtmlDocument(htmlBody, params.chat)
 
   if (!validationRef.current) {
@@ -399,6 +396,7 @@ export const exportToPdf = async (params: ExporterParams) => {
   }
 
   setProgress({ value: 92, label: 'Generating PDF document...' })
+
   const container = document.createElement('div')
   container.style.position = 'absolute'
   container.style.left = '-9999px'
@@ -407,58 +405,61 @@ export const exportToPdf = async (params: ExporterParams) => {
   container.innerHTML = fullHtml
 
   try {
-    const canvas = await html2canvas(container, { useCORS: true, scale: 2 })
+    const canvas = await html2canvas(container, {
+      useCORS: true,
+      scale: 2,
+    })
     document.body.removeChild(container)
     mediaMap.forEach((blob, url) => {
       if (url.startsWith('blob:')) URL.revokeObjectURL(url)
     })
+
     if (!validationRef.current) return
 
     setProgress({ value: 95, label: 'Formatting PDF pages...' })
+
     const imgData = canvas.toDataURL('image/png')
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'pt',
-      format: 'a4',
-    })
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = pdf.internal.pageSize.getHeight()
-    const canvasWidth = canvas.width
-    const canvasHeight = canvas.height
-    const ratio = canvasWidth / pdfWidth
-    const canvasHeightInPdf = canvasHeight / ratio
-    let heightLeft = canvasHeightInPdf
-    let position = 0
+    const pdfDoc = await PDFDocument.create()
+    const pngImage = await pdfDoc.embedPng(imgData)
 
-    pdf.addImage(
-      imgData,
-      'PNG',
-      0,
-      position,
-      pdfWidth,
-      canvasHeightInPdf,
-      undefined,
-      'FAST',
-    )
-    heightLeft -= pdfHeight
+    const pageHeight = pngImage.height * (595.28 / pngImage.width) // A4 width is 595.28 points
+    let heightLeft = pngImage.height
 
+    let y = 0
     while (heightLeft > 0) {
-      position = heightLeft - canvasHeightInPdf
-      pdf.addPage()
-      pdf.addImage(
-        imgData,
-        'PNG',
-        0,
-        position,
-        pdfWidth,
-        canvasHeightInPdf,
-        undefined,
-        'FAST',
-      )
-      heightLeft -= pdfHeight
+      const page = pdfDoc.addPage([pngImage.width, pageHeight])
+      page.drawImage(pngImage, {
+        x: 0,
+        y: y,
+        width: pngImage.width,
+        height: pngImage.height,
+      })
+      heightLeft -= pageHeight
+      y -= pageHeight
     }
+
+    // Fit the multi-page content onto standard A4 pages
+    const finalPdfDoc = await PDFDocument.create()
+    const pages = await finalPdfDoc.copyPages(pdfDoc, pdfDoc.getPageIndices())
+    const a4Width = 595.28
+
+    for (const page of pages) {
+      const a4Page = finalPdfDoc.addPage([a4Width, 841.89])
+      const scale = a4Width / page.getWidth()
+      const embed = await finalPdfDoc.embedPage(page)
+      a4Page.drawPage(embed, {
+        x: 0,
+        y: 841.89 - page.getHeight() * scale,
+        xScale: scale,
+        yScale: scale,
+      })
+    }
+
     setProgress({ value: 98, label: 'Saving PDF file...' })
-    pdf.save(`${filename}.pdf`)
+
+    const pdfBytes = await finalPdfDoc.save()
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' })
+    FileSaver.saveAs(blob, `${filename}.pdf`)
   } catch (error) {
     console.error('Error generating PDF:', error)
     if (document.body.contains(container)) {
@@ -476,7 +477,6 @@ export const exportToTxt = async (params: ExporterParams) => {
   const { messages, chat, filename, setProgress, validationRef, isProPreview } =
     params
   const exportedMessageCount = messages.filter((m) => !m.isRedacted).length
-
   let textContent = `Chat With: ${getContactName(chat.data.contact)}\r\n`
   textContent += `Export Date: ${new Date().toLocaleString()}\r\n`
   textContent += `Total Messages Exported: ${exportedMessageCount}\r\n`
@@ -484,22 +484,19 @@ export const exportToTxt = async (params: ExporterParams) => {
   if (isProPreview) {
     textContent += `\r\n--- PRO PREVIEW ---\r\n1 of many media files was exported. Upgrade to Pro to back up all media without limits.\r\n-------------------\r\n`
   }
-  textContent += `\r\n`
 
+  textContent += `\r\n`
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
     if (msg.isRedacted) continue
-
     setProgress({
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
-
     const sender = msg.contact.isMe ? 'You' : getContactName(msg.contact)
     const timestamp = new Date(msg.timestamp).toLocaleString()
     let content = ''
-
     switch (msg.type) {
       case 'chat':
         content = msg.body
@@ -526,7 +523,6 @@ export const exportToTxt = async (params: ExporterParams) => {
         content = `[${msg.type}]`
         break
     }
-
     if (msg.quotedMsg) {
       const quotedSender = msg.quotedMsg.sender.isMe
         ? 'You'
@@ -537,7 +533,6 @@ export const exportToTxt = async (params: ExporterParams) => {
       )
       content = `[Quoting ${quotedSender}: "${quotedContent}"]\r\n${content}`
     }
-
     textContent += `[${timestamp}] ${sender}: ${content}\r\n\r\n`
   }
   if (validationRef.current) {
@@ -551,17 +546,14 @@ export const exportToJson = async (params: ExporterParams) => {
   const { messages, chat, filename, setProgress, validationRef, isProPreview } =
     params
   const messageList: object[] = []
-
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
     if (msg.isRedacted) continue
-
     setProgress({
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
-
     let bodyContent: string | null = msg.body || null
     if (msg.type !== 'chat') {
       let placeholder = `[${msg.type}]`
@@ -597,7 +589,6 @@ export const exportToJson = async (params: ExporterParams) => {
         : null,
     })
   }
-
   if (validationRef.current) {
     const finalJson = {
       metadata: {
@@ -624,20 +615,19 @@ export const exportToMarkdown = async (params: ExporterParams) => {
   const { messages, chat, filename, setProgress, validationRef, isProPreview } =
     params
   const exportedMessageCount = messages.filter((m) => !m.isRedacted).length
-
   let mdContent = `# Chat with: ${getContactName(chat.data.contact)}\n\n`
   mdContent += `**Export Date:** ${new Date().toLocaleString()}\n`
   mdContent += `**Total Messages:** ${exportedMessageCount}\n\n`
+
   if (isProPreview) {
     mdContent += `> **Pro Preview:** 1 of many media files was exported. Upgrade to Pro to back up all media without limits.\n\n`
   }
-  mdContent += `---\n\n`
 
+  mdContent += `---\n\n`
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
     if (msg.isRedacted) continue
-
     setProgress({
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
@@ -645,8 +635,8 @@ export const exportToMarkdown = async (params: ExporterParams) => {
 
     const senderName = msg.contact.isMe ? 'You' : getContactName(msg.contact)
     const timestamp = new Date(msg.timestamp).toLocaleString()
-    mdContent += `**${_.escape(senderName)}** (*${timestamp}*)\n\n`
 
+    mdContent += `**${_.escape(senderName)}** (*${timestamp}*)\n\n`
     if (msg.quotedMsg) {
       const quotedSenderName = msg.quotedMsg.sender.isMe
         ? 'You'
@@ -688,7 +678,6 @@ export const exportToMarkdown = async (params: ExporterParams) => {
     }
     mdContent += `${mdMessageContent}\n\n---\n`
   }
-
   if (validationRef.current) {
     const blob = new Blob([mdContent], {
       type: 'text/markdown;charset=utf-8',
@@ -720,18 +709,17 @@ const prepareSheetData = (params: ExporterParams): any[] => {
     'Content',
     'Quoted Message ID',
   ])
+
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
     if (msg.isRedacted) continue
-
     setProgress({
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
     const senderName = msg.contact.isMe ? 'You' : getContactName(msg.contact)
     const timestamp = new Date(msg.timestamp).toISOString()
-
     let content = ''
     switch (msg.type) {
       case 'chat':
@@ -769,6 +757,7 @@ const prepareSheetData = (params: ExporterParams): any[] => {
 export const exportToCsv = async (params: ExporterParams) => {
   const { filename, validationRef } = params
   const sheetData = prepareSheetData(params)
+
   if (validationRef.current) {
     const worksheet = XLSX.utils.aoa_to_sheet(sheetData)
     const csvString = XLSX.utils.sheet_to_csv(worksheet)
@@ -780,6 +769,7 @@ export const exportToCsv = async (params: ExporterParams) => {
 export const exportToXlsx = async (params: ExporterParams) => {
   const { filename, validationRef } = params
   const sheetData = prepareSheetData(params)
+
   if (validationRef.current) {
     const worksheet = XLSX.utils.aoa_to_sheet(sheetData)
     const workbook = XLSX.utils.book_new()
