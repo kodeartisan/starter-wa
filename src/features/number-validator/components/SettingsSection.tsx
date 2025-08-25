@@ -18,9 +18,6 @@ interface Props {
 const SettingsSection: React.FC<Props> = ({ validator, isValidating }) => {
   return (
     <>
-      <Title order={4} mt="md">
-        2. Configure Settings
-      </Title>
       <Fieldset legend="Randomized Delay">
         <Text size="sm" c="dimmed" mb="xs">
           Using a random delay between checks helps mimic human behavior.
@@ -33,6 +30,7 @@ const SettingsSection: React.FC<Props> = ({ validator, isValidating }) => {
             onChange={(value) => validator.setDelayMin(Number(value))}
             min={1}
             step={1}
+            size="sm"
             disabled={isValidating}
           />
           <NumberInput
@@ -42,6 +40,7 @@ const SettingsSection: React.FC<Props> = ({ validator, isValidating }) => {
             onChange={(value) => validator.setDelayMax(Number(value))}
             min={1}
             step={1}
+            size="sm"
             disabled={isValidating}
           />
         </Group>
@@ -65,6 +64,7 @@ const SettingsSection: React.FC<Props> = ({ validator, isValidating }) => {
               onChange={(value) => validator.setBatchSize(Number(value))}
               min={1}
               step={10}
+              size="sm"
               disabled={isValidating}
             />
             <NumberInput
@@ -74,6 +74,7 @@ const SettingsSection: React.FC<Props> = ({ validator, isValidating }) => {
               onChange={(value) => validator.setBatchPause(Number(value))}
               min={1}
               step={1}
+              size="sm"
               disabled={isValidating}
             />
           </Group>

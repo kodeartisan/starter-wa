@@ -1,6 +1,7 @@
 // src/components/AppMenu.tsx
 import { Action, Page, Setting } from '@/constants'
 import PageDirectChat from '@/features/direct-chat/PageDirectChat'
+import PageNumberValidator from '@/features/number-validator/PageNumberValidator'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
 import useWindowMessage from '@/hooks/useWindowMessage'
@@ -163,7 +164,7 @@ const AppMenu: React.FC = () => {
     return (
       <>
         <Tabs.Panel value={Page.HOME}>
-          <PageDirectChat />
+          <PageNumberValidator />
         </Tabs.Panel>
       </>
     )

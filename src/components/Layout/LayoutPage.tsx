@@ -43,7 +43,7 @@ const LayoutPage: React.FC<Props> = ({
 
   const renderBody = () => {
     return (
-      <Stack p={'xl'} w={width}>
+      <Stack px={'xl'} py={'md'} w={width}>
         {children}
       </Stack>
     )
