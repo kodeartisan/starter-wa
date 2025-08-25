@@ -1,16 +1,16 @@
-// src/features/tools/backup-chat/helpers/exportUtils.ts
+// src/features/tools/backup-chat/helpers/exportUtils.tsx
 import wa from '@/libs/wa'
 import { generateVideoThumbnail, getContactName } from '@/utils/util'
+import { pdf } from '@react-pdf/renderer'
 import FileSaver from 'file-saver'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
 import JSZip from 'jszip'
 import _ from 'lodash'
-// ADDED: Import xlsx library for CSV and Excel export.
+import React from 'react'
 import * as XLSX from 'xlsx'
+import PdfDocument from '../components/PdfDocument'
 
 interface ExporterParams {
-  messages: any[] // Messages now include an `isRedacted` property
+  messages: any[]
   chat: any
   filename: string
   includeMediaTypes: string[]
@@ -22,7 +22,60 @@ interface ExporterParams {
 
 const REDACTED_PLACEHOLDER = '********'
 
-// ... (existing functions: renderQuotedMessage, getRedactedMediaHtml, etc. remain unchanged)
+// English: This helper function converts a Blob object to a Base64 data URL.
+// This is necessary for embedding images directly into the PDF document via @react-pdf/renderer.
+const blobToDataURL = (blob: Blob): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onload = () => resolve(reader.result as string)
+    reader.onerror = (err) => reject(err)
+    reader.readAsDataURL(blob)
+  })
+}
+
+// English: This function processes only the necessary media for the PDF export.
+// It downloads images and video thumbnails, converting them to data URLs for embedding.
+const prepareMediaForPdf = async (
+  messages: any[],
+  setProgress: (progress: { value: number; label: string }) => void,
+  validationRef: React.MutableRefObject<boolean>,
+): Promise<Map<string, string>> => {
+  const mediaDataUrls = new Map<string, string>()
+  const mediaMessages = messages.filter(
+    (msg) => ['image', 'video'].includes(msg.type) && !msg.isRedacted,
+  )
+
+  for (let i = 0; i < mediaMessages.length; i++) {
+    if (!validationRef.current) break
+    const msg = mediaMessages[i]
+    // English: Update progress during the media download phase.
+    const progressValue = 10 + ((i + 1) / mediaMessages.length) * 70
+    setProgress({
+      value: progressValue,
+      label: `Downloading media ${i + 1} of ${mediaMessages.length}...`,
+    })
+
+    try {
+      const blob = await wa.chat.downloadMedia(msg.id)
+      if (blob) {
+        let dataUrl: string | null = null
+        if (msg.type === 'video') {
+          dataUrl = await generateVideoThumbnail(blob as File)
+        } else if (msg.type === 'image') {
+          dataUrl = await blobToDataURL(blob)
+        }
+        if (dataUrl) {
+          mediaDataUrls.set(msg.id, dataUrl)
+        }
+      }
+    } catch (error) {
+      console.error(`Failed to process media for message ${msg.id}:`, error)
+    }
+  }
+  return mediaDataUrls
+}
+
+// English: The functions below are preserved for the HTML export feature. They are not used by the new PDF export.
 const renderQuotedMessage = (quotedMsg: any): string => {
   if (!quotedMsg) return ''
   const quotedSenderName = quotedMsg.sender.isMe
@@ -49,12 +102,12 @@ const renderQuotedMessage = (quotedMsg: any): string => {
       quotedContent = `[Unsupported message type: ${quotedMsg.type}]`
   }
   return `
-  <a href="#message-${quotedMsg.id}" class="quoted-message-link">
-    <div class="quoted-message">
-      <div class="quoted-sender">${_.escape(quotedSenderName)}</div>
-      <div class="quoted-content">${quotedContent}</div>
-    </div>
-  </a>
+    <a href="#message-${quotedMsg.id}" class="quoted-message-link">
+      <div class="quoted-message">
+        <div class="quoted-sender">${_.escape(quotedSenderName)}</div>
+        <div class="quoted-content">${quotedContent}</div>
+      </div>
+    </a>
   `
 }
 
@@ -67,24 +120,25 @@ const getRedactedMediaHtml = (type: string): string => {
   }
   const icon = iconMap[type] || '🔒'
   return `
-  <div class="redacted-media-container">
-    <div class="redacted-bg">${icon}</div>
-    <div class="redacted-overlay">
-      <div class="lock-icon">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-        </svg>
+    <div class="redacted-media-container">
+      <div class="redacted-bg">${icon}</div>
+      <div class="redacted-overlay">
+        <div class="lock-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+          </svg>
+        </div>
+        <div class="redacted-text">Upgrade to Pro to view</div>
       </div>
-      <div class="redacted-text">Upgrade to Pro to view</div>
     </div>
-  </div>
   `
 }
 
 const getRedactedTextHtml = (): string => {
   return `<div class="redacted-text-placeholder">${REDACTED_PLACEHOLDER}</div>`
 }
+
 const generateHtmlBody = async ({
   messages,
   chat,
@@ -92,22 +146,22 @@ const generateHtmlBody = async ({
   setProgress,
   validationRef,
   isForPdf = false,
-  isLimitApplied = false, // Keep receiving this to know if redaction happened.
+  isLimitApplied = false,
 }: ExporterParams & { isForPdf?: boolean }): Promise<{
   htmlBody: string
   mediaMap: Map<string, Blob>
 }> => {
   const headerHtml = `
-  <div class="export-header">
-    <p><b>Chat With:</b> ${_.escape(getContactName(chat.data.contact))}</p>
-    <p><b>Export Date:</b> ${new Date().toLocaleString()}</p>
-    <p><b>Total Messages Exported:</b> ${messages.length}</p>
-    ${
-      isLimitApplied
-        ? '<p style="color: #d9534f;"><b>Notice:</b>Upgrade to Pro to save all messages and media.</p>'
-        : ''
-    }
-  </div>
+    <div class="export-header">
+      <p><b>Chat With:</b> ${_.escape(getContactName(chat.data.contact))}</p>
+      <p><b>Export Date:</b> ${new Date().toLocaleString()}</p>
+      <p><b>Total Messages Exported:</b> ${messages.length}</p>
+      ${
+        isLimitApplied
+          ? '<p style="color: #d9534f;"><b>Notice:</b>Upgrade to Pro to save all messages and media.</p>'
+          : ''
+      }
+    </div>
   `
   let messagesHtml = ''
   const mediaMap = new Map<string, Blob>()
@@ -115,7 +169,6 @@ const generateHtmlBody = async ({
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
-
     if (
       !['chat', 'image', 'video', 'document', 'ptt', 'location'].includes(
         msg.type,
@@ -134,7 +187,6 @@ const generateHtmlBody = async ({
       !msg.fromMe && chat.data.isGroup
         ? msg.contact?.pushname || msg.contact?.formattedName || 'Unknown'
         : ''
-
     let mediaHtml = ''
     const isMediaMessage = ['image', 'video', 'document', 'ptt'].includes(
       msg.type,
@@ -162,7 +214,6 @@ const generateHtmlBody = async ({
         const folderName = mediaType === 'ptt' ? 'audio' : `${mediaType}s`
         const filePath = `./${folderName}/${mediaFilename}`
         const blobUrl = URL.createObjectURL(blob)
-
         switch (msg.type) {
           case 'image':
             mediaHtml = `<img src="${
@@ -212,14 +263,10 @@ const generateHtmlBody = async ({
         mediaHtml = `<div class="media-placeholder">${placeholderText}</div>`
       }
     }
-
     const messageBodyHtml = msg.isRedacted
       ? getRedactedTextHtml()
-      : `<span>${
-          _.escape(msg.type === 'chat' ? msg.body : msg.caption) ?? ''
-        }</span>`
+      : `<span>${_.escape(msg.type === 'chat' ? msg.body : msg.caption) ?? ''}</span>`
     const quotedHtml = renderQuotedMessage(msg.quotedMsg)
-
     messagesHtml += `
       <div class="message-cluster message-${direction}" id="message-${msg.id}">
         <div class="message">
@@ -254,58 +301,56 @@ const generateHtmlBody = async ({
 
 const getFullHtmlDocument = (bodyContent: string, chat: any) => {
   const styles = `
-  <style>
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; margin: 0; background-color: #E5DDD5; }
-    .chat-container { max-width: 800px; margin: auto; padding: 20px; }
-    .export-header { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #dee2e6; font-size: 0.9em; }
-    .export-header p { margin: 2px 0; color: #333; }
-    .export-header b { color: #111; }
-    .limit-notice { background-color: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; padding: 10px; margin-top: 10px; font-size: 0.85em; text-align: center; color: #856404; }
-    .message-cluster { display: flex; flex-direction: column; margin-bottom: 2px; padding: 0 9%; scroll-margin-top: 20px; }
-    .message-cluster.message-out { align-items: flex-end; }
-    .message-cluster.message-in { align-items: flex-start; }
-    .message { max-width: 65%; word-wrap: break-word; margin-bottom: 10px; }
-    .message-bubble { padding: 6px 9px; border-radius: 7.5px; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); position: relative; }
-    .message-out .message-bubble { background-color: #d9fdd3; color: #0f1010; }
-    .message-in .message-bubble { background-color: #fff; color: #111b21; }
-    .sender-name { font-size: 0.8rem; font-weight: 500; color: #028a76; margin-bottom: 4px; }
-    .message-content img, .message-content video { width: 100%; max-width: 300px; border-radius: 6px; margin-top: 5px; display: block; }
-    .message-content a { color: #0088cc; }
-    .timestamp { font-size: 0.7rem; color: #667781; display: flex; justify-content: flex-end; padding-top: 4px; }
-    .media-placeholder { padding: 10px; background-color: #f0f0f0; border: 1px dashed #ccc; border-radius: 6px; color: #888; font-style: italic; font-size: 0.9em; margin-top: 5px; text-align: center; }
-    .quoted-message-link { text-decoration: none; color: inherit; }
-    .quoted-message { background-color: #f0f2f5; border-left: 4px solid #4CAF50; padding: 8px 10px; margin-bottom: 5px; border-radius: 4px; opacity: 0.85; }
-    .quoted-sender { font-weight: bold; font-size: 0.85em; color: #4CAF50; }
-    .quoted-content { font-size: 0.9em; white-space: pre-wrap; word-wrap: break-word; }
-    .video-thumb-container { position: relative; display: inline-block; }
-    .video-thumb-container img { display: block; width: 100%; max-width: 300px; border-radius: 6px; }
-    .video-thumb-container .play-button { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: white; background-color: rgba(0, 0, 0, 0.5); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; text-shadow: 1px 1px 2px black;}
-    .redacted-media-container { position: relative; width: 100%; max-width: 300px; height: 200px; background-color: #e9ecef; border-radius: 6px; margin-top: 5px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
-    .redacted-bg { font-size: 50px; filter: blur(8px); opacity: 0.3; user-select: none; }
-    .redacted-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
-    .lock-icon svg { width: 32px; height: 32px; }
-    .redacted-text { font-size: 0.9em; font-weight: 500; margin-top: 8px; }
-    .redacted-text-placeholder { padding: 10px; background-color: #f8f9fa; border: 1px dashed #dee2e6; border-radius: 6px; color: #6c757d; font-style: italic; font-size: 0.9em; margin-top: 5px; text-align: center; }
-  </style>
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; margin: 0; background-color: #E5DDD5; }
+      .chat-container { max-width: 800px; margin: auto; padding: 20px; }
+      .export-header { background-color: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px; border: 1px solid #dee2e6; font-size: 0.9em; }
+      .export-header p { margin: 2px 0; color: #333; }
+      .export-header b { color: #111; }
+      .limit-notice { background-color: #fffbe6; border: 1px solid #ffe58f; border-radius: 4px; padding: 10px; margin-top: 10px; font-size: 0.85em; text-align: center; color: #856404; }
+      .message-cluster { display: flex; flex-direction: column; margin-bottom: 2px; padding: 0 9%; scroll-margin-top: 20px; }
+      .message-cluster.message-out { align-items: flex-end; }
+      .message-cluster.message-in { align-items: flex-start; }
+      .message { max-width: 65%; word-wrap: break-word; margin-bottom: 10px; }
+      .message-bubble { padding: 6px 9px; border-radius: 7.5px; box-shadow: 0 1px 0.5px rgba(11,20,26,.13); position: relative; }
+      .message-out .message-bubble { background-color: #d9fdd3; color: #0f1010; }
+      .message-in .message-bubble { background-color: #fff; color: #111b21; }
+      .sender-name { font-size: 0.8rem; font-weight: 500; color: #028a76; margin-bottom: 4px; }
+      .message-content img, .message-content video { width: 100%; max-width: 300px; border-radius: 6px; margin-top: 5px; display: block; }
+      .message-content a { color: #0088cc; }
+      .timestamp { font-size: 0.7rem; color: #667781; display: flex; justify-content: flex-end; padding-top: 4px; }
+      .media-placeholder { padding: 10px; background-color: #f0f0f0; border: 1px dashed #ccc; border-radius: 6px; color: #888; font-style: italic; font-size: 0.9em; margin-top: 5px; text-align: center; }
+      .quoted-message-link { text-decoration: none; color: inherit; }
+      .quoted-message { background-color: #f0f2f5; border-left: 4px solid #4CAF50; padding: 8px 10px; margin-bottom: 5px; border-radius: 4px; opacity: 0.85; }
+      .quoted-sender { font-weight: bold; font-size: 0.85em; color: #4CAF50; }
+      .quoted-content { font-size: 0.9em; white-space: pre-wrap; word-wrap: break-word; }
+      .video-thumb-container { position: relative; display: inline-block; }
+      .video-thumb-container img { display: block; width: 100%; max-width: 300px; border-radius: 6px; }
+      .video-thumb-container .play-button { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); font-size: 40px; color: white; background-color: rgba(0, 0, 0, 0.5); border-radius: 50%; width: 60px; height: 60px; display: flex; align-items: center; justify-content: center; text-shadow: 1px 1px 2px black;}
+      .redacted-media-container { position: relative; width: 100%; max-width: 300px; height: 200px; background-color: #e9ecef; border-radius: 6px; margin-top: 5px; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+      .redacted-bg { font-size: 50px; filter: blur(8px); opacity: 0.3; user-select: none; }
+      .redacted-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-color: rgba(0, 0, 0, 0.5); display: flex; flex-direction: column; align-items: center; justify-content: center; color: white; text-align: center; }
+      .lock-icon svg { width: 32px; height: 32px; }
+      .redacted-text { font-size: 0.9em; font-weight: 500; margin-top: 8px; }
+      .redacted-text-placeholder { padding: 10px; background-color: #f8f9fa; border: 1px dashed #dee2e6; border-radius: 6px; color: #6c757d; font-style: italic; font-size: 0.9em; margin-top: 5px; text-align: center; }
+    </style>
   `
   return `
-  <html>
-    <head>
-      <meta charset="UTF-8">
-      <title>Chat with ${_.escape(getContactName(chat.data.contact))}</title>
-      ${styles}
-    </head>
-    <body><div class="chat-container">${bodyContent}</div></body>
-  </html>
+    <html>
+      <head>
+        <meta charset="UTF-8">
+        <title>Chat with ${_.escape(getContactName(chat.data.contact))}</title>
+        ${styles}
+      </head>
+      <body><div class="chat-container">${bodyContent}</div></body>
+    </html>
   `
 }
-// ... (existing exportToHtml, exportToPdf, etc. functions remain unchanged)
 
 export const exportToHtml = async (params: ExporterParams) => {
   const { filename, setProgress, password } = params
   const { htmlBody, mediaMap } = await generateHtmlBody(params)
   const fullHtml = getFullHtmlDocument(htmlBody, params.chat)
-
   mediaMap.forEach((blob, url) => {
     if (url.startsWith('blob:')) {
       URL.revokeObjectURL(url)
@@ -331,6 +376,7 @@ export const exportToHtml = async (params: ExporterParams) => {
         folder?.file(mediaFilename, blob)
       }
     }
+
     zip.file(`${filename}.html`, fullHtml)
     setProgress({ value: 98, label: 'Compressing files...' })
     const zipOptions: any = { type: 'blob' }
@@ -346,99 +392,54 @@ export const exportToHtml = async (params: ExporterParams) => {
   }
 }
 
+// English: REWRITTEN to use @react-pdf/renderer for a direct, faster, and more reliable PDF creation.
 export const exportToPdf = async (params: ExporterParams) => {
-  const { filename, setProgress, validationRef } = params
-  const { htmlBody, mediaMap } = await generateHtmlBody({
-    ...params,
-    includeMediaTypes: ['image', 'video'],
-    isForPdf: true,
-  })
-  const fullHtml = getFullHtmlDocument(htmlBody, params.chat)
+  const {
+    messages,
+    chat,
+    filename,
+    setProgress,
+    validationRef,
+    isLimitApplied,
+  } = params
 
-  if (!validationRef.current) {
-    mediaMap.forEach((blob, url) => {
-      if (url.startsWith('blob:')) URL.revokeObjectURL(url)
-    })
-    return
-  }
-
-  setProgress({ value: 92, label: 'Generating PDF document...' })
-  const container = document.createElement('div')
-  container.style.position = 'absolute'
-  container.style.left = '-9999px'
-  container.style.width = '800px'
-  document.body.appendChild(container)
-  container.innerHTML = fullHtml
+  if (!validationRef.current) return
 
   try {
-    const canvas = await html2canvas(container, { useCORS: true, scale: 2 })
-    document.body.removeChild(container)
-    mediaMap.forEach((blob, url) => {
-      if (url.startsWith('blob:')) URL.revokeObjectURL(url)
-    })
+    // English: Step 1: Prepare media files (images and video thumbnails) as data URLs.
+    setProgress({ value: 5, label: 'Analyzing media files...' })
+    const mediaDataUrls = await prepareMediaForPdf(
+      messages,
+      setProgress,
+      validationRef,
+    )
 
     if (!validationRef.current) return
 
-    setProgress({ value: 95, label: 'Formatting PDF pages...' })
-    const imgData = canvas.toDataURL('image/png')
-    const pdf = new jsPDF({
-      orientation: 'portrait',
-      unit: 'pt',
-      format: 'a4',
-    })
-    const pdfWidth = pdf.internal.pageSize.getWidth()
-    const pdfHeight = pdf.internal.pageSize.getHeight()
-    const canvasWidth = canvas.width
-    const canvasHeight = canvas.height
-    const ratio = canvasWidth / pdfWidth
-    const canvasHeightInPdf = canvasHeight / ratio
-    let heightLeft = canvasHeightInPdf
-    let position = 0
+    // English: Step 2: Render the PDF document component into a blob in memory.
+    setProgress({ value: 85, label: 'Generating PDF document...' })
+    const pdfBlob = await pdf(
+      <PdfDocument
+        messages={messages}
+        chat={chat}
+        isLimitApplied={isLimitApplied}
+        mediaDataUrls={mediaDataUrls}
+      />,
+    ).toBlob()
 
-    pdf.addImage(
-      imgData,
-      'PNG',
-      0,
-      position,
-      pdfWidth,
-      canvasHeightInPdf,
-      undefined,
-      'FAST',
-    )
-    heightLeft -= pdfHeight
+    if (!validationRef.current) return
 
-    while (heightLeft > 0) {
-      position = heightLeft - canvasHeightInPdf
-      pdf.addPage()
-      pdf.addImage(
-        imgData,
-        'PNG',
-        0,
-        position,
-        pdfWidth,
-        canvasHeightInPdf,
-        undefined,
-        'FAST',
-      )
-      heightLeft -= pdfHeight
-    }
+    // English: Step 3: Use FileSaver to save the generated PDF blob to the user's device.
     setProgress({ value: 98, label: 'Saving PDF file...' })
-    pdf.save(`${filename}.pdf`)
+    FileSaver.saveAs(pdfBlob, `${filename}.pdf`)
   } catch (error) {
     console.error('Error generating PDF:', error)
-    if (document.body.contains(container)) {
-      document.body.removeChild(container)
-    }
-    mediaMap.forEach((blob, url) => {
-      if (url.startsWith('blob:')) URL.revokeObjectURL(url)
-    })
     throw new Error('Failed to generate PDF from chat content.')
   }
 }
 
 export const exportToTxt = async (params: ExporterParams) => {
   const { messages, chat, filename, setProgress, validationRef } = params
-
   let textContent = `Chat With: ${getContactName(chat.data.contact)}\r\n`
   textContent += `Export Date: ${new Date().toLocaleString()}\r\n`
   textContent += `Total Messages Exported: ${messages.length}\r\n\r\n`
@@ -446,12 +447,10 @@ export const exportToTxt = async (params: ExporterParams) => {
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
-
     setProgress({
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
-
     const sender = msg.contact.isMe ? 'You' : getContactName(msg.contact)
     const timestamp = new Date(msg.timestamp).toLocaleString()
     let content = ''
@@ -517,8 +516,8 @@ export const exportToJson = async (params: ExporterParams) => {
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
-
     let bodyContent: string | null = msg.body || null
+
     if (msg.isRedacted) {
       bodyContent = REDACTED_PLACEHOLDER
     } else if (msg.type !== 'chat') {
@@ -533,7 +532,6 @@ export const exportToJson = async (params: ExporterParams) => {
       }
       bodyContent = placeholder
     }
-
     messageList.push({
       id: msg.id,
       timestamp: new Date(msg.timestamp).toISOString(),
@@ -567,7 +565,6 @@ export const exportToJson = async (params: ExporterParams) => {
       },
       messages: messageList,
     }
-
     const jsonString = JSON.stringify(finalJson, null, 2)
     const blob = new Blob([jsonString], {
       type: 'application/json;charset=utf-8',
@@ -578,7 +575,6 @@ export const exportToJson = async (params: ExporterParams) => {
 
 export const exportToMarkdown = async (params: ExporterParams) => {
   const { messages, chat, filename, setProgress, validationRef } = params
-
   let mdContent = `# Chat with: ${getContactName(chat.data.contact)}\n\n`
   mdContent += `**Export Date:** ${new Date().toLocaleString()}\n`
   mdContent += `**Total Messages:** ${messages.length}\n\n---\n\n`
@@ -586,7 +582,6 @@ export const exportToMarkdown = async (params: ExporterParams) => {
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
-
     setProgress({
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
@@ -594,7 +589,6 @@ export const exportToMarkdown = async (params: ExporterParams) => {
     const senderName = msg.contact.isMe ? 'You' : getContactName(msg.contact)
     const timestamp = new Date(msg.timestamp).toLocaleString()
     mdContent += `**${_.escape(senderName)}** (*${timestamp}*)\n\n`
-
     if (msg.quotedMsg && !msg.isRedacted) {
       const quotedSenderName = msg.quotedMsg.sender.isMe
         ? 'You'
@@ -607,7 +601,6 @@ export const exportToMarkdown = async (params: ExporterParams) => {
         quotedBody,
       )}\n\n`
     }
-
     let mdMessageContent = ''
     switch (msg.type) {
       case 'chat':
@@ -658,12 +651,9 @@ export const exportToMarkdown = async (params: ExporterParams) => {
   }
 }
 
-// ADDED: A shared helper to prepare data for CSV/XLSX to avoid code duplication.
 const prepareSheetData = (params: ExporterParams): any[] => {
   const { messages, setProgress, validationRef } = params
   const sheetData: any[] = []
-
-  // Define headers
   sheetData.push([
     'Message ID',
     'Timestamp',
@@ -677,12 +667,10 @@ const prepareSheetData = (params: ExporterParams): any[] => {
   for (let i = 0; i < messages.length; i++) {
     if (!validationRef.current) break
     const msg = messages[i]
-
     setProgress({
       value: ((i + 1) / messages.length) * 100,
       label: `Processing message ${i + 1} of ${messages.length}...`,
     })
-
     const senderName = msg.contact.isMe ? 'You' : getContactName(msg.contact)
     const timestamp = new Date(msg.timestamp).toISOString()
     let content = ''
@@ -710,7 +698,6 @@ const prepareSheetData = (params: ExporterParams): any[] => {
           break
       }
     }
-
     sheetData.push([
       msg.id,
       timestamp,
@@ -724,11 +711,9 @@ const prepareSheetData = (params: ExporterParams): any[] => {
   return sheetData
 }
 
-// ADDED: Export function for CSV format.
 export const exportToCsv = async (params: ExporterParams) => {
   const { filename, validationRef } = params
   const sheetData = prepareSheetData(params)
-
   if (validationRef.current) {
     const worksheet = XLSX.utils.aoa_to_sheet(sheetData)
     const csvString = XLSX.utils.sheet_to_csv(worksheet)
@@ -737,11 +722,9 @@ export const exportToCsv = async (params: ExporterParams) => {
   }
 }
 
-// ADDED: Export function for XLSX format.
 export const exportToXlsx = async (params: ExporterParams) => {
   const { filename, validationRef } = params
   const sheetData = prepareSheetData(params)
-
   if (validationRef.current) {
     const worksheet = XLSX.utils.aoa_to_sheet(sheetData)
     const workbook = XLSX.utils.book_new()

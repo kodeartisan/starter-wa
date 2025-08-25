@@ -28,14 +28,12 @@ import {
 const SUPPORTED_MESSAGE_TYPES = ['chat', 'image', 'video', 'document', 'ptt']
 const PRO_EXPORT_FORMATS = ['pdf', 'txt', 'json', 'md', 'csv', 'xlsx']
 const MEDIA_MESSAGE_TYPES = ['image', 'video', 'document', 'ptt']
-
 export interface BackupResultStats {
   messagesExported: number
   messagesOmitted: number
   mediaOmitted: number
   isLimitApplied: boolean
 }
-
 export const useChatBackup = () => {
   const license = useLicense()
   const [isBackingUp, setIsBackingUp] = useState(false)
@@ -47,7 +45,6 @@ export const useChatBackup = () => {
   const [backupResult, setBackupResult] = useState<BackupResultStats | null>(
     null,
   )
-
   const form = useForm({
     initialValues: {
       chatId: '',
@@ -75,19 +72,15 @@ export const useChatBackup = () => {
     },
     validateInputOnChange: ['keywords'],
   })
-
   const cancelBackup = () => {
     validationRef.current = false
   }
-
   const clearBackupResult = () => {
     setBackupResult(null)
     form.reset()
   }
-
   const startBackup = async () => {
     if (form.validate().hasErrors) return
-
     if (
       license.isFree() &&
       PRO_EXPORT_FORMATS.includes(form.values.exportFormat)
@@ -99,7 +92,6 @@ export const useChatBackup = () => {
       goToLandingPage() // ADDED: Redirect to landing page on Pro feature attempt.
       return
     }
-
     setIsBackingUp(true)
     validationRef.current = true
     setProgress({ value: 5, label: 'Fetching and filtering messages...' })
@@ -109,7 +101,6 @@ export const useChatBackup = () => {
       mediaOmitted: 0,
       isLimitApplied: false,
     }
-
     try {
       const { chatId, dateRange, keywords, messageTypes, datePreset } =
         form.values
@@ -151,20 +142,16 @@ export const useChatBackup = () => {
         effectiveDateRange = [start, end]
       }
       const allMessages = await wa.chat.getMessages(chatId, { count: -1 })
-
       let [startDate, endDate] = effectiveDateRange
-
       if (license.isFree()) {
         const sevenDaysAgo = startOfDay(subDays(new Date(), 7))
         if (!startDate || startDate < sevenDaysAgo) {
           startDate = sevenDaysAgo
         }
       }
-
       const lowercasedKeywords = keywords
         .map((k) => k.toLowerCase().trim())
         .filter(Boolean)
-
       const filteredMessages = allMessages.filter((msg) => {
         const dateMatch =
           !startDate ||
@@ -183,30 +170,24 @@ export const useChatBackup = () => {
         const typeMatch = messageTypes.includes(msg.type)
         return dateMatch && keywordMatch && typeMatch
       })
-
       if (filteredMessages.length === 0) {
         toast.info('No messages found matching your criteria to export.')
         setIsBackingUp(false)
         return
       }
-
       const isFreePlan = license.isFree()
       const isLimitApplied = isFreePlan && filteredMessages.length > 10
       let mediaIncludedInFreePreview = false
       let mediaOmittedCount = 0
-
       const messagesToExport = filteredMessages.map((msg, index) => {
         const isMedia = MEDIA_MESSAGE_TYPES.includes(msg.type)
-
         if (!isFreePlan) {
           return { ...msg, isRedacted: false }
         }
-
         if (index >= 10) {
           if (isMedia) mediaOmittedCount++
           return { ...msg, isRedacted: true }
         }
-
         if (isMedia) {
           if (!mediaIncludedInFreePreview) {
             mediaIncludedInFreePreview = true
@@ -218,7 +199,6 @@ export const useChatBackup = () => {
         }
         return { ...msg, isRedacted: false }
       })
-
       const exportedMessageCount = messagesToExport.filter(
         (m) => !m.isRedacted,
       ).length
@@ -230,13 +210,11 @@ export const useChatBackup = () => {
         mediaOmitted: mediaOmittedCount,
         isLimitApplied: isLimitApplied || mediaIncludedInFreePreview,
       }
-
       const chat = await wa.chat.find(form.values.chatId)
       // @ts-ignore
       const filename = `backup_chat_${_.snakeCase(
         getContactName(chat.data.contact),
       )}_${new Date().toISOString().slice(0, 10)}`
-
       const exporterParams = {
         messages: messagesToExport,
         chat,
@@ -247,7 +225,6 @@ export const useChatBackup = () => {
         isLimitApplied,
         isProPreview: mediaIncludedInFreePreview,
       }
-
       switch (form.values.exportFormat) {
         case 'pdf':
           await exportToPdf(exporterParams)
@@ -272,7 +249,6 @@ export const useChatBackup = () => {
           await exportToHtml(exporterParams)
           break
       }
-
       if (validationRef.current) {
         if (isLimitApplied || mediaIncludedInFreePreview) {
           toast.warning(
@@ -294,7 +270,6 @@ export const useChatBackup = () => {
       setIsBackingUp(false)
     }
   }
-
   return {
     form,
     isBackingUp,
