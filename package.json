@@ -3,7 +3,7 @@
   "shortName": "WhatsBackup",
   "displayName": "WhatsBackup - WA Chats Backup & Exporter for WhatsApp",
   "version": "1.0.0",
-  "description": "Save your WhatsApp chat and export to PDF, Excel, or CSV.",
+  "description": "Save your WhatsApp chat and export to HTML, PDF, Excel, CSV, JSON, TXT",
   "author": "Extninja",
   "scripts": {
     "dev": "plasmo dev --no-cs-reload",

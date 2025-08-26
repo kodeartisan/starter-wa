@@ -100,7 +100,7 @@ const MarqueeTileFeatureShowcase = () => (
               </Group>
               <Text size="sm" c="gray.6" fw={500} mt="xs">
                 {' '}
-                Export to PDF, Excel, CSV, JSON, and more.{' '}
+                Export to HTML, PDF, Excel, CSV, JSON, TXT.{' '}
               </Text>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -510,7 +510,7 @@ Never lose important conversations or precious memories again. WhatsBackup - WA 
 ✨ Key Features
 💾 Unlimited Backups: Archive entire conversations with no message limits.
 🖼️ Include Media: Save photos, videos, voice notes, and documents.
-📄 Multiple Export Formats: Export to PDF, Excel (XLSX), CSV, JSON, HTML, and TXT.
+📄 Multiple Export Formats: Export to PDF, Excel, CSV, JSON, HTML, and TXT.
 🔍 Advanced Filtering: Pinpoint messages with custom date ranges and keyword searches.
 🔐 100% Secure: Your data never leaves your computer.
 
