@@ -1,6 +1,8 @@
-// src/features/Tools/NumberValidator/PageNumberValidator.tsx
+// src/features/number-validator/PageNumberValidator.tsx
 import LayoutPage from '@/components/Layout/LayoutPage'
 import ModalSourceExcel from '@/components/Modal/ModalSourceExcel'
+import useLicense from '@/hooks/useLicense'
+import { showModalUpgrade } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import { Button, Card, Group, Stack, Text, Title } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
@@ -11,17 +13,31 @@ import ResultsSection from './components/ResultsSection'
 import SettingsSection from './components/SettingsSection'
 import { useNumberValidator } from './hooks/useNumberValidator'
 
+const VALIDATION_LIMIT_FREE = 50
+
 const PageNumberValidator: React.FC = () => {
   const [showExcelModal, excelModalHandlers] = useDisclosure(false)
   const [showGroupsModal, groupsModalHandlers] = useDisclosure(false)
-
   const validator = useNumberValidator()
+  const license = useLicense()
 
   const handleAddFromSource = (newRecipients: any[]) => {
     const newNumbers = newRecipients.map((r) => r.number || r)
     validator.addNumbers(newNumbers)
     excelModalHandlers.close()
     groupsModalHandlers.close()
+  }
+
+  const handleStart = () => {
+    const numbersToValidate = validator.numbers.filter(Boolean).length
+    if (license.isFree() && numbersToValidate > VALIDATION_LIMIT_FREE) {
+      showModalUpgrade(
+        'Unlimited Number Validation',
+        `The free version is limited to ${VALIDATION_LIMIT_FREE} numbers per validation. Upgrade to Pro to validate unlimited numbers.`,
+      )
+      return
+    }
+    validator.handleStartValidation()
   }
 
   return (
@@ -67,7 +83,7 @@ const PageNumberValidator: React.FC = () => {
             </Button>
           ) : (
             <Button
-              onClick={validator.handleStartValidation}
+              onClick={handleStart}
               disabled={validator.numbers.filter(Boolean).length === 0}
               leftSection={<Icon icon="tabler:player-play" />}
             >
@@ -79,6 +95,7 @@ const PageNumberValidator: React.FC = () => {
       <When condition={validator.isValidating || validator.results.length > 0}>
         <ResultsSection validator={validator} />
       </When>
+
       <ModalSourceExcel
         opened={showExcelModal}
         onClose={excelModalHandlers.close}
