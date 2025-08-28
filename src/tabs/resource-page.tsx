@@ -110,10 +110,6 @@ const MockupDirectChatWithMedia = () => (
                 color="var(--mantine-color-gray-5)"
               />
               <Text c="dimmed">Image_Preview.jpg</Text>
-              <Badge color="teal" variant="light">
-                {' '}
-                PRO FEATURE{' '}
-              </Badge>
             </Stack>
           </Center>
         </Tabs.Panel>
