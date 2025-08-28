@@ -51,7 +51,7 @@ const InputSection: React.FC<Props> = ({
           >
             Import from Excel
           </Button>
-          <Button
+          {/* <Button
             variant="outline"
             leftSection={<Icon icon="tabler:users" />}
             onClick={onImportGroups}
@@ -59,7 +59,7 @@ const InputSection: React.FC<Props> = ({
             disabled={isValidating}
           >
             Import from Groups
-          </Button>
+          </Button> */}
         </Group>
       </Stack>
     </>
