@@ -190,7 +190,7 @@ const FeaturesSection = () => {
       icon: 'tabler:files',
       title: 'Multiple Formats',
       description:
-        'Convert your chats into professional PDF, CSV, Excel, JSON, and TXT files for any purpose.',
+        'Convert your chats into professional HTML, PDF, CSV, Excel, JSON, and TXT files for any purpose.',
     },
     {
       icon: 'tabler:shield-lock',

@@ -183,10 +183,12 @@ const FeatureMockupExportFormats = () => (
       </Text>
       <Radio.Group label="Format" defaultValue="pdf">
         <Group mt="xs">
-          <Radio value="html" label="HTML (.zip)" />
+          <Radio value="html" label="HTML" />
           <Radio value="pdf" label="PDF" />
           <Radio value="xlsx" label="Excel" />
           <Radio value="csv" label="CSV" />
+          <Radio value="json" label="JSON" />
+          <Radio value="txt" label="TXT" />
         </Group>
       </Radio.Group>
       <Button mt="lg" leftSection={<Icon icon="tabler:download" />}>
@@ -398,7 +400,7 @@ const ScreenshotGallery: React.FC = () => {
         <MarqueeTileFeatureDetail
           icon="tabler:files"
           title="Multiple Export Formats"
-          description="Convert your chats into professional PDF, CSV, Excel, JSON, and TXT files for any purpose."
+          description="Convert your chats into HTML, PDF, CSV, Excel, JSON, and TXT files for any purpose."
           featureComponent={<FeatureMockupExportFormats />}
         />
       ),
@@ -422,7 +424,7 @@ const ScreenshotGallery: React.FC = () => {
         <MarqueeTileFeatureDetail
           icon="tabler:photo-video"
           title="Save Your Media"
-          description="Don’t just save text. The Pro version allows you to back up and include all media types in your exports."
+          description="Don’t just save text. Back up and include all media types in your exports."
           featureComponent={<FeatureMockupMediaBackup />}
         />
       ),
