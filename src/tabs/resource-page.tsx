@@ -414,7 +414,7 @@ const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
   >
     <Stack h="100%" justify="center">
       <Grid align="center" gutter={50}>
-        <Grid.Col span={5}>
+        <Grid.Col span={4}>
           <Stack>
             <ThemeIcon size={60} radius="lg">
               <Icon icon={icon} fontSize={40} />
@@ -429,7 +429,7 @@ const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
             </Text>
           </Stack>
         </Grid.Col>
-        <Grid.Col span={7}>
+        <Grid.Col span={6}>
           <Center h="100%">{featureComponent}</Center>
         </Grid.Col>
       </Grid>
