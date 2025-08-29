@@ -82,7 +82,7 @@ const plans = [
     description: 'Pay once, unlock powerful bulk validation tools forever.',
     placeholderPrice: '$89',
     price: '$39',
-    link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?media=0&logo=0&desc=0&discount=0',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/c2a57d45-f96b-42ab-b73d-73847a845fe5?logo=0',
     features: [
       'Validate Unlimited Numbers',
       'Import from Excel & CSV Files',

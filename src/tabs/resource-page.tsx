@@ -85,7 +85,7 @@ const MockupValidatorSimple = () => (
 const MockupValidatorProFeatures = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
-      <Title order={4}>Powerful Pro Tools</Title>
+      <Title order={4}>Powerful Tools</Title>
       <Text c="dimmed" size="sm">
         {' '}
         Handle large lists with ease and safety.{' '}
@@ -113,10 +113,6 @@ const MockupValidatorProFeatures = () => (
                 color="var(--mantine-color-gray-5)"
               />
               <Text c="dimmed">contacts_list.xlsx</Text>
-              <Badge color="teal" variant="light">
-                {' '}
-                PRO FEATURE{' '}
-              </Badge>
             </Stack>
           </Center>
         </Tabs.Panel>
@@ -128,10 +124,6 @@ const MockupValidatorProFeatures = () => (
               description="For large lists, this pauses validation periodically."
               disabled
             />
-            <Badge color="teal" variant="light" w="fit-content">
-              {' '}
-              PRO FEATURE{' '}
-            </Badge>
           </Stack>
         </Tabs.Panel>
       </Tabs>
@@ -258,7 +250,6 @@ const MockupValidatorSettings = () => (
         legend={
           <Group gap="xs">
             <Text>Batch Processing</Text>
-            <Badge color="teal">PRO</Badge>
           </Group>
         }
       >

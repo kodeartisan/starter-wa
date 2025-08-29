@@ -1,5 +1,5 @@
 // src/components/AppMenu.tsx
-import { Action, Page, Setting } from '@/constants'
+import { Action, Page, PRIMARY_ICON, Setting } from '@/constants'
 import PageDirectChat from '@/features/direct-chat/PageDirectChat'
 import PageNumberValidator from '@/features/number-validator/PageNumberValidator'
 import useLicense from '@/hooks/useLicense'
@@ -116,12 +116,8 @@ const AppMenu: React.FC = () => {
         <Stack justify="space-between" gap={0} style={{ height: '100%' }}>
           <Box>
             <Tabs.Tab value={Page.HOME} className={classes.tab}>
-              <Tooltip label="Direct Chat" position="left">
-                <Icon
-                  icon="tabler:message-circle-plus"
-                  fontSize={26}
-                  color="white"
-                />
+              <Tooltip label="Check & Verify" position="left">
+                <Icon icon={PRIMARY_ICON} fontSize={26} color="white" />
               </Tooltip>
             </Tabs.Tab>
           </Box>
