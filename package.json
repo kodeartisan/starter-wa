@@ -1,9 +1,9 @@
 {
-  "name": "whats-direct",
-  "shortName": "WhatsDirect",
-  "displayName": "WhatsDirect - WA Direct Chats for WhatsApp",
+  "name": "whats-validator",
+  "shortName": "WhatsValidator",
+  "displayName": "WhatsValidator - Check & Verify WA Numbers for WhatsApp",
   "version": "1.0.0",
-  "description": "Start WhatsApp Chats Without Saving Numbers with Media and Templates",
+  "description": "Safely validate of WhatsApp numbers in bulk and export",
   "author": "Extninja",
   "scripts": {
     "dev": "plasmo dev --no-cs-reload",

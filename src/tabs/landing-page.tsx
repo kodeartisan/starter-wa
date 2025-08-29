@@ -29,8 +29,7 @@ import '@mantine/core/styles.css'
 import { useWindowScroll } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
 
-// --- Start: Updated Config for Direct Chat Focus ---
-
+// --- Start: Updated Config for Number Validator Focus ---
 // Define a structured feature type for the comparison table
 export interface PlanFeature {
   feature: string
@@ -41,31 +40,19 @@ export interface PlanFeature {
 // Centralized list of features for easy management and comparison
 const comparisonFeatures: PlanFeature[] = [
   {
-    feature: 'Start Chats Without Saving Numbers',
-    free: true,
-    pro: true,
-  },
-  {
-    feature: 'Send Text Messages',
-    free: true,
-    pro: true,
-  },
-  {
-    feature: 'Send Media (Images, Videos, Docs)',
-    free: false,
-    pro: true,
-  },
-  {
-    feature: 'Share Location Pins',
-    free: false,
-    pro: true,
-  },
-
-  {
-    feature: 'Save Unlimited Message Templates',
-    free: '1 Template',
+    feature: 'Number Validations per Run',
+    free: 'Up to 5 Numbers',
     pro: 'Unlimited',
   },
+  { feature: 'Check if Number Exists on WA', free: true, pro: true },
+  { feature: 'Import Numbers from Excel/CSV', free: false, pro: true },
+  { feature: 'Export Results to Excel/CSV', free: false, pro: true },
+  {
+    feature: 'Safe Batch Processing',
+    free: false,
+    pro: 'Configurable Batches & Pauses',
+  },
+  { feature: 'Adjustable Delay Between Checks', free: true, pro: true },
   {
     feature: 'Customer Support',
     free: 'Standard Support',
@@ -78,28 +65,29 @@ const plans = [
   {
     name: 'Free',
     isFree: true,
-    description: 'For basic direct messaging needs.',
+    description: 'For basic, small-scale checks.',
     price: '$0',
     placeholderPrice: null,
     link: '#',
     features: [
-      'Start unlimited chats',
-      'No need to save contacts',
-      'Send text messages only',
+      'Validate up to 5 numbers at a time',
+      'See which numbers are valid/invalid',
+      'Adjustable delay settings',
       'Standard support',
     ],
   },
   {
     name: 'Pro Lifetime',
     isFree: false,
-    description: 'Pay once, unlock powerful messaging features forever.',
+    description: 'Pay once, unlock powerful bulk validation tools forever.',
     placeholderPrice: '$89',
     price: '$39',
     link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?media=0&logo=0&desc=0&discount=0',
     features: [
-      'Send All Media Types (Images, Videos, Files)',
-      'Share Locations',
-      'Save Unlimited Message Templates',
+      'Validate Unlimited Numbers',
+      'Import from Excel & CSV Files',
+      'Export Results to Excel & CSV',
+      'Safe Batch Processing',
       'Priority Customer Support',
       'All Future Updates Included',
     ],
@@ -168,6 +156,7 @@ const CountdownTimer: React.FC<{ offerEndDate: Date; isMini?: boolean }> = ({
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(
     calculateTimeLeft(offerEndDate),
   )
+
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft(offerEndDate))
@@ -205,7 +194,6 @@ const CountdownTimer: React.FC<{ offerEndDate: Date; isMini?: boolean }> = ({
     </Group>
   )
 }
-
 // --- End Countdown Timer Logic ---
 
 // --- Section Components ---
@@ -218,17 +206,17 @@ const HeroSection = () => (
         variant="gradient"
         gradient={{ from: 'teal', to: 'lime' }}
       >
-        <Icon icon="tabler:message-circle-plus" fontSize={48} />
+        <Icon icon="tabler:checks" fontSize={48} />
       </ThemeIcon>
       <Title order={1} fz={{ base: 36, sm: 48 }}>
         {' '}
-        Instantly Start WhatsApp Chats Without Saving Numbers.{' '}
+        Effortlessly Validate Thousands of WhatsApp Numbers.{' '}
       </Title>
       <Text c="dimmed" fz="lg">
         {' '}
-        The fastest way to send messages, images, videos, and files to any
-        WhatsApp number. No more cluttering your contact list for one-time
-        conversations.{' '}
+        Stop wasting time and money on dead contacts. Clean your marketing
+        lists, verify leads, and improve your message deliverability with our
+        powerful bulk number validator.{' '}
       </Text>
       <Stack align="center">
         <Button
@@ -256,46 +244,46 @@ const HeroSection = () => (
 const FeaturesSection = () => {
   const featuresData = [
     {
-      icon: 'tabler:address-book-off',
-      title: 'No More "Ghost" Contacts',
+      icon: 'tabler:file-type-xls',
+      title: 'Bulk Import & Export',
       description:
-        'Message any number without saving it. Perfect for business inquiries, customer support, or one-time contacts.',
+        'Easily import thousands of numbers from an Excel or CSV file. Export the validation results for your records. (Pro Feature)',
     },
     {
-      icon: 'tabler:paperclip',
-      title: 'Send Anything, Instantly',
+      icon: 'tabler:shield-cog',
+      title: 'Safe & Smart Validation',
       description:
-        'Go beyond text. The Pro version lets you send images, videos, documents.',
+        'Our tool uses randomized delays and batch processing to mimic human behavior, significantly reducing any risks to your account.',
+    },
+    {
+      icon: 'tabler:analyze',
+      title: 'Boost Campaign ROI',
+      description:
+        'Clean your contact lists to ensure your messages are sent only to active WhatsApp users, increasing engagement and saving costs.',
     },
     {
       icon: 'tabler:shield-lock',
       title: 'Private & Secure',
       description:
-        'Your messages are sent directly via WhatsApp Web. We never see, store, or have access to your conversations.',
-    },
-
-    {
-      icon: 'tabler:template',
-      title: 'Save Time with Templates',
-      description:
-        'Create and reuse message templates for common replies, greetings, or information. (Pro Feature)',
+        'Your contact lists are processed locally on your computer. We never see, store, or have access to your sensitive data.',
     },
     {
       icon: 'tabler:rocket',
       title: 'Simple & Fast',
       description:
-        'A clean, intuitive interface designed to get your message sent in seconds, right from WhatsApp Web.',
+        'A clean, intuitive interface designed to get your list validated in minutes. Just paste, configure your settings, and start.',
     },
   ]
+
   return (
     <Box mt={80}>
       <Center>
         <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>A Smarter Way to Chat</Title>
+          <Title order={2}>A Smarter Way to Manage Contacts</Title>
           <Text c="dimmed">
             {' '}
-            Unlock powerful features that make direct messaging faster and more
-            efficient.{' '}
+            Unlock powerful tools that make your communication more effective
+            and efficient.{' '}
           </Text>
         </Stack>
       </Center>
@@ -328,10 +316,11 @@ const UserPersonaSection = () => (
   <Box mt={80}>
     <Center>
       <Stack align="center" ta="center" maw={600}>
-        <Title order={2}>Built For Everyone</Title>
+        <Title order={2}>Built For Professionals</Title>
         <Text c="dimmed">
           {' '}
-          Whether for work or personal convenience, we've got you covered.{' '}
+          Whether you're in marketing, sales, or community management, we've got
+          you covered.{' '}
         </Text>
       </Stack>
     </Center>
@@ -341,14 +330,14 @@ const UserPersonaSection = () => (
           <Stack style={{ height: '100%' }}>
             <Group>
               <ThemeIcon variant="light" size={40} radius="md">
-                <Icon icon="tabler:briefcase" fontSize={22} />
+                <Icon icon="tabler:target-arrow" fontSize={22} />
               </ThemeIcon>
-              <Title order={3}>For Professionals & Business</Title>
+              <Title order={3}>For Marketers & Sales Teams</Title>
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Quickly follow up with leads, send quotes, or provide support
-              without adding every number to your business phone.{' '}
+              Maximize the impact of your outreach campaigns by ensuring your
+              contact database is clean, up-to-date, and ready for engagement.{' '}
             </Text>
             <List
               spacing="xs"
@@ -362,12 +351,15 @@ const UserPersonaSection = () => (
             >
               <List.Item>
                 {' '}
-                Send promotional images or PDF invoices directly.{' '}
+                Verify lead lists from events or web forms instantly.{' '}
               </List.Item>
-
               <List.Item>
                 {' '}
-                Keep your professional contacts list clean and organized.{' '}
+                Increase broadcast and campaign deliverability rates.{' '}
+              </List.Item>
+              <List.Item>
+                {' '}
+                Reduce wasted resources on inactive numbers.{' '}
               </List.Item>
             </List>
             <Button
@@ -388,14 +380,15 @@ const UserPersonaSection = () => (
           <Stack style={{ height: '100%' }}>
             <Group>
               <ThemeIcon variant="light" size={40} radius="md">
-                <Icon icon="tabler:heart" fontSize={22} />
+                <Icon icon="tabler:users-group" fontSize={22} />
               </ThemeIcon>
-              <Title order={3}>For Personal Use</Title>
+              <Title order={3}>For Community & HR Managers</Title>
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Contact a seller on a marketplace, RSVP to an event, or message a
-              new acquaintance without filling your address book.{' '}
+              Maintain accurate contact information for your community members
+              or employees. Ensure important announcements and updates reach
+              everyone.{' '}
             </Text>
             <List
               spacing="xs"
@@ -409,15 +402,15 @@ const UserPersonaSection = () => (
             >
               <List.Item>
                 {' '}
-                Quickly message someone from a classifieds ad.{' '}
+                Clean up member databases for better communication.{' '}
               </List.Item>
               <List.Item>
                 {' '}
-                Send your location to a friend you're meeting.{' '}
+                Verify phone numbers during employee onboarding.{' '}
               </List.Item>
               <List.Item>
                 {' '}
-                Keep your personal contacts for people you actually know.{' '}
+                Ensure contact lists for events are accurate.{' '}
               </List.Item>
             </List>
             <Button
@@ -428,7 +421,7 @@ const UserPersonaSection = () => (
               color="teal"
             >
               {' '}
-              Get More Convenience{' '}
+              Get More Efficiency{' '}
             </Button>
           </Stack>
         </Card>
@@ -441,29 +434,30 @@ const CaseStudySection = () => {
   const caseStudies = [
     {
       icon: 'tabler:building-store',
-      title: 'Contacting a Marketplace Seller',
+      title: 'Pre-Campaign List Cleaning',
       description:
-        "A user wants to ask about an item on an online marketplace. Instead of saving the seller's number, they use the extension to instantly send a message and a picture of the item.",
-      features: ['No Contact Saving', 'Send Images'],
-      persona: 'For Online Shoppers',
+        'A digital marketer uploads a list of 5,000 leads from a recent event. The tool identifies 800 invalid numbers, saving the company money and improving their campaign performance metrics.',
+      features: ['Excel Import', 'Unlimited Validation'],
+      persona: 'For Digital Marketers',
     },
     {
       icon: 'tabler:users',
-      title: 'Following Up with a Lead',
+      title: 'Verifying Sales Leads',
       description:
-        'A sales professional meets a new lead and needs to send them a company brochure. She quickly sends the PDF  without cluttering her personal contacts.',
-      features: ['Send Documents'],
+        'A sales team gets a list of potential clients. They quickly run the numbers through the validator to ensure their sales reps only spend time contacting people with active WhatsApp accounts.',
+      features: ['Quick Validation', 'Improve Productivity'],
       persona: 'For Sales & Business',
     },
     {
-      icon: 'tabler:tools-kitchen-2',
-      title: 'Coordinating with a Technician',
+      icon: 'tabler:database',
+      title: 'Database Maintenance',
       description:
-        'A homeowner needs to send their address to a repairman. They use the extension to share a location pin directly, ensuring the technician finds their house without any hassle.',
-      features: ['Send Location', 'Quick Messaging'],
-      persona: 'For Everyday Tasks',
+        'A community manager for a large online group periodically exports their member list and uses the validator to remove inactive numbers, keeping their communication channels effective.',
+      features: ['Export Results', 'Data Management'],
+      persona: 'For Community Managers',
     },
   ]
+
   return (
     <Box mt={80}>
       <Center>
@@ -471,7 +465,8 @@ const CaseStudySection = () => {
           <Title order={2}>Solves Real-World Problems</Title>
           <Text c="dimmed">
             {' '}
-            See how people use our tool to make communication faster and easier.{' '}
+            See how professionals use our tool to make their communication
+            smarter.{' '}
           </Text>
         </Stack>
       </Center>
@@ -549,7 +544,6 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 {plan.description}{' '}
               </Text>
             </Box>
-
             <Box my="lg" ta="center">
               {!plan.isFree && (
                 <Stack mb="lg">
@@ -584,9 +578,7 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 </Group>
               </Box>
             </Box>
-
             <Divider label="Key Features" labelPosition="center" my="sm" />
-
             <Stack gap="sm" mb="lg">
               {plan.features.map((feature, idx) => (
                 <Group key={idx} gap="sm" wrap="nowrap" align="flex-start">
@@ -606,7 +598,6 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 </Group>
               ))}
             </Stack>
-
             <Box mt="auto">
               {plan.isFree ? (
                 <Button size="md" variant="default" fullWidth disabled>
@@ -810,13 +801,13 @@ const SecuritySection = () => (
           >
             <List.Item>
               {' '}
-              <b>Direct Sending:</b> Your messages are sent directly through the
-              official WhatsApp Web interface.{' '}
+              <b>Local Processing:</b> Your number lists are checked directly
+              from your browser. They are never uploaded to our servers.{' '}
             </List.Item>
             <List.Item>
               {' '}
               <b>No Data Storage:</b> We never see, save, or have access to your
-              conversations, contacts, or files.{' '}
+              contacts or validation results.{' '}
             </List.Item>
             <List.Item>
               {' '}
@@ -836,40 +827,41 @@ const TestimonialsSection = () => {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-8.png',
       name: 'Sarah L.',
-      role: 'Small Business Owner',
+      role: 'Digital Marketer',
       quote:
-        'This has been a lifesaver for my business. I contact dozens of new people a day, and <b>not having to save every single number is a huge time-saver</b>. The ability to send a PDF quote directly with the Pro version is a game-changer.',
+        'This validator has become an essential tool for our campaigns. We cleaned a list of 10,000 leads and our <b>deliverability shot up by over 20%</b>. The ability to import from Excel and export the results makes it incredibly efficient.',
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png',
       name: 'Mike P.',
-      role: 'Online Seller',
+      role: 'Sales Manager',
       quote:
-        "I use this all the time for marketplace listings and one-off inquiries. <b>So simple and fast</b>. It's how WhatsApp should have worked from the beginning! The Pro upgrade was a no-brainer to send product videos.",
+        'My team uses this daily to verify new leads. <b>No more wasted time trying to contact invalid numbers</b>. The Pro version was a no-brainer for the unlimited checks. It paid for itself in the first week.',
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-4.png',
       name: 'Alisha C.',
-      role: 'Event Coordinator',
+      role: 'Community Manager',
       quote:
-        "Coordinating with vendors and clients means contacting lots of new numbers. This tool keeps my phone's address book from becoming a mess. <b>Scheduling reminders with the Pro version</b> is also an incredible feature.",
+        'We manage a large community, and keeping our contact list up-to-date was a nightmare. With this tool, we can <b>periodically clean our database in minutes</b>. The batch processing feature is fantastic for large lists.',
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-5.png',
       name: 'David G.',
-      role: 'Community Manager',
+      role: 'Small Business Owner',
       quote:
-        'I need to message new members without saving all their numbers. This extension makes it effortless. The <b>ability to use message templates</b> saves me so much time every day. Worth every penny for the lifetime license.',
+        "I was hesitant about bulk messaging tools, but the <b>safety features like randomized delay gave me peace of mind</b>. It's powerful, yet simple to use. Worth every penny for the lifetime license.",
     },
   ]
+
   return (
     <Box mt={80}>
       <Center>
         <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>Trusted by Users Like You</Title>
+          <Title order={2}>Trusted by Professionals</Title>
           <Text c="dimmed">
             {' '}
             See what our happy customers are saying about the Pro version.{' '}
@@ -937,9 +929,9 @@ const FaqSection = () => {
   const faqData = [
     {
       icon: 'tabler:rocket',
-      question: 'What are the main benefits of upgrading to Pro?',
+      question: 'Why do I need to upgrade to Pro?',
       answer:
-        'Pro unlocks powerful messaging features. You can <b>send files like images, videos, and documents</b> and locations, and <b>schedule messages</b> to be sent later. It turns a simple convenience into a powerful communication tool.',
+        'Pro unlocks the full power of the validator for professional use. You can check <b>unlimited numbers</b>, easily <b>import/export from Excel</b>, and use <b>safe batch processing</b> for very large lists. It turns a simple checker into a powerful data cleaning tool.',
     },
     {
       icon: 'tabler:key',
@@ -948,18 +940,19 @@ const FaqSection = () => {
         'It is a <b>one-time payment</b>. You pay once and get lifetime access to all current and future Pro features. No monthly fees, no subscriptions, ever.',
     },
     {
-      icon: 'tabler:alert-circle',
-      question: 'Do I need to save the number in my contacts first?',
+      icon: 'tabler:shield-check',
+      question: 'Is this safe? Can my WhatsApp account get banned?',
       answer:
-        "No! That's the main feature of the extension. You can type in any valid WhatsApp number and start a chat immediately without adding it to your address book.",
+        'We have designed this tool with safety as a priority. The Pro version includes <b>randomized delays and batch processing</b> to mimic human behavior, which significantly reduces any risk. However, we always recommend using it responsibly.',
     },
     {
-      icon: 'tabler:shield-check',
-      question: 'Is it safe to use?',
+      icon: 'tabler:help',
+      question: 'How does the validation actually work?',
       answer:
-        'Absolutely. The extension uses the official WhatsApp Web interface to send messages. It operates <b>locally on your computer</b>, and we do not store your messages or have access to your account.',
+        'The tool uses an official WhatsApp Web function to check if a number is registered on the platform <b>without sending any message or notification</b> to the number being checked. It is a quick and discreet process.',
     },
   ]
+
   return (
     <Box mt={80} id="faq">
       <Center>
@@ -1005,8 +998,8 @@ const ValueStackSection = () => (
           <Title order={2}>Here's Everything You Get</Title>
           <Text c="dimmed">
             {' '}
-            Your Pro Lifetime License is a complete package for powerful, direct
-            communication.{' '}
+            Your Pro Lifetime License is a complete package for professional
+            contact list management.{' '}
           </Text>
         </Stack>
       </Center>
@@ -1022,8 +1015,9 @@ const ValueStackSection = () => (
               </ThemeIcon>
             }
           >
-            <List.Item>Start Chats Without Saving Numbers</List.Item>
-            <List.Item>Send All Media Types (Images, Videos, etc.)</List.Item>
+            <List.Item>Unlimited Number Validations</List.Item>
+            <List.Item>Import from Excel & CSV</List.Item>
+            <List.Item>Export Results to Excel & CSV</List.Item>
           </List>
         </Grid.Col>
         <Grid.Col span={{ base: 12, sm: 6 }}>
@@ -1037,7 +1031,7 @@ const ValueStackSection = () => (
               </ThemeIcon>
             }
           >
-            <List.Item>Schedule Messages for Later</List.Item>
+            <List.Item>Safe Batch Processing Controls</List.Item>
             <List.Item>Priority Customer Support</List.Item>
             <List.Item>30-Day Money-Back Guarantee</List.Item>
           </List>
@@ -1094,6 +1088,7 @@ const Footer = () => (
 
 const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
   const [scroll] = useWindowScroll()
+
   return (
     <Transition
       mounted={scroll.y > 200}
@@ -1144,6 +1139,7 @@ const getOfferEndDate = (): Date => {
   if (storedEndDate && new Date(storedEndDate) > new Date()) {
     return new Date(storedEndDate)
   }
+
   const newEndDate = new Date()
   newEndDate.setDate(newEndDate.getDate() + 3)
   localStorage.setItem('offerEndDate', newEndDate.toISOString())
@@ -1163,9 +1159,7 @@ const LandingPage = () => {
       { city: 'Shaqra', country: 'Saudi Arabia' },
       { city: 'Miami', country: 'United States' },
     ]
-
     let timeoutId: NodeJS.Timeout
-
     const scheduleNextNotification = () => {
       clearTimeout(timeoutId)
       const randomDelay = Math.floor(Math.random() * (15000 - 8000 + 1)) + 8000 // 8-15 seconds
@@ -1203,9 +1197,10 @@ const LandingPage = () => {
           <FaqSection />
           <ValueStackSection />
           <ContactUsSection />
+
           <Center mt={40}>
             <Stack align="center" gap="lg">
-              <Title order={2}>Ready to Supercharge Your Messaging?</Title>
+              <Title order={2}>Ready to Supercharge Your Outreach?</Title>
               <Text c="dimmed" size="lg">
                 {' '}
                 Get all Pro features for a one-time payment.{' '}
@@ -1231,6 +1226,7 @@ const LandingPage = () => {
               </Stack>
             </Stack>
           </Center>
+
           <Footer />
         </Stack>
       </Container>

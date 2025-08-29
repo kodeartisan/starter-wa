@@ -1,4 +1,5 @@
-// src/features/Tools/NumberValidator/components/ResultsSection.tsx
+// src/features/number-validator/components/ResultsSection.tsx
+import useLicense from '@/hooks/useLicense'
 import toast from '@/utils/toast'
 import { Icon } from '@iconify/react'
 import {
@@ -17,20 +18,23 @@ import {
 import { useClipboard } from '@mantine/hooks'
 import _ from 'lodash'
 import React, { useMemo, useState } from 'react'
+import { When } from 'react-if'
 import type { useNumberValidator } from '../hooks/useNumberValidator'
 import ResultTable from './ResultTable'
 
 interface Props {
   validator: ReturnType<typeof useNumberValidator>
+  onShowUpgradeModal: (featureName: string, benefit: string) => void
 }
 
-const ResultsSection: React.FC<Props> = ({ validator }) => {
+const ResultsSection: React.FC<Props> = ({ validator, onShowUpgradeModal }) => {
   const [filter, setFilter] = useState('All')
   const [sortStatus, setSortStatus] = useState({
     columnAccessor: 'number',
     direction: 'asc',
   })
   const clipboard = useClipboard({ timeout: 1000 })
+  const license = useLicense()
 
   const stats = useMemo(() => {
     if (validator.results.length === 0)
@@ -73,6 +77,17 @@ const ResultsSection: React.FC<Props> = ({ validator }) => {
     toast.success(`${numbersToCopy.length} number(s) copied to clipboard!`)
   }
 
+  const handleExportClick = (format: 'csv' | 'xlsx') => {
+    if (license.isFree()) {
+      onShowUpgradeModal(
+        'Export Results',
+        'Upgrade to Pro to export validation results to CSV or Excel for your marketing campaigns.',
+      )
+      return
+    }
+    validator.handleExport(displayedResults, format)
+  }
+
   return (
     <Card withBorder p="lg" radius="md">
       <Stack>
@@ -103,6 +118,7 @@ const ResultsSection: React.FC<Props> = ({ validator }) => {
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
+
             <Menu shadow="md" width={200}>
               <Menu.Target>
                 <Button
@@ -111,23 +127,22 @@ const ResultsSection: React.FC<Props> = ({ validator }) => {
                   disabled={
                     displayedResults.length === 0 || validator.isValidating
                   }
+                  rightSection={
+                    <When condition={license.isFree()}>
+                      <Badge size="sm" variant="light" color="teal">
+                        PRO
+                      </Badge>
+                    </When>
+                  }
                 >
                   Export Results
                 </Button>
               </Menu.Target>
               <Menu.Dropdown>
-                <Menu.Item
-                  onClick={() =>
-                    validator.handleExport(displayedResults, 'csv')
-                  }
-                >
+                <Menu.Item onClick={() => handleExportClick('csv')}>
                   Export as CSV
                 </Menu.Item>
-                <Menu.Item
-                  onClick={() =>
-                    validator.handleExport(displayedResults, 'xlsx')
-                  }
-                >
+                <Menu.Item onClick={() => handleExportClick('xlsx')}>
                   Export as Excel
                 </Menu.Item>
               </Menu.Dropdown>

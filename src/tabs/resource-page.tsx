@@ -14,15 +14,18 @@ import {
   Code,
   Container,
   CopyButton,
+  Fieldset,
   Grid,
   Group,
   List,
   MantineProvider,
+  NumberInput,
   Paper,
   Radio,
   Select,
   Stack,
   Switch,
+  Table,
   Tabs,
   TagsInput,
   Text,
@@ -42,60 +45,60 @@ import React, { useRef } from 'react'
 const PROMO_GRADIENT_BACKGROUND =
   'linear-gradient(135deg, var(--mantine-color-teal-8), var(--mantine-color-lime-8))'
 
-// English: Overriding the primary icon to better represent the Direct Chat feature.
-const DIRECT_CHAT_ICON = 'tabler:message-circle-plus'
+// English: Overriding the primary icon to better represent the Number Validator feature.
+const VALIDATOR_ICON = 'tabler:checks'
 
-// --- START: New Mockups for Direct Chat Feature ---
-
-// Mockup of the simple, free-to-use direct chat interface.
-const MockupDirectChatSimple = () => (
+// --- START: New Mockups for Number Validator Feature ---
+// Mockup of the main validator interface.
+const MockupValidatorSimple = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
-      <Title order={4}>Send a Message in Seconds</Title>
+      <Title order={4}>Bulk Number Validator</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        No more saving contacts for a one-time chat.{' '}
+        Paste your numbers and get instant results.{' '}
       </Text>
-      <TextInput
-        label="1. Enter WhatsApp Number"
-        placeholder="e.g., 6281234567890 (with country code)"
-        disabled
-      />
       <Textarea
-        label="2. Write Your Message"
-        placeholder="Hello, I'm interested in the item you listed..."
+        label="1. Paste Numbers Here"
+        placeholder="6281234567890
+6289876543210
+1234567890 (Invalid)
+..."
         minRows={4}
         disabled
       />
-      <Button
-        mt="md"
-        size="md"
-        leftSection={<Icon icon="tabler:brand-whatsapp" />}
-      >
-        {' '}
-        Send Message{' '}
-      </Button>
+      <Group justify="flex-end">
+        <Button
+          mt="md"
+          size="md"
+          leftSection={<Icon icon="tabler:player-play" />}
+        >
+          {' '}
+          Start Validation{' '}
+        </Button>
+      </Group>
     </Stack>
   </Card>
 )
 
-// Mockup showing the Pro feature of sending media attachments.
-const MockupDirectChatWithMedia = () => (
+// Mockup showing the Pro feature of importing from Excel and batching.
+const MockupValidatorProFeatures = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
-      <Title order={4}>Send More Than Just Text</Title>
-      <TextInput label="WhatsApp Number" value="6281234567890" disabled />
-      <Tabs defaultValue="image" variant="pills" mt="xs">
+      <Title order={4}>Powerful Pro Tools</Title>
+      <Text c="dimmed" size="sm">
+        {' '}
+        Handle large lists with ease and safety.{' '}
+      </Text>
+      <Tabs defaultValue="import" variant="pills" mt="xs">
         <Tabs.List grow>
-          <Tabs.Tab value="text">Text</Tabs.Tab>
-          <Tabs.Tab value="image" color="teal">
+          <Tabs.Tab value="import" color="teal">
             {' '}
-            Image{' '}
+            Import from Excel{' '}
           </Tabs.Tab>
-          <Tabs.Tab value="video">Video</Tabs.Tab>
-          <Tabs.Tab value="file">File</Tabs.Tab>
+          <Tabs.Tab value="batching">Batch Processing</Tabs.Tab>
         </Tabs.List>
-        <Tabs.Panel value="image" pt="md">
+        <Tabs.Panel value="import" pt="md">
           <Center
             p="xl"
             style={{
@@ -105,11 +108,11 @@ const MockupDirectChatWithMedia = () => (
           >
             <Stack align="center">
               <Icon
-                icon="tabler:photo"
+                icon="tabler:file-type-xls"
                 fontSize={48}
                 color="var(--mantine-color-gray-5)"
               />
-              <Text c="dimmed">Image_Preview.jpg</Text>
+              <Text c="dimmed">contacts_list.xlsx</Text>
               <Badge color="teal" variant="light">
                 {' '}
                 PRO FEATURE{' '}
@@ -117,42 +120,26 @@ const MockupDirectChatWithMedia = () => (
             </Stack>
           </Center>
         </Tabs.Panel>
+        <Tabs.Panel value="batching" pt="md">
+          <Stack>
+            <Switch
+              checked
+              label="Process numbers in batches"
+              description="For large lists, this pauses validation periodically."
+              disabled
+            />
+            <Badge color="teal" variant="light" w="fit-content">
+              {' '}
+              PRO FEATURE{' '}
+            </Badge>
+          </Stack>
+        </Tabs.Panel>
       </Tabs>
     </Stack>
   </Card>
 )
 
-// ++ START: MODIFIED - Added a mockup for the templates feature.
-// Mockup showing the Pro feature of using message templates.
-const MockupDirectChatTemplates = () => (
-  <Card withBorder radius="md" p="xl" w={620}>
-    <Stack>
-      <Title order={4}>Save Time with Templates</Title>
-      <Text c="dimmed" size="sm">
-        Create, save, and reuse messages for common replies or greetings.
-      </Text>
-      <Textarea
-        label="Your Message"
-        placeholder="Thank you for your inquiry. Our business hours are..."
-        minRows={3}
-        disabled
-        value="Thank you for your inquiry. Our business hours are Monday to Friday, 9 AM to 5 PM."
-      />
-      <Group justify="flex-end">
-        <Button
-          variant="light"
-          leftSection={<Icon icon="tabler:template" />}
-          disabled
-        >
-          Use Template
-        </Button>
-      </Group>
-    </Stack>
-  </Card>
-)
-// ++ END: MODIFIED
-
-// Mockup for the Privacy/Security feature slide, which is still relevant.
+// Mockup for the Privacy/Security feature slide.
 const FeatureMockupPrivacy = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack align="center">
@@ -165,8 +152,8 @@ const FeatureMockupPrivacy = () => (
       </Title>
       <Text c="dimmed" size="sm" ta="center">
         {' '}
-        Your messages are sent directly through WhatsApp Web. We never see or
-        store your data.{' '}
+        Your contact lists are processed locally and are never seen, stored, or
+        uploaded by us.{' '}
       </Text>
       <List
         mt="lg"
@@ -181,11 +168,12 @@ const FeatureMockupPrivacy = () => (
       >
         <List.Item>
           {' '}
-          <b>Direct Sending:</b> Uses the official WhatsApp Web interface.{' '}
+          <b>Local Processing:</b> Uses official WhatsApp Web functions in your
+          browser.{' '}
         </List.Item>
         <List.Item>
           {' '}
-          <b>No Data Storage:</b> Your conversations are never saved by us.{' '}
+          <b>No Data Storage:</b> Your lists and results are never saved by us.{' '}
         </List.Item>
         <List.Item>
           {' '}
@@ -195,11 +183,97 @@ const FeatureMockupPrivacy = () => (
     </Stack>
   </Card>
 )
+// --- END: Original Mockups ---
 
-// --- END: New Mockups for Direct Chat Feature ---
+// ++ START: New, more accurate mockups for PageNumberValidator.tsx
+// Mockup for the detailed results table
+const MockupValidatorResultsTable = () => (
+  <Card withBorder radius="md" p="xl" w={620}>
+    <Stack>
+      <Title order={4}>Clear & Actionable Results</Title>
+      <Text c="dimmed" size="sm">
+        Review validation status and start chats with valid numbers directly.
+      </Text>
+      <Table striped highlightOnHover withTableBorder mt="sm">
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Phone Number</Table.Th>
+            <Table.Th>Status</Table.Th>
+            <Table.Th ta="right">Actions</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          <Table.Tr>
+            <Table.Td>6281234567890</Table.Td>
+            <Table.Td>
+              <Badge color="green">Valid</Badge>
+            </Table.Td>
+            <Table.Td ta="right">
+              <Icon
+                icon="tabler:brand-whatsapp"
+                color="var(--mantine-color-blue-6)"
+              />
+            </Table.Td>
+          </Table.Tr>
+          <Table.Tr>
+            <Table.Td>1234567890</Table.Td>
+            <Table.Td>
+              <Badge color="red">Invalid</Badge>
+            </Table.Td>
+            <Table.Td></Table.Td>
+          </Table.Tr>
+          <Table.Tr>
+            <Table.Td>6289876543210</Table.Td>
+            <Table.Td>
+              <Badge color="green">Valid</Badge>
+            </Table.Td>
+            <Table.Td ta="right">
+              <Icon
+                icon="tabler:brand-whatsapp"
+                color="var(--mantine-color-blue-6)"
+              />
+            </Table.Td>
+          </Table.Tr>
+        </Table.Tbody>
+      </Table>
+    </Stack>
+  </Card>
+)
+
+// Mockup for the safety settings
+const MockupValidatorSettings = () => (
+  <Card withBorder radius="md" p="xl" w={620}>
+    <Stack>
+      <Title order={4}>Safe Validation Settings</Title>
+      <Text c="dimmed" size="sm">
+        Customize delays and batching to validate large lists safely.
+      </Text>
+      <Fieldset legend="Randomized Delay">
+        <Group grow>
+          <NumberInput label="Min Delay (sec)" value={2} disabled />
+          <NumberInput label="Max Delay (sec)" value={5} disabled />
+        </Group>
+      </Fieldset>
+      <Fieldset
+        legend={
+          <Group gap="xs">
+            <Text>Batch Processing</Text>
+            <Badge color="teal">PRO</Badge>
+          </Group>
+        }
+      >
+        <Switch checked label="Process numbers in batches" disabled />
+        <Group grow mt="md">
+          <NumberInput label="Batch Size" value={50} disabled />
+          <NumberInput label="Pause Duration (min)" value={1} disabled />
+        </Group>
+      </Fieldset>
+    </Stack>
+  </Card>
+)
+// ++ END: New Mockups
 
 // --- Marquee Promo Tiles (1280x800px) ---
-// ++ START: MODIFIED - Added "Templates" feature to the showcase tile.
 const MarqueeTileFeatureShowcase = () => (
   <Paper
     w={1280}
@@ -221,16 +295,17 @@ const MarqueeTileFeatureShowcase = () => (
               variant="gradient"
               gradient={{ from: 'teal', to: 'lime' }}
             >
-              <Icon icon={DIRECT_CHAT_ICON} fontSize={62} />
+              <Icon icon={VALIDATOR_ICON} fontSize={62} />
             </ThemeIcon>
             <Title order={1} fz={44} lh={1.2} c="white">
               {' '}
-              The Fastest Way to Start a WhatsApp Chat{' '}
+              The Smartest Way to Validate WhatsApp Numbers{' '}
             </Title>
             <Text size="xl" c="white" fw={500} mt="md">
               {' '}
-              Message any number without saving it to your contacts. Perfect for
-              business, sales, and one-time conversations.{' '}
+              Clean your contact lists, improve campaign ROI, and stop wasting
+              messages on inactive numbers. The essential tool for marketers and
+              sales teams.{' '}
             </Text>
           </Stack>
         </Grid.Col>
@@ -244,16 +319,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={36}
                 >
-                  <Icon icon="tabler:device-mobile-message" fontSize={22} />
+                  <Icon icon="tabler:file-import" fontSize={22} />
                 </ThemeIcon>
                 <Text size="lg" fw={700}>
                   {' '}
-                  Instant Messaging{' '}
+                  Bulk Import/Export{' '}
                 </Text>
               </Group>
               <Text size="sm" c="gray.6" fw={500} mt="xs">
                 {' '}
-                Chat without saving the contact first.{' '}
+                Handle thousands of numbers from Excel & CSV.{' '}
               </Text>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -264,19 +339,18 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={36}
                 >
-                  <Icon icon="tabler:paperclip" fontSize={22} />
+                  <Icon icon="tabler:shield-cog" fontSize={22} />
                 </ThemeIcon>
                 <Text fw={700} size="lg">
                   {' '}
-                  Send Media{' '}
+                  Safe Validation{' '}
                 </Text>
               </Group>
               <Text size="sm" c="gray.6" fw={500} mt="xs">
                 {' '}
-                Send images, videos, documents, and more.{' '}
+                Use smart delays and batching to protect your account.{' '}
               </Text>
             </Card>
-            {/* English: Added a new feature card for templates. */}
             <Card withBorder shadow="lg" p="lg">
               <Group>
                 <ThemeIcon
@@ -285,16 +359,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={36}
                 >
-                  <Icon icon="tabler:template" fontSize={22} />
+                  <Icon icon="tabler:analyze" fontSize={22} />
                 </ThemeIcon>
                 <Text fw={700} size="lg">
                   {' '}
-                  Save Time with Templates{' '}
+                  Improve ROI{' '}
                 </Text>
               </Group>
               <Text size="sm" c="gray.6" fw={500} mt="xs">
                 {' '}
-                Save and reuse messages for common replies.{' '}
+                Increase deliverability by messaging only valid users.{' '}
               </Text>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -314,7 +388,7 @@ const MarqueeTileFeatureShowcase = () => (
               </Group>
               <Text size="sm" c="gray.6" fw={500} mt="xs">
                 {' '}
-                Your messages are never seen or stored.{' '}
+                Your contact lists are never seen or stored.{' '}
               </Text>
             </Card>
           </Stack>
@@ -323,7 +397,6 @@ const MarqueeTileFeatureShowcase = () => (
     </Stack>
   </Paper>
 )
-// ++ END: MODIFIED
 
 interface MarqueeTileFeatureDetailProps {
   icon: string
@@ -331,6 +404,7 @@ interface MarqueeTileFeatureDetailProps {
   description: string
   featureComponent: React.ReactNode
 }
+
 const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
   icon,
   title,
@@ -372,7 +446,6 @@ const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
   </Paper>
 )
 
-// ++ START: MODIFIED - Added a new screenshot entry for the templates feature.
 const ScreenshotGallery: React.FC = () => {
   const screenshotData = [
     {
@@ -387,33 +460,44 @@ const ScreenshotGallery: React.FC = () => {
         <MarqueeTileFeatureDetail
           icon="tabler:mouse"
           title="Clean & Intuitive Interface"
-          description="Just enter a number, type your message, and send. It's that simple to start a conversation without cluttering your contacts."
-          featureComponent={<MockupDirectChatSimple />}
+          description="Just paste your list of numbers, adjust the safe settings, and click start. It's that simple to clean your contact lists."
+          featureComponent={<MockupValidatorSimple />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: Send Rich Media (1280x800)',
-      filename: 'feature_send_media.png',
+      title: 'Feature Screenshot: Pro Tools for Large Lists (1280x800)',
+      filename: 'feature_pro_tools.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:photo-video"
-          title="Go Beyond Text"
-          description="Send images, videos, documents, and more. Perfect for sharing quotes, portfolios, or product photos."
-          featureComponent={<MockupDirectChatWithMedia />}
+          icon="tabler:file-import"
+          title="Handle Large Lists Like a Pro"
+          description="Import thousands of numbers directly from an Excel file and use smart batch processing to validate large lists safely and efficiently."
+          featureComponent={<MockupValidatorProFeatures />}
         />
       ),
     },
-    // English: Added a new screenshot definition for message templates.
     {
-      title: 'Feature Screenshot: Message Templates (1280x800)',
-      filename: 'feature_message_templates.png',
+      title: 'Feature Screenshot: Detailed Results (1280x800)',
+      filename: 'feature_detailed_results.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:template"
-          title="Save Time with Templates"
-          description="Create and reuse message templates for common replies, greetings, or important information. A huge time-saver for business and personal use."
-          featureComponent={<MockupDirectChatTemplates />}
+          icon="tabler:table-export"
+          title="Export Actionable Results"
+          description="Get a clear, color-coded summary of valid and invalid numbers. Export the results to a CSV or Excel file for your marketing campaigns."
+          featureComponent={<MockupValidatorResultsTable />}
+        />
+      ),
+    },
+    {
+      title: 'Feature Screenshot: Safety Settings (1280x800)',
+      filename: 'feature_safety_settings.png',
+      component: (
+        <MarqueeTileFeatureDetail
+          icon="tabler:shield-cog"
+          title="Validate with Confidence"
+          description="Use randomized delays and batch processing to mimic human behavior. This approach significantly reduces risks when checking large numbers of contacts."
+          featureComponent={<MockupValidatorSettings />}
         />
       ),
     },
@@ -424,12 +508,13 @@ const ScreenshotGallery: React.FC = () => {
         <MarqueeTileFeatureDetail
           icon="tabler:shield-lock"
           title="Your Privacy is Our Priority"
-          description="This extension operates 100% locally on your computer. Your messages and media are never uploaded to any server, ensuring complete privacy."
+          description="This extension operates 100% locally on your computer. Your contact lists and validation results are never uploaded to any server, ensuring complete privacy."
           featureComponent={<FeatureMockupPrivacy />}
         />
       ),
     },
   ]
+
   return (
     <Stack>
       <Text c="dimmed" mb="md">
@@ -451,13 +536,12 @@ const ScreenshotGallery: React.FC = () => {
     </Stack>
   )
 }
-// ++ END: MODIFIED
 
 const ResourcePage = () => {
   const iconRef = useRef<HTMLDivElement>(null)
   const icons = [
     {
-      component: <PromoIcon size={128} icon={DIRECT_CHAT_ICON} />,
+      component: <PromoIcon size={128} icon={VALIDATOR_ICON} />,
       ref: iconRef,
       name: 'promotional_icon.png',
     },
@@ -465,62 +549,63 @@ const ResourcePage = () => {
 
   const storeListingText = {
     titles: [
-      'Direct Message for WhatsApp',
-      'Start Chat without Saving Contact',
-      'Quick Message for WhatsApp Web',
+      'Bulk Number Validator for WhatsApp',
+      'Check & Verify WA Numbers',
+      'WhatsApp Number Cleaner & Filter',
     ],
     shortDescriptions: [
-      'Instantly send WhatsApp messages to any number without adding them to your contacts. Fast, simple, and private.',
-      'Type a number, write your message, and hit send. The easiest way to start a WhatsApp chat without saving the contact first.',
-      'The ultimate time-saver for WhatsApp Web. Send messages to unsaved numbers, attach files, and schedule them for later.',
+      'Safely validate thousands of WhatsApp numbers in bulk. Clean your contact lists, improve marketing ROI, and stop messaging dead numbers.',
+      'The essential tool for marketers. Check if numbers are on WhatsApp, import from Excel, and export cleaned lists for your campaigns.',
+      'Quickly verify your contact lists. Our number validator checks for active WhatsApp accounts without sending a single message.',
     ],
-    longDescription: `📱 Stop Cluttering Your Contacts!
+    longDescription: `📈 Stop Wasting Time & Money on Bad Numbers!
 
-Tired of saving a number just to send one WhatsApp message? WhatsDirect - WA Direct Chats for WhatsApp is the ultimate tool for starting conversations quickly and efficiently, right from your computer.
+Tired of your WhatsApp marketing campaigns having low deliverability? WhatsDirect - WA Direct Chats for WhatsApp is the ultimate tool for cleaning your contact lists and ensuring your messages reach real, active users.
 
 ✨ Key Features
-- 🚀 Instant Chat: Enter any phone number and start chatting immediately. No need to save the contact first!
-- 📎 Send Anything: Go beyond text. Send images, videos, documents, and location pins
-- 📝 Message Templates : Save and reuse frequently sent messages to save even more time.
-- 🔒 100% Private & Secure: The extension uses the official WhatsApp Web interface to send messages. Your data never leaves your computer, and we never see or store it.
+- 🚀 Bulk Number Validation: Check thousands of numbers at once. Just copy-paste your list or import it from a file.
+- 📁 Excel & CSV Support (Pro): Easily import your contact lists from Excel or CSV files and export the clean results for your CRM or marketing platform.
+- 🛡️ Safe & Smart Checking: Uses randomized delays and batch processing (Pro) to mimic human behavior, keeping your account safe.
+- 📊 Clear Results: Instantly see which numbers are "Valid" and "Invalid" on WhatsApp.
+- 🔒 100% Private & Secure: The validation process runs entirely on your computer. Your contact lists are never uploaded, seen, or stored by us.
 
 🤔 Who Is This For?
-- 💼 Business & Sales Professionals: Quickly message new leads, send quotes, and provide customer support without bloating your contact list.
-- 🛒 Online Shoppers & Sellers: Easily communicate with buyers or sellers on marketplaces without exchanging contact details permanently.
-- 🗓️ Event Organizers: Send details or reminders to attendees without saving dozens of numbers.
-- 🙋‍♀️ Anyone who values their time and privacy: The perfect tool for any one-time conversation.
+- 💼 Digital Marketers: Clean your database before a major campaign to maximize ROI and engagement.
+- 📈 Sales Teams: Verify leads from conferences, web forms, or purchased lists to ensure your reps are contacting valid prospects.
+- 👥 Community Managers: Keep your member contact lists up-to-date and accurate.
+- 👩‍💼 Anyone who manages large lists of contacts and needs to ensure they are reachable on WhatsApp.
 
-🚀 Get started in seconds and change the way you use WhatsApp Web forever!
+🚀 Get started in seconds and take control of your contact data quality!
 
 WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other countries. This extension has no relationship to WhatsApp or WhatsApp Inc.`,
   }
 
   const justificationTexts = {
-    singlePurpose: `The core purpose of this extension is to allow users to initiate a WhatsApp conversation with any phone number directly from WhatsApp Web, without first needing to save that number to their device's contact list. All features, such as the number input field, message composer, and media attachment options, are directly related to this single purpose of streamlining one-time or infrequent communication on WhatsApp.`,
+    singlePurpose: `The core purpose of this extension is to allow users to validate a list of phone numbers to check for the existence of active WhatsApp accounts. All features, such as number input fields, Excel import/export, and delay settings, are directly related to this single purpose of cleaning and verifying contact lists for more effective communication.`,
     storage: `The 'storage' permission is used to store essential user settings and license information locally on the user's device. This includes:
 - The user's license key to unlock Pro features.
 - An instance ID for license activation management.
-- User preferences, such as saved message templates.
+- User preferences, such as custom delay and batch processing settings.
 This data is stored only on the user's computer and is crucial for providing a persistent and personalized experience without requiring a remote server or user accounts.`,
     scripting: `Content scripts are essential for the extension's functionality. They are used exclusively on web.whatsapp.com to:
-1. Inject the user interface (the main modal for sending messages) onto the page, allowing users to interact with the extension directly within the WhatsApp Web environment.
-2. Communicate with the WhatsApp Web application's JavaScript context to securely initiate the sending of messages. This process is handled locally and is necessary to fulfill the extension's core purpose.`,
-    hostWhatsapp: `The permission for "https://web.whatsapp.com/*" is required to allow the extension's content scripts to run on WhatsApp Web. The extension needs to access the DOM and interact with the page to inject its UI and send messages on the user's behalf. The extension's functionality is entirely dependent on its ability to operate on this specific domain.`,
-    hostLemonSqueezy: `The permission for "https://api.lemonsqueezy.com/*" is used to securely communicate with the Lemon Squeezy API for license validation and management. When a user activates a Pro license, the extension sends a request to this domain to verify, activate, or deactivate the license key. This is a standard and secure method for handling software licensing and does not transmit any personal chat data.`,
+1. Inject the user interface (the main modal for validating numbers) onto the page, allowing users to interact with the extension directly within the WhatsApp Web environment.
+2. Communicate with the WhatsApp Web application's JavaScript context to securely check numbers. This process is handled locally and is necessary to fulfill the extension's core purpose.`,
+    hostWhatsapp: `The permission for "https://web.whatsapp.com/*" is required to allow the extension's content scripts to run on WhatsApp Web. The extension needs to access the DOM and interact with the page to inject its UI and perform the validation checks on the user's behalf. The extension's functionality is entirely dependent on its ability to operate on this specific domain.`,
+    hostLemonSqueezy: `The permission for "https://api.lemonsqueezy.com/*" is used to securely communicate with the Lemon Squeezy API for license validation and management. When a user activates a Pro license, the extension sends a request to this domain to verify, activate, or deactivate the license key. This is a standard and secure method for handling software licensing and does not transmit any personal chat data or contact lists.`,
   }
 
   const keywords = [
-    'whatsapp direct',
-    'start chat',
-    'unsaved number',
-    'whatsapp without saving contact',
-    'quick message',
-    'direct message',
-    'send whatsapp',
-    'whatsapp web',
-    'wa direct',
-    'message unsaved number',
-    'no contact whatsapp',
+    'whatsapp validator',
+    'whatsapp number checker',
+    'bulk whatsapp verify',
+    'clean whatsapp list',
+    'whatsapp marketing',
+    'wa number check',
+    'whatsapp filter',
+    'whatsapp verifier',
+    'check whatsapp number',
+    'validate numbers',
+    'whatsapp contacts cleaner',
   ]
   const keywordsString = keywords.join(', ')
 
@@ -549,6 +634,7 @@ This data is stored only on the user's computer and is crucial for providing a p
             {' '}
             Use these assets and text to create your store listing page.{' '}
           </Text>
+
           <Tabs defaultValue="screenshots">
             <Tabs.List grow>
               <Tabs.Tab
@@ -587,6 +673,7 @@ This data is stored only on the user's computer and is crucial for providing a p
                 Privacy Justifications{' '}
               </Tabs.Tab>
             </Tabs.List>
+
             <Tabs.Panel value="text" pt="lg">
               <Stack gap="xl">
                 <Stack>
@@ -685,6 +772,7 @@ This data is stored only on the user's computer and is crucial for providing a p
                 </Card>
               </Stack>
             </Tabs.Panel>
+
             <Tabs.Panel value="icons" pt="lg">
               <Center>
                 <Card withBorder radius="md" p="xl" w={300}>
@@ -706,9 +794,11 @@ This data is stored only on the user's computer and is crucial for providing a p
                 </Card>
               </Center>
             </Tabs.Panel>
+
             <Tabs.Panel value="screenshots" pt="lg">
               <ScreenshotGallery />
             </Tabs.Panel>
+
             <Tabs.Panel value="keywords" pt="lg">
               <Card withBorder radius="md">
                 <Group justify="space-between">
@@ -749,6 +839,7 @@ This data is stored only on the user's computer and is crucial for providing a p
                 </Paper>
               </Card>
             </Tabs.Panel>
+
             <Tabs.Panel value="privacy" pt="lg">
               <Stack gap="xl">
                 <Card withBorder radius="md">

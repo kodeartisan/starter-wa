@@ -1,23 +1,25 @@
 // src/features/number-validator/PageNumberValidator.tsx
 import LayoutPage from '@/components/Layout/LayoutPage'
 import ModalSourceExcel from '@/components/Modal/ModalSourceExcel'
+import ModalUpgrade from '@/components/Modal/ModalUpgrade'
 import useLicense from '@/hooks/useLicense'
-import { showModalUpgrade } from '@/utils/util'
 import { Icon } from '@iconify/react'
-import { Button, Card, Group, Stack, Text, Title } from '@mantine/core'
+import { Button, Group, Text } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import React from 'react'
+import React, { useState } from 'react'
 import { When } from 'react-if'
 import InputSection from './components/InputSection'
 import ResultsSection from './components/ResultsSection'
 import SettingsSection from './components/SettingsSection'
 import { useNumberValidator } from './hooks/useNumberValidator'
 
-const VALIDATION_LIMIT_FREE = 50
+const VALIDATION_LIMIT_FREE = 5
 
 const PageNumberValidator: React.FC = () => {
   const [showExcelModal, excelModalHandlers] = useDisclosure(false)
-  const [showGroupsModal, groupsModalHandlers] = useDisclosure(false)
+  const [showUpgradeModal, upgradeModalHandlers] = useDisclosure(false)
+  const [upgradeInfo, setUpgradeInfo] = useState({ name: '', benefit: '' })
+
   const validator = useNumberValidator()
   const license = useLicense()
 
@@ -25,13 +27,17 @@ const PageNumberValidator: React.FC = () => {
     const newNumbers = newRecipients.map((r) => r.number || r)
     validator.addNumbers(newNumbers)
     excelModalHandlers.close()
-    groupsModalHandlers.close()
+  }
+
+  const triggerUpgradeModal = (name: string, benefit: string) => {
+    setUpgradeInfo({ name, benefit })
+    upgradeModalHandlers.open()
   }
 
   const handleStart = () => {
     const numbersToValidate = validator.numbers.filter(Boolean).length
     if (license.isFree() && numbersToValidate > VALIDATION_LIMIT_FREE) {
-      showModalUpgrade(
+      triggerUpgradeModal(
         'Unlimited Number Validation',
         `The free version is limited to ${VALIDATION_LIMIT_FREE} numbers per validation. Upgrade to Pro to validate unlimited numbers.`,
       )
@@ -47,11 +53,12 @@ const PageNumberValidator: React.FC = () => {
         setNumbers={validator.setNumbers}
         isValidating={validator.isValidating}
         onImportExcel={excelModalHandlers.open}
-        onImportGroups={groupsModalHandlers.open}
+        onShowUpgradeModal={triggerUpgradeModal}
       />
       <SettingsSection
         validator={validator}
         isValidating={validator.isValidating}
+        onShowUpgradeModal={triggerUpgradeModal}
       />
       <When condition={!validator.isValidating && validator.estimatedTime}>
         <Text size="sm" c="dimmed">
@@ -93,7 +100,10 @@ const PageNumberValidator: React.FC = () => {
         </Group>
       </Group>
       <When condition={validator.isValidating || validator.results.length > 0}>
-        <ResultsSection validator={validator} />
+        <ResultsSection
+          validator={validator}
+          onShowUpgradeModal={triggerUpgradeModal}
+        />
       </When>
 
       <ModalSourceExcel
@@ -101,11 +111,12 @@ const PageNumberValidator: React.FC = () => {
         onClose={excelModalHandlers.close}
         onSubmit={handleAddFromSource}
       />
-      {/* <ModalSourceMemberGroups
-        opened={showGroupsModal}
-        onClose={groupsModalHandlers.close}
-        onSubmit={handleAddFromSource}
-      /> */}
+      <ModalUpgrade
+        opened={showUpgradeModal}
+        onClose={upgradeModalHandlers.close}
+        featureName={upgradeInfo.name}
+        featureBenefit={upgradeInfo.benefit}
+      />
     </LayoutPage>
   )
 }
