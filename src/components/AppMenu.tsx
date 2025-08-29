@@ -1,6 +1,6 @@
 // src/components/AppMenu.tsx
 import { Action, Page, PRIMARY_ICON, Setting } from '@/constants'
-import PageNumberValidator from '@/features/number-validator/PageNumberValidator'
+import PageStatus from '@/features/status/PageStatus'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
 import useWindowMessage from '@/hooks/useWindowMessage'
@@ -125,7 +125,7 @@ const AppMenu: React.FC = () => {
         <Stack justify="space-between" gap={0} style={{ height: '100%' }}>
           <Box>
             <Tabs.Tab value={Page.HOME} className={classes.tab}>
-              <Tooltip label="Check & Verify" position="left">
+              <Tooltip label="Status" position="left">
                 <Icon icon={PRIMARY_ICON} fontSize={26} color="white" />
               </Tooltip>
             </Tabs.Tab>
@@ -169,7 +169,7 @@ const AppMenu: React.FC = () => {
     return (
       <>
         <Tabs.Panel value={Page.HOME}>
-          <PageNumberValidator />
+          <PageStatus />
         </Tabs.Panel>
       </>
     )

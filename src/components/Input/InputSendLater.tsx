@@ -17,12 +17,7 @@ const InputSendLater: React.FC<Props> = ({ form }: Props) => {
       <Switch
         label={
           <Group gap="xs">
-            <Text fw={500}>Send later</Text>
-            <When condition={license.isFree()}>
-              <Badge size="sm" variant="light" color="teal">
-                PRO
-              </Badge>
-            </When>
+            <Text fw={500}>Schedule later</Text>
           </Group>
         }
         {...form.getInputProps('scheduler.enabled', { type: 'checkbox' })}

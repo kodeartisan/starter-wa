@@ -286,18 +286,16 @@ const MarqueeTileFeatureShowcase = () => (
               variant="gradient"
               gradient={{ from: 'teal', to: 'lime' }}
             >
-              <Icon icon={VALIDATOR_ICON} fontSize={62} />
+              <Icon icon={VALIDATOR_ICON} fontSize={70} />
             </ThemeIcon>
-            <Title order={1} fz={44} lh={1.2} c="white">
+            <Title fz={48} lh={1.2} c="white">
               {' '}
               The Smartest Way to Validate WhatsApp Numbers{' '}
             </Title>
-            <Text size="xl" c="white" fw={500} mt="md">
-              {' '}
-              Clean your contact lists, improve campaign ROI, and stop wasting
-              messages on inactive numbers. The essential tool for marketers and
-              sales teams.{' '}
-            </Text>
+            <Title order={2} c="white" fw={500} mt="md">
+              Improve campaign ROI, and stop wasting messages on inactive
+              numbers. The essential tool for marketers and sales teams.
+            </Title>
           </Stack>
         </Grid.Col>
         <Grid.Col span={4}>
@@ -308,16 +306,16 @@ const MarqueeTileFeatureShowcase = () => (
                   variant="gradient"
                   gradient={{ from: 'teal', to: 'lime' }}
                   radius="xl"
-                  size={36}
+                  size={44}
                 >
-                  <Icon icon="tabler:file-import" fontSize={22} />
+                  <Icon icon="tabler:file-import" fontSize={30} />
                 </ThemeIcon>
-                <Text size="lg" fw={700}>
+                <Title order={2} fw={700}>
                   {' '}
                   Bulk Import/Export{' '}
-                </Text>
+                </Title>
               </Group>
-              <Text size="sm" c="gray.6" fw={500} mt="xs">
+              <Text size="xl" c="gray.7" fw={500} mt="xs">
                 {' '}
                 Handle thousands of numbers from Excel & CSV.{' '}
               </Text>
@@ -328,18 +326,16 @@ const MarqueeTileFeatureShowcase = () => (
                   variant="gradient"
                   gradient={{ from: 'teal', to: 'lime' }}
                   radius="xl"
-                  size={36}
+                  size={44}
                 >
-                  <Icon icon="tabler:shield-cog" fontSize={22} />
+                  <Icon icon="tabler:shield-cog" fontSize={30} />
                 </ThemeIcon>
-                <Text fw={700} size="lg">
-                  {' '}
-                  Safe Validation{' '}
-                </Text>
+                <Title fw={700} order={2}>
+                  Safe Validation
+                </Title>
               </Group>
-              <Text size="sm" c="gray.6" fw={500} mt="xs">
-                {' '}
-                Use smart delays and batching to protect your account.{' '}
+              <Text size="xl" c="gray.7" fw={500} mt="xs">
+                Use smart delays and batching to protect your account.
               </Text>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -348,38 +344,17 @@ const MarqueeTileFeatureShowcase = () => (
                   variant="gradient"
                   gradient={{ from: 'teal', to: 'lime' }}
                   radius="xl"
-                  size={36}
+                  size={40}
                 >
-                  <Icon icon="tabler:analyze" fontSize={22} />
+                  <Icon icon="tabler:analyze" fontSize={30} />
                 </ThemeIcon>
-                <Text fw={700} size="lg">
+                <Title order={2} fw={700}>
                   {' '}
                   Improve ROI{' '}
-                </Text>
+                </Title>
               </Group>
-              <Text size="sm" c="gray.6" fw={500} mt="xs">
-                {' '}
-                Increase deliverability by messaging only valid users.{' '}
-              </Text>
-            </Card>
-            <Card withBorder shadow="lg" p="lg">
-              <Group>
-                <ThemeIcon
-                  variant="gradient"
-                  gradient={{ from: 'teal', to: 'lime' }}
-                  radius="xl"
-                  size={36}
-                >
-                  <Icon icon="tabler:shield-lock" fontSize={22} />
-                </ThemeIcon>
-                <Text fw={700} size="lg">
-                  {' '}
-                  100% Private{' '}
-                </Text>
-              </Group>
-              <Text size="sm" c="gray.6" fw={500} mt="xs">
-                {' '}
-                Your contact lists are never seen or stored.{' '}
+              <Text size="xl" c="gray.7" fw={500} mt="xs">
+                Increase deliverability by messaging only valid users.
               </Text>
             </Card>
           </Stack>

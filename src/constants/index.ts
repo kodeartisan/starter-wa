@@ -2,7 +2,7 @@
 export * as Action from './action'
 export * as Setting from './setting'
 
-export const PRIMARY_ICON = 'tabler:checks'
+export const PRIMARY_ICON = 'tabler:history-toggle'
 
 export const Status = {
   SUCCESS: 'SUCCESS',
@@ -80,4 +80,10 @@ export const SaveAs = {
   MARKDOWN: 'SAVE_AS_MARKDOWN',
   HTML: 'SAVE_AS_HTML',
   VCARD: 'SAVE_AS_VCARD',
+}
+
+export const StatusType = {
+  TEXT: 'TEXT_STATUS',
+  IMAGE: 'IMAGE_STATUS',
+  VIDEO: 'VIDEO_STATUS',
 }

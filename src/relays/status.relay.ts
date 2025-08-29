@@ -1,4 +1,5 @@
 import { Action } from '@/constants'
+import { response } from '@/utils/response'
 import { relay } from '@plasmohq/messaging/relay'
 
 const get = () => {
@@ -64,8 +65,13 @@ const sendTextStatus = () => {
       name: Action.Status.SEND_TEXT_STATUS,
     },
     async ({ body }) => {
-      const { content, options } = body
-      return await WPP.status.sendTextStatus(content, options)
+      try {
+        const { content, options } = body
+        await WPP.status.sendTextStatus(content, options)
+        return response.success()
+      } catch (error) {
+        return response.error(error.message)
+      }
     },
   )
 }

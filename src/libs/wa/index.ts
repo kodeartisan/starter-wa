@@ -4,6 +4,7 @@ import * as contact from './contact'
 import * as group from './group'
 import * as on from './on'
 import * as send from './send'
+import * as status from './status'
 
 export default {
   on,
@@ -12,4 +13,5 @@ export default {
   contact,
   chat,
   group,
+  status,
 }

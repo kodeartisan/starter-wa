@@ -79,6 +79,20 @@ export interface QuickReply {
   createdAt?: Date
 }
 
+export interface UserStatus {
+  id: number
+  name?: string
+  type: string
+  message: any
+  createdAt: Date
+  status: string
+  backgroundColor?: string
+  font?: number
+  isScheduled?: number
+  scheduledAt?: Date | null
+  postedAt?: Date | null
+}
+
 const db = new Dexie(packageJson.name) as Dexie & {
   media: EntityTable<Media, 'id'>
   broadcasts: EntityTable<Broadcast, 'id'>
@@ -88,6 +102,7 @@ const db = new Dexie(packageJson.name) as Dexie & {
   labels: EntityTable<Label, 'id'>
   directChatTemplates: EntityTable<DirectChatTemplate, 'id'>
   quickReplies: EntityTable<QuickReply, 'id'>
+  userStatuses: EntityTable<UserStatus, 'id'>
 }
 
 // NOTE: Dexie cannot index boolean values. Fields intended for use in `where()` clauses
@@ -103,6 +118,8 @@ db.version(1).stores({
   labels: '++id, label, value, show, custom, color, group, isPinned, *numbers',
   directChatTemplates: '++id, name',
   quickReplies: '++id, name, type, isPinned, createdAt',
+  userStatuses:
+    '++id, name, type, createdAt, status, backgroundColor, font, isScheduled, scheduledAt, postedAt',
 })
 
 export default db
