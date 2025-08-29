@@ -2,7 +2,7 @@
   "name": "whats-backup",
   "shortName": "WhatsBackup",
   "displayName": "WhatsBackup - WA Chats Backup & Exporter for WhatsApp",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Save your WhatsApp chat and export to multiple formats",
   "author": "Extninja",
   "scripts": {
