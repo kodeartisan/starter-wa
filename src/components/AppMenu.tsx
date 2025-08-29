@@ -1,6 +1,5 @@
 // src/components/AppMenu.tsx
 import { Action, Page, PRIMARY_ICON, Setting } from '@/constants'
-import PageDirectChat from '@/features/direct-chat/PageDirectChat'
 import PageNumberValidator from '@/features/number-validator/PageNumberValidator'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
@@ -18,6 +17,7 @@ import Modal from './Modal/Modal'
 import ModalActivation from './Modal/ModalActivation'
 import ModalFaq from './Modal/ModalFaq'
 import ModalProfile from './Modal/ModalProfile'
+import ModalUpgrade from './Modal/ModalUpgrade'
 
 const AppMenu: React.FC = () => {
   const { setIsReady, setActiveChat } = useAppStore()
@@ -26,6 +26,11 @@ const AppMenu: React.FC = () => {
   const [showModalActivation, modalActivation] = useDisclosure(false)
   const [showModalFaq, modalFaq] = useDisclosure(false)
   const [showModalProfile, modalProfile] = useDisclosure(false)
+  const [showModalUpgrade, modalUpgradeHandlers] = useDisclosure(false)
+  const [upgradeInfo, setUpgradeInfo] = useState({
+    featureName: '',
+    featureBenefit: '',
+  })
   const [needToOpen, setNeedToOpen] = useStorage(Setting.NEED_TO_OPEN, false)
   const [activeTab, setActiveTab] = useState<string | null>(Page.HOME)
 
@@ -44,7 +49,11 @@ const AppMenu: React.FC = () => {
         setActiveTab(body)
         break
       case Action.Window.SHOW_MODAL_UPGRADE:
-        goToLandingPage()
+        setUpgradeInfo({
+          featureName: body.featureName,
+          featureBenefit: body.featureBenefit,
+        })
+        modalUpgradeHandlers.open()
         break
       case Action.Window.SHOW_MODAL_ACTIVATION:
         modalActivation.toggle()
@@ -187,6 +196,12 @@ const AppMenu: React.FC = () => {
       />
       <ModalFaq opened={showModalFaq} onClose={modalFaq.close} />
       <ModalProfile opened={showModalProfile} onClose={modalProfile.close} />
+      <ModalUpgrade
+        opened={showModalUpgrade}
+        onClose={modalUpgradeHandlers.close}
+        featureName={upgradeInfo.featureName}
+        featureBenefit={upgradeInfo.featureBenefit}
+      />
     </>
   )
 }
