@@ -67,17 +67,17 @@ const MarqueeTileFeatureShowcase = () => (
               variant="gradient"
               gradient={{ from: 'teal', to: 'lime' }}
             >
-              <Icon icon={PRIMARY_ICON} fontSize={62} />
+              <Icon icon={PRIMARY_ICON} fontSize={70} />
             </ThemeIcon>
-            <Title order={1} fz={44} lh={1.2} c="white">
+            <Title fz={48} lh={1.2} c="white">
               {' '}
               The Ultimate WhatsApp Backup & Export Tool{' '}
             </Title>
-            <Text size="xl" c="white" fw={500} mt="md">
+            <Title order={2} c="white" fw={500} mt="md">
               {' '}
-              Securely save your conversations and media in multiple formats
-              with advanced filtering.{' '}
-            </Text>
+              Save your conversations and media in multiple formats with
+              advanced filtering.{' '}
+            </Title>
           </Stack>
         </Grid.Col>
         <Grid.Col span={4}>
@@ -89,58 +89,39 @@ const MarqueeTileFeatureShowcase = () => (
                   variant="gradient"
                   gradient={{ from: 'teal', to: 'lime' }}
                   radius="xl"
-                  size={36}
+                  size={44}
                 >
-                  <Icon icon="tabler:files" fontSize={22} />
+                  <Icon icon="tabler:files" fontSize={30} />
                 </ThemeIcon>
-                <Text size="lg" fw={700}>
+                <Title order={2} fw={700}>
                   {' '}
                   Multiple Formats{' '}
-                </Text>
+                </Title>
               </Group>
-              <Text size="sm" c="gray.6" fw={500} mt="xs">
+              <Text size="xl" c="gray.7" fw={500} mt="xs">
                 {' '}
-                Export to HTML, PDF, Excel, CSV, JSON, TXT.{' '}
+                HTML, PDF, Excel, CSV, JSON, TXT.{' '}
               </Text>
             </Card>
+
             <Card withBorder shadow="lg" p="lg">
               <Group>
                 <ThemeIcon
                   variant="gradient"
                   gradient={{ from: 'teal', to: 'lime' }}
                   radius="xl"
-                  size={36}
+                  size={44}
                 >
-                  <Icon icon="tabler:shield-lock" fontSize={22} />
+                  <Icon icon="tabler:photo-video" fontSize={30} />
                 </ThemeIcon>
-                <Text fw={700} size="lg">
-                  {' '}
-                  100% Private{' '}
-                </Text>
-              </Group>
-              <Text size="sm" c="gray.6" fw={500} mt="xs">
-                {' '}
-                Your data never leaves your computer.{' '}
-              </Text>
-            </Card>
-            <Card withBorder shadow="lg" p="lg">
-              <Group>
-                <ThemeIcon
-                  variant="gradient"
-                  gradient={{ from: 'teal', to: 'lime' }}
-                  radius="xl"
-                  size={36}
-                >
-                  <Icon icon="tabler:photo-video" fontSize={22} />
-                </ThemeIcon>
-                <Text fw={700} size="lg">
+                <Title order={2} fw={700}>
                   {' '}
                   Include Media{' '}
-                </Text>
+                </Title>
               </Group>
-              <Text size="sm" c="gray.6" fw={500} mt="xs">
+              <Text size="xl" c="gray.7" fw={500} mt="xs">
                 {' '}
-                Save images, videos, and documents.{' '}
+                Save images, videos, and files.{' '}
               </Text>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -149,16 +130,16 @@ const MarqueeTileFeatureShowcase = () => (
                   variant="gradient"
                   gradient={{ from: 'teal', to: 'lime' }}
                   radius="xl"
-                  size={36}
+                  size={44}
                 >
-                  <Icon icon="tabler:filter" fontSize={22} />
+                  <Icon icon="tabler:filter" fontSize={30} />
                 </ThemeIcon>
-                <Text fw={700} size="lg">
+                <Title order={2} fw={700}>
                   {' '}
                   Advanced Filtering{' '}
-                </Text>
+                </Title>
               </Group>
-              <Text size="sm" c="gray.6" fw={500} mt="xs">
+              <Text size="xl" c="gray.7" fw={500} mt="xs">
                 {' '}
                 Filter by date range and keywords.{' '}
               </Text>
