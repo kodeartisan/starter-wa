@@ -217,17 +217,16 @@ const MarqueeTileFeatureShowcase = () => (
               variant="gradient"
               gradient={{ from: 'teal', to: 'lime' }}
             >
-              <Icon icon={DIRECT_CHAT_ICON} fontSize={62} />
+              <Icon icon={DIRECT_CHAT_ICON} fontSize={70} />
             </ThemeIcon>
-            <Title order={1} fz={44} lh={1.2} c="white">
+            <Title fz={48} lh={1.2} c="white">
               {' '}
-              The Fastest Way to Start a WhatsApp Chat{' '}
+              The Fastest Way to Start a Chat{' '}
             </Title>
-            <Text size="xl" c="white" fw={500} mt="md">
+            <Title order={1} c="white" fw={500} mt="md">
               {' '}
-              Message any number without saving it to your contacts. Perfect for
-              business, sales, and one-time conversations.{' '}
-            </Text>
+              Message any number without saving it to your contacts.
+            </Title>
           </Stack>
         </Grid.Col>
         <Grid.Col span={4}>
@@ -238,18 +237,17 @@ const MarqueeTileFeatureShowcase = () => (
                   variant="gradient"
                   gradient={{ from: 'teal', to: 'lime' }}
                   radius="xl"
-                  size={36}
+                  size={44}
                 >
-                  <Icon icon="tabler:device-mobile-message" fontSize={22} />
+                  <Icon icon="tabler:device-mobile-message" fontSize={30} />
                 </ThemeIcon>
-                <Text size="lg" fw={700}>
+                <Title order={2} fw={700}>
                   {' '}
                   Instant Messaging{' '}
-                </Text>
+                </Title>
               </Group>
-              <Text size="sm" c="gray.6" fw={500} mt="xs">
-                {' '}
-                Chat without saving the contact first.{' '}
+              <Text size="xl" c="gray.7" fw={500} mt="xs">
+                Chat without saving the contact.
               </Text>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -258,18 +256,17 @@ const MarqueeTileFeatureShowcase = () => (
                   variant="gradient"
                   gradient={{ from: 'teal', to: 'lime' }}
                   radius="xl"
-                  size={36}
+                  size={44}
                 >
-                  <Icon icon="tabler:paperclip" fontSize={22} />
+                  <Icon icon="tabler:paperclip" fontSize={30} />
                 </ThemeIcon>
-                <Text fw={700} size="lg">
-                  {' '}
-                  Send Media{' '}
-                </Text>
+                <Title order={2} fw={700}>
+                  Send Media
+                </Title>
               </Group>
-              <Text size="sm" c="gray.6" fw={500} mt="xs">
+              <Text size="xl" c="gray.7" fw={500} mt="xs">
                 {' '}
-                Send images, videos, documents, and more.{' '}
+                Send images, videos, documents.{' '}
               </Text>
             </Card>
             {/* English: Added a new feature card for templates. */}
@@ -279,38 +276,18 @@ const MarqueeTileFeatureShowcase = () => (
                   variant="gradient"
                   gradient={{ from: 'teal', to: 'lime' }}
                   radius="xl"
-                  size={36}
+                  size={44}
                 >
-                  <Icon icon="tabler:template" fontSize={22} />
+                  <Icon icon="tabler:template" fontSize={30} />
                 </ThemeIcon>
-                <Text fw={700} size="lg">
+                <Title order={2} fw={700}>
                   {' '}
-                  Save Time with Templates{' '}
-                </Text>
+                  Templates{' '}
+                </Title>
               </Group>
-              <Text size="sm" c="gray.6" fw={500} mt="xs">
+              <Text size="xl" c="gray.7" fw={500} mt="xs">
                 {' '}
-                Save and reuse messages for common replies.{' '}
-              </Text>
-            </Card>
-            <Card withBorder shadow="lg" p="lg">
-              <Group>
-                <ThemeIcon
-                  variant="gradient"
-                  gradient={{ from: 'teal', to: 'lime' }}
-                  radius="xl"
-                  size={36}
-                >
-                  <Icon icon="tabler:shield-lock" fontSize={22} />
-                </ThemeIcon>
-                <Text fw={700} size="lg">
-                  {' '}
-                  100% Private{' '}
-                </Text>
-              </Group>
-              <Text size="sm" c="gray.6" fw={500} mt="xs">
-                {' '}
-                Your messages are never seen or stored.{' '}
+                Save and reuse messages.{' '}
               </Text>
             </Card>
           </Stack>
