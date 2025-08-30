@@ -1,9 +1,9 @@
 {
-  "name": "whats-validator",
-  "shortName": "WhatsValidator",
-  "displayName": "WhatsValidator - Check & Verify WA Numbers for WhatsApp",
+  "name": "whats-status",
+  "shortName": "WhatsStatus",
+  "displayName": "WhatsStatus - Automate & Schedule WA Status",
   "version": "1.0.0",
-  "description": "Safely validate of WhatsApp numbers in bulk and export",
+  "description": "Easuly schedule whatsapp text, image, and video status automatically.",
   "author": "Extninja",
   "scripts": {
     "dev": "plasmo dev --no-cs-reload",

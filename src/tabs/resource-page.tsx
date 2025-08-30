@@ -1,16 +1,15 @@
 // src/tabs/resource-page.tsx
-// English: This file provides promotional materials for the Chrome Web Store listing.
+// This page provides promotional materials for the Chrome Web Store listing.
 import PromoIcon from '@/components/Promo/PromoIcon'
 import ScreenshotWrapper from '@/components/Promo/ScreenshotWrapper'
+import { PRIMARY_ICON } from '@/constants'
 import theme from '@/libs/theme'
 import { Icon } from '@iconify/react'
 import {
-  Avatar,
   Badge,
   Button,
   Card,
   Center,
-  Checkbox,
   Code,
   Container,
   CopyButton,
@@ -19,114 +18,140 @@ import {
   Group,
   List,
   MantineProvider,
-  NumberInput,
   Paper,
-  Radio,
-  Select,
   Stack,
   Switch,
   Table,
   Tabs,
-  TagsInput,
   Text,
   Textarea,
-  TextInput,
   ThemeIcon,
   Title,
 } from '@mantine/core'
 import '@mantine/core/styles.css'
-import { DatePickerInput, DateTimePicker } from '@mantine/dates'
+import { DateTimePicker } from '@mantine/dates'
 import '@mantine/dates/styles.css'
 import FileSaver from 'file-saver'
 import html2canvas from 'html2canvas'
 import React, { useRef } from 'react'
 
-// English: Using a darker gradient that matches the landing page's teal-to-lime theme with darker shades for a more prominent look.
+// A gradient background that matches the landing page's theme.
 const PROMO_GRADIENT_BACKGROUND =
   'linear-gradient(135deg, var(--mantine-color-teal-8), var(--mantine-color-lime-8))'
 
-// English: Overriding the primary icon to better represent the Number Validator feature.
-const VALIDATOR_ICON = 'tabler:checks'
+// The primary icon representing the Status Scheduler feature.
+const STATUS_SCHEDULER_ICON = 'tabler:calendar-stats'
 
-// --- START: New Mockups for Number Validator Feature ---
-// Mockup of the main validator interface.
-const MockupValidatorSimple = () => (
+// --- START: New Mockups for Status Scheduler Feature ---
+
+// Mockup of the main dashboard showing a list of scheduled and posted statuses.
+const MockupStatusDashboard = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
-      <Title order={4}>Bulk Number Validator</Title>
+      <Title order={4}>Status Management Dashboard</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        Paste your numbers and get instant results.{' '}
+        Track all your statuses—drafts, scheduled, and posted—in one place.{' '}
       </Text>
-      <Textarea
-        label="1. Paste Numbers Here"
-        placeholder="6281234567890
-6289876543210
-1234567890 (Invalid)
-..."
-        minRows={4}
-        disabled
-      />
-      <Group justify="flex-end">
-        <Button
-          mt="md"
-          size="md"
-          leftSection={<Icon icon="tabler:player-play" />}
-        >
-          {' '}
-          Start Validation{' '}
-        </Button>
-      </Group>
+      <Table striped highlightOnHover withTableBorder mt="sm">
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>Status Name</Table.Th>
+            <Table.Th>Type</Table.Th>
+            <Table.Th>Status</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          <Table.Tr>
+            <Table.Td>Weekend Promotion</Table.Td>
+            <Table.Td>
+              <Badge variant="light" leftSection={<Icon icon="tabler:photo" />}>
+                Image
+              </Badge>
+            </Table.Td>
+            <Table.Td>
+              <Badge color="blue">Scheduled</Badge>
+            </Table.Td>
+          </Table.Tr>
+          <Table.Tr>
+            <Table.Td>Morning Update</Table.Td>
+            <Table.Td>
+              <Badge
+                variant="light"
+                leftSection={<Icon icon="tabler:file-text" />}
+              >
+                Text
+              </Badge>
+            </Table.Td>
+            <Table.Td>
+              <Badge color="green">Posted</Badge>
+            </Table.Td>
+          </Table.Tr>
+          <Table.Tr>
+            <Table.Td>New Product Announcement</Table.Td>
+            <Table.Td>
+              <Badge variant="light" leftSection={<Icon icon="tabler:video" />}>
+                Video
+              </Badge>
+            </Table.Td>
+            <Table.Td>
+              <Badge color="gray">Draft</Badge>
+            </Table.Td>
+          </Table.Tr>
+        </Table.Tbody>
+      </Table>
     </Stack>
   </Card>
 )
 
-// Mockup showing the Pro feature of importing from Excel and batching.
-const MockupValidatorProFeatures = () => (
+// Mockup showing the Pro scheduling feature.
+const MockupCreateStatusPro = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
-      <Title order={4}>Powerful Tools</Title>
+      <Title order={4}>Create & Schedule Status</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        Handle large lists with ease and safety.{' '}
+        Craft your content, set the time, and let us do the posting.{' '}
       </Text>
-      <Tabs defaultValue="import" variant="pills" mt="xs">
-        <Tabs.List grow>
-          <Tabs.Tab value="import" color="teal">
-            {' '}
-            Import from Excel{' '}
-          </Tabs.Tab>
-          <Tabs.Tab value="batching">Batch Processing</Tabs.Tab>
-        </Tabs.List>
-        <Tabs.Panel value="import" pt="md">
-          <Center
-            p="xl"
-            style={{
-              border: '2px dashed var(--mantine-color-gray-3)',
-              borderRadius: 'var(--mantine-radius-md)',
-            }}
-          >
-            <Stack align="center">
-              <Icon
-                icon="tabler:file-type-xls"
-                fontSize={48}
-                color="var(--mantine-color-gray-5)"
-              />
-              <Text c="dimmed">contacts_list.xlsx</Text>
-            </Stack>
-          </Center>
-        </Tabs.Panel>
-        <Tabs.Panel value="batching" pt="md">
-          <Stack>
-            <Switch
-              checked
-              label="Process numbers in batches"
-              description="For large lists, this pauses validation periodically."
-              disabled
+      <Fieldset legend="Status Type: Image">
+        <Center
+          p="lg"
+          style={{
+            border: '2px dashed var(--mantine-color-gray-3)',
+            borderRadius: 'var(--mantine-radius-md)',
+          }}
+        >
+          <Stack align="center">
+            <Icon
+              icon="tabler:photo-up"
+              fontSize={48}
+              color="var(--mantine-color-gray-5)"
             />
+            <Text c="dimmed">promo_banner.jpg</Text>
           </Stack>
-        </Tabs.Panel>
-      </Tabs>
+        </Center>
+        <Textarea
+          label="Caption"
+          placeholder="50% off this weekend!"
+          disabled
+          mt="md"
+        />
+      </Fieldset>
+      <Fieldset
+        legend={
+          <Group gap="xs">
+            <Text>Automated Scheduling</Text>
+          </Group>
+        }
+      >
+        <Switch checked label="Schedule for later" disabled />
+        <DateTimePicker
+          label="Post Date & Time"
+          value={new Date()}
+          disabled
+          mt="sm"
+        />
+      </Fieldset>
     </Stack>
   </Card>
 )
@@ -144,8 +169,8 @@ const FeatureMockupPrivacy = () => (
       </Title>
       <Text c="dimmed" size="sm" ta="center">
         {' '}
-        Your contact lists are processed locally and are never seen, stored, or
-        uploaded by us.{' '}
+        Your status drafts and media files are stored locally in your browser
+        and are never seen, stored, or uploaded by us.{' '}
       </Text>
       <List
         mt="lg"
@@ -165,7 +190,7 @@ const FeatureMockupPrivacy = () => (
         </List.Item>
         <List.Item>
           {' '}
-          <b>No Data Storage:</b> Your lists and results are never saved by us.{' '}
+          <b>No Data Storage:</b> Your content is never saved by us.{' '}
         </List.Item>
         <List.Item>
           {' '}
@@ -175,96 +200,132 @@ const FeatureMockupPrivacy = () => (
     </Stack>
   </Card>
 )
-// --- END: Original Mockups ---
 
-// ++ START: New, more accurate mockups for PageNumberValidator.tsx
-// Mockup for the detailed results table
-const MockupValidatorResultsTable = () => (
+// --- START: Two New Mockups ---
+
+// Mockup showcasing the ability to upload and schedule images or videos.
+const MockupRichMediaPosting = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
-      <Title order={4}>Clear & Actionable Results</Title>
+      <Title order={4}>Rich Media Posting</Title>
       <Text c="dimmed" size="sm">
-        Review validation status and start chats with valid numbers directly.
+        {' '}
+        Upload and schedule engaging images or videos for your status. Capture
+        your audience's attention.{' '}
       </Text>
-      <Table striped highlightOnHover withTableBorder mt="sm">
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Phone Number</Table.Th>
-            <Table.Th>Status</Table.Th>
-            <Table.Th ta="right">Actions</Table.Th>
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          <Table.Tr>
-            <Table.Td>6281234567890</Table.Td>
-            <Table.Td>
-              <Badge color="green">Valid</Badge>
-            </Table.Td>
-            <Table.Td ta="right">
-              <Icon
-                icon="tabler:brand-whatsapp"
-                color="var(--mantine-color-blue-6)"
-              />
-            </Table.Td>
-          </Table.Tr>
-          <Table.Tr>
-            <Table.Td>1234567890</Table.Td>
-            <Table.Td>
-              <Badge color="red">Invalid</Badge>
-            </Table.Td>
-            <Table.Td></Table.Td>
-          </Table.Tr>
-          <Table.Tr>
-            <Table.Td>6289876543210</Table.Td>
-            <Table.Td>
-              <Badge color="green">Valid</Badge>
-            </Table.Td>
-            <Table.Td ta="right">
-              <Icon
-                icon="tabler:brand-whatsapp"
-                color="var(--mantine-color-blue-6)"
-              />
-            </Table.Td>
-          </Table.Tr>
-        </Table.Tbody>
-      </Table>
-    </Stack>
-  </Card>
-)
-
-// Mockup for the safety settings
-const MockupValidatorSettings = () => (
-  <Card withBorder radius="md" p="xl" w={620}>
-    <Stack>
-      <Title order={4}>Safe Validation Settings</Title>
-      <Text c="dimmed" size="sm">
-        Customize delays and batching to validate large lists safely.
-      </Text>
-      <Fieldset legend="Randomized Delay">
-        <Group grow>
-          <NumberInput label="Min Delay (sec)" value={2} disabled />
-          <NumberInput label="Max Delay (sec)" value={5} disabled />
-        </Group>
-      </Fieldset>
-      <Fieldset
-        legend={
-          <Group gap="xs">
-            <Text>Batch Processing</Text>
-          </Group>
+      <Center
+        p="lg"
+        style={{
+          border: '2px dashed var(--mantine-color-teal-3)',
+          borderRadius: 'var(--mantine-radius-md)',
+          backgroundColor: 'var(--mantine-color-teal-0)',
+        }}
+      >
+        <Stack align="center" gap="xs">
+          <Icon
+            icon="tabler:photo-video"
+            fontSize={60}
+            color="var(--mantine-color-teal-6)"
+          />
+          <Text fw={500} c="teal.8">
+            {' '}
+            Upload Your Image or Video{' '}
+          </Text>
+          <Button variant="outline" color="teal" size="xs">
+            {' '}
+            Select File{' '}
+          </Button>
+        </Stack>
+      </Center>
+      <List
+        mt="md"
+        spacing="sm"
+        size="sm"
+        center
+        icon={
+          <ThemeIcon color="teal" size={24} radius="xl">
+            <Icon icon="tabler:check" fontSize={14} />
+          </ThemeIcon>
         }
       >
-        <Switch checked label="Process numbers in batches" disabled />
-        <Group grow mt="md">
-          <NumberInput label="Batch Size" value={50} disabled />
-          <NumberInput label="Pause Duration (min)" value={1} disabled />
-        </Group>
-      </Fieldset>
+        <List.Item> Supported image formats: JPG, PNG, GIF </List.Item>
+        <List.Item> Supported video formats: MP4, MOV </List.Item>
+        <List.Item> Secure & encrypted media uploads (local) </List.Item>
+      </List>
     </Stack>
   </Card>
 )
-// ++ END: New Mockups
 
-// --- Marquee Promo Tiles (1280x800px) ---
+// Mockup emphasizing time-saving and automation.
+const MockupTimeSavingAutomation = () => (
+  <Card withBorder radius="md" p="xl" w={620}>
+    <Stack align="center">
+      <ThemeIcon
+        size={60}
+        radius="xl"
+        variant="gradient"
+        gradient={{ from: 'teal', to: 'lime' }}
+      >
+        <Icon icon="tabler:clock-hour-4" fontSize={32} />
+      </ThemeIcon>
+      <Title order={4} mt="md">
+        {' '}
+        Save Time with Status Automation{' '}
+      </Title>
+      <Text c="dimmed" size="sm" ta="center">
+        {' '}
+        Spend less time on manual tasks and more time growing your business.
+        Automated posting keeps you engaged, even when you're away from your
+        desk.{' '}
+      </Text>
+      <Grid mt="lg" gutter="md">
+        <Grid.Col span={6}>
+          <Card withBorder shadow="xs" p="md">
+            <Stack align="center" gap="xs">
+              <Icon
+                icon="tabler:alarm-minus"
+                fontSize={36}
+                color="var(--mantine-color-red-6)"
+              />
+              <Text fw={500} size="sm" ta="center">
+                {' '}
+                Without Scheduler{' '}
+              </Text>
+              <Text size="xs" c="dimmed" ta="center">
+                {' '}
+                Manual posting, time-consuming, inconsistent presence.{' '}
+              </Text>
+            </Stack>
+          </Card>
+        </Grid.Col>
+        <Grid.Col span={6}>
+          <Card withBorder shadow="xs" p="md">
+            <Stack align="center" gap="xs">
+              <Icon
+                icon="tabler:alarm-plus"
+                fontSize={36}
+                color="var(--mantine-color-teal-6)"
+              />
+              <Text fw={500} size="sm" ta="center">
+                {' '}
+                With Scheduler{' '}
+              </Text>
+              <Text size="xs" c="dimmed" ta="center">
+                {' '}
+                Set & forget, 24/7 engagement, save hours of work.{' '}
+              </Text>
+            </Stack>
+          </Card>
+        </Grid.Col>
+      </Grid>
+    </Stack>
+  </Card>
+)
+
+// --- END: Two New Mockups ---
+
+// --- Page Components ---
+
 const MarqueeTileFeatureShowcase = () => (
   <Paper
     w={1280}
@@ -286,15 +347,16 @@ const MarqueeTileFeatureShowcase = () => (
               variant="gradient"
               gradient={{ from: 'teal', to: 'lime' }}
             >
-              <Icon icon={VALIDATOR_ICON} fontSize={70} />
+              <Icon icon={STATUS_SCHEDULER_ICON} fontSize={70} />
             </ThemeIcon>
             <Title fz={48} lh={1.2} c="white">
               {' '}
-              The Smartest Way to Validate WhatsApp Numbers{' '}
+              Automate Your WhatsApp Status Like a Pro{' '}
             </Title>
             <Title order={2} c="white" fw={500} mt="md">
-              Improve campaign ROI, and stop wasting messages on inactive
-              numbers. The essential tool for marketers and sales teams.
+              {' '}
+              Keep your audience engaged, save time, and boost your reach. The
+              essential tool for marketers and business owners.{' '}
             </Title>
           </Stack>
         </Grid.Col>
@@ -308,16 +370,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={44}
                 >
-                  <Icon icon="tabler:file-import" fontSize={30} />
+                  <Icon icon="tabler:calendar-time" fontSize={30} />
                 </ThemeIcon>
                 <Title order={2} fw={700}>
                   {' '}
-                  Bulk Import/Export{' '}
+                  Schedule Posts{' '}
                 </Title>
               </Group>
               <Text size="xl" c="gray.7" fw={500} mt="xs">
                 {' '}
-                Handle thousands of numbers from Excel & CSV.{' '}
+                Plan status content for days or weeks in advance.{' '}
               </Text>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -328,14 +390,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={44}
                 >
-                  <Icon icon="tabler:shield-cog" fontSize={30} />
+                  <Icon icon="tabler:photo-video" fontSize={30} />
                 </ThemeIcon>
                 <Title fw={700} order={2}>
-                  Safe Validation
+                  {' '}
+                  Use Rich Media{' '}
                 </Title>
               </Group>
               <Text size="xl" c="gray.7" fw={500} mt="xs">
-                Use smart delays and batching to protect your account.
+                {' '}
+                Engage your audience with scheduled images & videos.{' '}
               </Text>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -346,15 +410,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={40}
                 >
-                  <Icon icon="tabler:analyze" fontSize={30} />
+                  <Icon icon="tabler:dashboard" fontSize={30} />
                 </ThemeIcon>
                 <Title order={2} fw={700}>
                   {' '}
-                  Improve ROI{' '}
+                  Content Dashboard{' '}
                 </Title>
               </Group>
               <Text size="xl" c="gray.7" fw={500} mt="xs">
-                Increase deliverability by messaging only valid users.
+                {' '}
+                Manage all your statuses from one central place.{' '}
               </Text>
             </Card>
           </Stack>
@@ -420,50 +485,50 @@ const ScreenshotGallery: React.FC = () => {
       component: <MarqueeTileFeatureShowcase />,
     },
     {
-      title: 'Feature Screenshot: Simple Interface (1280x800)',
-      filename: 'feature_simple_interface.png',
+      title: 'Feature Screenshot: Organized Dashboard (1280x800)',
+      filename: 'feature_dashboard.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:mouse"
-          title="Clean & Intuitive Interface"
-          description="Just paste your list of numbers, adjust the safe settings, and click start. It's that simple to clean your contact lists."
-          featureComponent={<MockupValidatorSimple />}
+          icon="tabler:layout-dashboard"
+          title="Your Content, Organized"
+          description="Manage all your scheduled, posted, and draft statuses from a single, powerful dashboard. Stay on top of your content calendar with ease."
+          featureComponent={<MockupStatusDashboard />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: Pro Tools for Large Lists (1280x800)',
-      filename: 'feature_pro_tools.png',
+      title: 'Feature Screenshot: Plan Content in Advance (1280x800)',
+      filename: 'feature_scheduling_pro.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:file-import"
-          title="Handle Large Lists Like a Pro"
-          description="Import thousands of numbers directly from an Excel file and use smart batch processing to validate large lists safely and efficiently."
-          featureComponent={<MockupValidatorProFeatures />}
+          icon="tabler:calendar-plus"
+          title="Plan Content in Advance"
+          description="Craft your text, image, or video status, pick a future date and time, and let us handle the rest. Perfect for campaigns, announcements, and daily updates."
+          featureComponent={<MockupCreateStatusPro />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: Detailed Results (1280x800)',
-      filename: 'feature_detailed_results.png',
+      title: 'Feature Screenshot: Rich Media Posting (1280x800)',
+      filename: 'feature_rich_media.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:table-export"
-          title="Export Actionable Results"
-          description="Get a clear, color-coded summary of valid and invalid numbers. Export the results to a CSV or Excel file for your marketing campaigns."
-          featureComponent={<MockupValidatorResultsTable />}
+          icon="tabler:photo-video"
+          title="Post Rich Media"
+          description="Upload and schedule engaging images or captivating videos for your status. Capture your audience's attention with stunning visual content."
+          featureComponent={<MockupRichMediaPosting />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: Safety Settings (1280x800)',
-      filename: 'feature_safety_settings.png',
+      title: 'Feature Screenshot: Effortless Time Saving (1280x800)',
+      filename: 'feature_time_saving.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:shield-cog"
-          title="Validate with Confidence"
-          description="Use randomized delays and batch processing to mimic human behavior. This approach significantly reduces risks when checking large numbers of contacts."
-          featureComponent={<MockupValidatorSettings />}
+          icon="tabler:clock-hour-4"
+          title="Save Time with Automation"
+          description="Focus on what matters most. Automate your status updates to maintain a consistent presence, freeing up your time for core business tasks."
+          featureComponent={<MockupTimeSavingAutomation />}
         />
       ),
     },
@@ -474,7 +539,7 @@ const ScreenshotGallery: React.FC = () => {
         <MarqueeTileFeatureDetail
           icon="tabler:shield-lock"
           title="Your Privacy is Our Priority"
-          description="This extension operates 100% locally on your computer. Your contact lists and validation results are never uploaded to any server, ensuring complete privacy."
+          description="This extension operates 100% locally on your computer. Your status drafts and files are never uploaded to any server, ensuring complete privacy."
           featureComponent={<FeatureMockupPrivacy />}
         />
       ),
@@ -507,7 +572,7 @@ const ResourcePage = () => {
   const iconRef = useRef<HTMLDivElement>(null)
   const icons = [
     {
-      component: <PromoIcon size={128} icon={VALIDATOR_ICON} />,
+      component: <PromoIcon size={128} icon={PRIMARY_ICON} />,
       ref: iconRef,
       name: 'promotional_icon.png',
     },
@@ -515,63 +580,62 @@ const ResourcePage = () => {
 
   const storeListingText = {
     titles: [
-      'Bulk Number Validator for WhatsApp',
-      'Check & Verify WA Numbers',
-      'WhatsApp Number Cleaner & Filter',
+      'Status Scheduler for WhatsApp',
+      'Automate & Schedule WA Statuses',
+      'WhatsApp Status Planner & Poster',
     ],
     shortDescriptions: [
-      'Safely validate thousands of WhatsApp numbers in bulk. Clean your contact lists, improve marketing ROI, and stop messaging dead numbers.',
-      'The essential tool for marketers. Check if numbers are on WhatsApp, import from Excel, and export cleaned lists for your campaigns.',
-      'Quickly verify your contact lists. Our number validator checks for active WhatsApp accounts without sending a single message.',
+      'Schedule text, image, and video statuses to post automatically. Save time, increase engagement, and plan your content in advance.',
+      'The essential tool for marketers. Plan your WhatsApp statuses ahead of time. Supports images, videos, and fully automated posting.',
+      'Automate your WhatsApp presence. Create statuses, schedule them, and let the extension post them for you at the perfect time.',
     ],
-    longDescription: `📈 Stop Wasting Time & Money on Bad Numbers!
+    longDescription: `🚀 Elevate Your Audience Engagement with Automatic Status Scheduling!
 
-Tired of your WhatsApp marketing campaigns having low deliverability? WhatsDirect - WA Direct Chats for WhatsApp is the ultimate tool for cleaning your contact lists and ensuring your messages reach real, active users.
+Tired of manually posting WhatsApp statuses every day? Status Scheduler for WhatsApp is the ultimate tool to automate your presence, save you precious time, and keep your audience consistently engaged.
 
 ✨ Key Features
-- 🚀 Bulk Number Validation: Check thousands of numbers at once. Just copy-paste your list or import it from a file.
-- 📁 Excel & CSV Support (Pro): Easily import your contact lists from Excel or CSV files and export the clean results for your CRM or marketing platform.
-- 🛡️ Safe & Smart Checking: Uses randomized delays and batch processing (Pro) to mimic human behavior, keeping your account safe.
-- 📊 Clear Results: Instantly see which numbers are "Valid" and "Invalid" on WhatsApp.
-- 🔒 100% Private & Secure: The validation process runs entirely on your computer. Your contact lists are never uploaded, seen, or stored by us.
+- 🗓️ Schedule & Forget: Plan your status content for days, weeks, or even months in advance. Set the perfect time, and we'll post it for you.
+- 📸 Rich Media: Go beyond text! Schedule stunning images and captivating videos to grab your contacts' attention.
+- 📋 Full Content Dashboard: Manage all your statuses—drafts, scheduled, and already posted—from one clean, intuitive interface.
+- 🛡️ Safe & Reliable: Built with safety first, our tool interacts responsibly with WhatsApp Web to ensure reliable posting without compromising your account.
+- ⏰ Save Time: Focus on your business. Spend less time on manual tasks and more time on what matters.
 
 🤔 Who Is This For?
-- 💼 Digital Marketers: Clean your database before a major campaign to maximize ROI and engagement.
-- 📈 Sales Teams: Verify leads from conferences, web forms, or purchased lists to ensure your reps are contacting valid prospects.
-- 👥 Community Managers: Keep your member contact lists up-to-date and accurate.
-- 👩‍💼 Anyone who manages large lists of contacts and needs to ensure they are reachable on WhatsApp.
+- 💼 Digital Marketers: Plan and automate promotional campaigns, product launches, and daily deals.
+- 📈 Business Owners: Maintain a consistent brand presence and keep your customers informed of the latest news.
+- 🎨 Content Creators & Influencers: Share your work, behind-the-scenes content, and announcements automatically.
+- 👥 Community Managers: Send scheduled updates, reminders, and news to your community.
 
-🚀 Get started in seconds and take control of your contact data quality!
+🚀 Get started in seconds and take control of your WhatsApp content strategy!
 
 WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other countries. This extension has no relationship to WhatsApp or WhatsApp Inc.`,
   }
 
   const justificationTexts = {
-    singlePurpose: `The core purpose of this extension is to allow users to validate a list of phone numbers to check for the existence of active WhatsApp accounts. All features, such as number input fields, Excel import/export, and delay settings, are directly related to this single purpose of cleaning and verifying contact lists for more effective communication.`,
+    singlePurpose: `The core purpose of this extension is to allow users to create, manage, and automatically schedule WhatsApp statuses. All features, such as text/image/video status creation, the management dashboard, and scheduling controls, are directly related to this single purpose of automating and planning status content.`,
     storage: `The 'storage' permission is used to store essential user settings and license information locally on the user's device. This includes:
 - The user's license key to unlock Pro features.
 - An instance ID for license activation management.
-- User preferences, such as custom delay and batch processing settings.
+- User-created data such as status drafts and references to related media files, which are stored locally in IndexedDB for persistence.
 This data is stored only on the user's computer and is crucial for providing a persistent and personalized experience without requiring a remote server or user accounts.`,
     scripting: `Content scripts are essential for the extension's functionality. They are used exclusively on web.whatsapp.com to:
-1. Inject the user interface (the main modal for validating numbers) onto the page, allowing users to interact with the extension directly within the WhatsApp Web environment.
-2. Communicate with the WhatsApp Web application's JavaScript context to securely check numbers. This process is handled locally and is necessary to fulfill the extension's core purpose.`,
-    hostWhatsapp: `The permission for "https://web.whatsapp.com/*" is required to allow the extension's content scripts to run on WhatsApp Web. The extension needs to access the DOM and interact with the page to inject its UI and perform the validation checks on the user's behalf. The extension's functionality is entirely dependent on its ability to operate on this specific domain.`,
-    hostLemonSqueezy: `The permission for "https://api.lemonsqueezy.com/*" is used to securely communicate with the Lemon Squeezy API for license validation and management. When a user activates a Pro license, the extension sends a request to this domain to verify, activate, or deactivate the license key. This is a standard and secure method for handling software licensing and does not transmit any personal chat data or contact lists.`,
+1. Inject the user interface (the main modal for managing statuses) onto the page.
+2. Communicate with the WhatsApp Web JavaScript context to securely post the scheduled statuses on the user's behalf. This process is handled locally and is necessary to fulfill the extension's core purpose.`,
+    hostWhatsapp: `The permission for "https://web.whatsapp.com/*" is required to allow the extension's content scripts to run on WhatsApp Web. The extension needs to access the DOM and interact with the page to inject its UI and perform the status posting on the user's behalf. The extension's functionality is entirely dependent on its ability to operate on this specific domain.`,
+    hostLemonSqueezy: `The permission for "https://api.lemonsqueezy.com/*" is used to securely communicate with the Lemon Squeezy API for license validation and management. When a user activates a Pro license, the extension sends a request to this domain to verify, activate, or deactivate the license key. This is a standard and secure method for handling software licensing and does not transmit any personal data or status content.`,
   }
 
   const keywords = [
-    'whatsapp validator',
-    'whatsapp number checker',
-    'bulk whatsapp verify',
-    'clean whatsapp list',
-    'whatsapp marketing',
-    'wa number check',
-    'whatsapp filter',
-    'whatsapp verifier',
-    'check whatsapp number',
-    'validate numbers',
-    'whatsapp contacts cleaner',
+    'whatsapp status scheduler',
+    'whatsapp status planner',
+    'schedule whatsapp status',
+    'whatsapp marketing automation',
+    'auto post whatsapp status',
+    'whatsapp status automation',
+    'image status scheduler',
+    'video status scheduler',
+    'whatsapp content planner',
+    'status auto poster',
   ]
   const keywordsString = keywords.join(', ')
 
@@ -600,7 +664,6 @@ This data is stored only on the user's computer and is crucial for providing a p
             {' '}
             Use these assets and text to create your store listing page.{' '}
           </Text>
-
           <Tabs defaultValue="screenshots">
             <Tabs.List grow>
               <Tabs.Tab

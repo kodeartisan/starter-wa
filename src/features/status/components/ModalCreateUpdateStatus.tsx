@@ -30,6 +30,7 @@ interface Props {
   onClose: () => void
   data?: UserStatus | null
 }
+
 const ModalCreateUpdateStatus: React.FC<Props> = ({
   opened,
   onClose,
@@ -37,6 +38,7 @@ const ModalCreateUpdateStatus: React.FC<Props> = ({
 }) => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const license = useLicense()
+
   const form = useForm({
     initialValues: {
       name: '',
@@ -69,7 +71,10 @@ const ModalCreateUpdateStatus: React.FC<Props> = ({
       scheduler: (value) => {
         if (license.isFree() && value.enabled) {
           form.setFieldValue('scheduler.enabled', false)
-          showModalUpgrade()
+          showModalUpgrade(
+            'Scheduled Status Updates',
+            'Automatically post your status at a future date and time to engage your contacts consistently.',
+          )
           return 'Scheduler is a Pro feature.'
         }
         if (value.enabled && !value.scheduledAt) {
@@ -93,7 +98,10 @@ const ModalCreateUpdateStatus: React.FC<Props> = ({
       license.isFree() &&
       (value === StatusType.IMAGE || value === StatusType.VIDEO)
     ) {
-      showModalUpgrade()
+      showModalUpgrade(
+        'Image & Video Statuses',
+        'Go beyond text. Upgrade to Pro to post engaging images and videos to your WhatsApp status.',
+      )
       return
     }
     form.setFieldValue('type', value)
@@ -142,6 +150,7 @@ const ModalCreateUpdateStatus: React.FC<Props> = ({
       font,
       scheduler,
     } = form.values
+
     let targetDbStatus: string = StatusState.DRAFT
     let isActuallyScheduled = scheduler.enabled
     let actualScheduledAt = null
@@ -210,7 +219,6 @@ const ModalCreateUpdateStatus: React.FC<Props> = ({
         fileId: (data.message as any).fileId,
       }
     }
-
     return { payload: basePayload, status: targetDbStatus, mediaFileId }
   }
 
@@ -357,6 +365,7 @@ const ModalCreateUpdateStatus: React.FC<Props> = ({
               />
             </Group>
           </Radio.Group>
+
           {form.values.type === StatusType.TEXT && (
             <>
               <Textarea
@@ -384,6 +393,7 @@ const ModalCreateUpdateStatus: React.FC<Props> = ({
               />
             </>
           )}
+
           {(form.values.type === StatusType.IMAGE ||
             form.values.type === StatusType.VIDEO) && (
             <>
@@ -425,4 +435,5 @@ const ModalCreateUpdateStatus: React.FC<Props> = ({
     </Modal>
   )
 }
+
 export default ModalCreateUpdateStatus

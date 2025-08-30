@@ -29,7 +29,7 @@ import '@mantine/core/styles.css'
 import { useWindowScroll } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
 
-// --- Start: Updated Config for Number Validator Focus ---
+// --- Start: New Config for Status Scheduler ---
 // Define a structured feature type for the comparison table
 export interface PlanFeature {
   feature: string
@@ -39,20 +39,16 @@ export interface PlanFeature {
 
 // Centralized list of features for easy management and comparison
 const comparisonFeatures: PlanFeature[] = [
+  { feature: 'Text Status Updates', free: true, pro: true },
+  { feature: 'Image & Video Status Updates', free: false, pro: true },
+  { feature: 'Schedule Statuses for Later', free: false, pro: true },
   {
-    feature: 'Number Validations per Run',
-    free: 'Up to 5 Numbers',
+    feature: 'Status Management Dashboard',
+    free: 'Limited (3 Drafts)',
     pro: 'Unlimited',
   },
-  { feature: 'Check if Number Exists on WA', free: true, pro: true },
-  { feature: 'Import Numbers from Excel/CSV', free: false, pro: true },
-  { feature: 'Export Results to Excel/CSV', free: false, pro: true },
-  {
-    feature: 'Safe Batch Processing',
-    free: false,
-    pro: 'Configurable Batches & Pauses',
-  },
-  { feature: 'Adjustable Delay Between Checks', free: true, pro: true },
+  { feature: 'Automated Posting', free: false, pro: true },
+  { feature: 'Save Statuses as Drafts', free: true, pro: true },
   {
     feature: 'Customer Support',
     free: 'Standard Support',
@@ -65,35 +61,35 @@ const plans = [
   {
     name: 'Free',
     isFree: true,
-    description: 'For basic, small-scale checks.',
+    description: 'For basic, manual status updates.',
     price: '$0',
     placeholderPrice: null,
     link: '#',
     features: [
-      'Validate up to 5 numbers at a time',
-      'See which numbers are valid/invalid',
-      'Adjustable delay settings',
+      'Post text-only statuses',
+      'Save up to 3 drafts',
+      'Manual posting only',
       'Standard support',
     ],
   },
   {
     name: 'Pro Lifetime',
     isFree: false,
-    description: 'Pay once, unlock powerful bulk validation tools forever.',
+    description: 'Pay once, automate your WhatsApp presence forever.',
     placeholderPrice: '$89',
     price: '$39',
-    link: 'https://extdotninja.lemonsqueezy.com/buy/c2a57d45-f96b-42ab-b73d-73847a845fe5?logo=0',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/a1b2c3d4-e5f6-7890-ghij-k1l2m3n4o5p6?logo=0', // Placeholder for new product ID
     features: [
-      'Validate Unlimited Numbers',
-      'Import from Excel & CSV Files',
-      'Export Results to Excel & CSV',
-      'Safe Batch Processing',
+      'Schedule Unlimited Statuses',
+      'Post Images & Videos',
+      'Fully Automated Posting',
+      'Full Management Dashboard',
       'Priority Customer Support',
       'All Future Updates Included',
     ],
   },
 ]
-// --- End: Updated Config ---
+// --- End: New Config ---
 
 const CheckIcon = () => (
   <Icon
@@ -206,17 +202,17 @@ const HeroSection = () => (
         variant="gradient"
         gradient={{ from: 'teal', to: 'lime' }}
       >
-        <Icon icon="tabler:checks" fontSize={48} />
+        <Icon icon={PRIMARY_ICON} fontSize={48} />
       </ThemeIcon>
       <Title order={1} fz={{ base: 36, sm: 48 }}>
         {' '}
-        Effortlessly Validate Thousands of WhatsApp Numbers.{' '}
+        Automate Your WhatsApp Status. Engage Your Audience 24/7.{' '}
       </Title>
       <Text c="dimmed" fz="lg">
         {' '}
-        Stop wasting time and money on dead contacts. Clean your marketing
-        lists, verify leads, and improve your message deliverability with our
-        powerful bulk number validator.{' '}
+        Schedule text, image, and video statuses to post automatically. Keep
+        your contacts engaged, promote your business, and save time—all from a
+        simple dashboard.{' '}
       </Text>
       <Stack align="center">
         <Button
@@ -230,7 +226,7 @@ const HeroSection = () => (
           radius="md"
         >
           {' '}
-          Get Lifetime Access Now{' '}
+          Get Lifetime Access
         </Button>
         <Text size="xs" c="dimmed">
           {' '}
@@ -244,42 +240,41 @@ const HeroSection = () => (
 const FeaturesSection = () => {
   const featuresData = [
     {
-      icon: 'tabler:file-type-xls',
-      title: 'Bulk Import & Export',
+      icon: 'tabler:calendar-time',
+      title: 'Schedule & Forget',
       description:
-        'Easily import thousands of numbers from an Excel or CSV file. Export the validation results for your records. (Pro Feature)',
+        "Plan your statuses for days, weeks, or months in advance. Our tool will post them for you at the perfect time, even when you're offline.",
     },
     {
-      icon: 'tabler:shield-cog',
-      title: 'Safe & Smart Validation',
+      icon: 'tabler:photo-video',
+      title: 'Post Rich Media',
       description:
-        'Our tool uses randomized delays and batch processing to mimic human behavior, significantly reducing any risks to your account.',
+        'Go beyond text. Capture attention by scheduling stunning images and engaging videos directly to your status.',
     },
     {
-      icon: 'tabler:analyze',
-      title: 'Boost Campaign ROI',
+      icon: 'tabler:dashboard',
+      title: 'All-in-One Dashboard',
       description:
-        'Clean your contact lists to ensure your messages are sent only to active WhatsApp users, increasing engagement and saving costs.',
+        "Manage all your statuses from one place. See what's scheduled, what's been posted, and what's in drafts. Stay organized and in control.",
     },
     {
-      icon: 'tabler:shield-lock',
-      title: 'Private & Secure',
+      icon: 'tabler:shield-check',
+      title: 'Safe & Reliable',
       description:
-        'Your contact lists are processed locally on your computer. We never see, store, or have access to your sensitive data.',
+        'Our scheduler interacts with WhatsApp Web in a responsible way to ensure your updates are posted reliably, following best practices.',
     },
     {
       icon: 'tabler:rocket',
-      title: 'Simple & Fast',
+      title: 'Boost Engagement',
       description:
-        'A clean, intuitive interface designed to get your list validated in minutes. Just paste, configure your settings, and start.',
+        'Maintain a consistent presence and keep your brand top-of-mind. Perfect for announcements, promotions, and daily updates.',
     },
   ]
-
   return (
     <Box mt={80}>
       <Center>
         <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>A Smarter Way to Manage Contacts</Title>
+          <Title order={2}>A Smarter Way to Manage Your Presence</Title>
           <Text c="dimmed">
             {' '}
             Unlock powerful tools that make your communication more effective
@@ -332,12 +327,12 @@ const UserPersonaSection = () => (
               <ThemeIcon variant="light" size={40} radius="md">
                 <Icon icon="tabler:target-arrow" fontSize={22} />
               </ThemeIcon>
-              <Title order={3}>For Marketers & Sales Teams</Title>
+              <Title order={3}>For Marketers & Businesses</Title>
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Maximize the impact of your outreach campaigns by ensuring your
-              contact database is clean, up-to-date, and ready for engagement.{' '}
+              Schedule product launches, daily deals, and promotional content.
+              Keep your audience engaged without being tied to your phone.{' '}
             </Text>
             <List
               spacing="xs"
@@ -349,18 +344,9 @@ const UserPersonaSection = () => (
                 </ThemeIcon>
               }
             >
-              <List.Item>
-                {' '}
-                Verify lead lists from events or web forms instantly.{' '}
-              </List.Item>
-              <List.Item>
-                {' '}
-                Increase broadcast and campaign deliverability rates.{' '}
-              </List.Item>
-              <List.Item>
-                {' '}
-                Reduce wasted resources on inactive numbers.{' '}
-              </List.Item>
+              <List.Item> Automate marketing campaigns </List.Item>
+              <List.Item> Announce limited-time offers </List.Item>
+              <List.Item> Drive traffic with consistent updates </List.Item>
             </List>
             <Button
               component="a"
@@ -382,13 +368,13 @@ const UserPersonaSection = () => (
               <ThemeIcon variant="light" size={40} radius="md">
                 <Icon icon="tabler:users-group" fontSize={22} />
               </ThemeIcon>
-              <Title order={3}>For Community & HR Managers</Title>
+              <Title order={3}>For Creators & Influencers</Title>
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Maintain accurate contact information for your community members
-              or employees. Ensure important announcements and updates reach
-              everyone.{' '}
+              Plan your content calendar and schedule updates to connect with
+              your followers. Share your work, behind-the-scenes content, and
+              announcements automatically.{' '}
             </Text>
             <List
               spacing="xs"
@@ -400,18 +386,9 @@ const UserPersonaSection = () => (
                 </ThemeIcon>
               }
             >
-              <List.Item>
-                {' '}
-                Clean up member databases for better communication.{' '}
-              </List.Item>
-              <List.Item>
-                {' '}
-                Verify phone numbers during employee onboarding.{' '}
-              </List.Item>
-              <List.Item>
-                {' '}
-                Ensure contact lists for events are accurate.{' '}
-              </List.Item>
+              <List.Item> Maintain daily engagement </List.Item>
+              <List.Item> Promote new content or events </List.Item>
+              <List.Item> Build a stronger community </List.Item>
             </List>
             <Button
               component="a"
@@ -434,30 +411,26 @@ const CaseStudySection = () => {
   const caseStudies = [
     {
       icon: 'tabler:building-store',
-      title: 'Pre-Campaign List Cleaning',
+      title: 'E-Commerce Store',
       description:
-        'A digital marketer uploads a list of 5,000 leads from a recent event. The tool identifies 800 invalid numbers, saving the company money and improving their campaign performance metrics.',
-      features: ['Excel Import', 'Unlimited Validation'],
-      persona: 'For Digital Marketers',
+        "A local clothing brand schedules daily 'Outfit of the Day' image statuses and weekend video promotions. This consistent engagement led to a 15% increase in direct inquiries via WhatsApp.",
+      features: ['Image & Video Statuses', 'Content Planning'],
     },
     {
-      icon: 'tabler:users',
-      title: 'Verifying Sales Leads',
+      icon: 'tabler:home-cog',
+      title: 'Real Estate Agent',
       description:
-        'A sales team gets a list of potential clients. They quickly run the numbers through the validator to ensure their sales reps only spend time contacting people with active WhatsApp accounts.',
-      features: ['Quick Validation', 'Improve Productivity'],
-      persona: 'For Sales & Business',
+        "An agent schedules 'Just Listed' video tours and 'Open House' reminders. This keeps potential buyers informed and saves the agent hours each week.",
+      features: ['Scheduled Updates', 'Time-Saving Automation'],
     },
     {
-      icon: 'tabler:database',
-      title: 'Database Maintenance',
+      icon: 'tabler:play-football',
+      title: 'Online Coach',
       description:
-        'A community manager for a large online group periodically exports their member list and uses the validator to remove inactive numbers, keeping their communication channels effective.',
-      features: ['Export Results', 'Data Management'],
-      persona: 'For Community Managers',
+        'A fitness coach schedules motivational text statuses and short workout video clips for their clients every morning, providing value and keeping their community active.',
+      features: ['Daily Scheduling', 'Audience Engagement'],
     },
   ]
-
   return (
     <Box mt={80}>
       <Center>
@@ -801,13 +774,14 @@ const SecuritySection = () => (
           >
             <List.Item>
               {' '}
-              <b>Local Processing:</b> Your number lists are checked directly
-              from your browser. They are never uploaded to our servers.{' '}
+              <b>Local Processing:</b> All your status drafts and media are
+              stored directly in your browser. They are never uploaded to our
+              servers.{' '}
             </List.Item>
             <List.Item>
               {' '}
               <b>No Data Storage:</b> We never see, save, or have access to your
-              contacts or validation results.{' '}
+              status content or contacts.{' '}
             </List.Item>
             <List.Item>
               {' '}
@@ -827,36 +801,35 @@ const TestimonialsSection = () => {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-8.png',
       name: 'Sarah L.',
-      role: 'Digital Marketer',
+      role: 'E-commerce Owner',
       quote:
-        'This validator has become an essential tool for our campaigns. We cleaned a list of 10,000 leads and our <b>deliverability shot up by over 20%</b>. The ability to import from Excel and export the results makes it incredibly efficient.',
+        'The status scheduler is a game-changer. I can plan a whole week of promotions in 30 minutes. Our <b>customer engagement has never been higher</b>. The ability to schedule images of our new products is fantastic.',
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png',
       name: 'Mike P.',
-      role: 'Sales Manager',
+      role: 'Fitness Coach',
       quote:
-        'My team uses this daily to verify new leads. <b>No more wasted time trying to contact invalid numbers</b>. The Pro version was a no-brainer for the unlimited checks. It paid for itself in the first week.',
+        'I use it to post daily workout tips for my clients. The ability to <b>schedule video statuses is amazing</b>. It saves me so much time every single day and keeps my community motivated.',
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-4.png',
       name: 'Alisha C.',
-      role: 'Community Manager',
+      role: 'Digital Marketer',
       quote:
-        'We manage a large community, and keeping our contact list up-to-date was a nightmare. With this tool, we can <b>periodically clean our database in minutes</b>. The batch processing feature is fantastic for large lists.',
+        'We manage several business accounts, and this tool allows us to maintain a consistent brand presence across all of them. The <b>dashboard is intuitive, and the scheduling is flawless</b>.',
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-5.png',
       name: 'David G.',
-      role: 'Small Business Owner',
+      role: 'Freelance Photographer',
       quote:
-        "I was hesitant about bulk messaging tools, but the <b>safety features like randomized delay gave me peace of mind</b>. It's powerful, yet simple to use. Worth every penny for the lifetime license.",
+        "As a photographer, I can schedule my portfolio images to post throughout the week. It's a fantastic way to <b>showcase my work without constantly being on my phone</b>. Worth every penny for the lifetime license.",
     },
   ]
-
   return (
     <Box mt={80}>
       <Center>
@@ -931,7 +904,7 @@ const FaqSection = () => {
       icon: 'tabler:rocket',
       question: 'Why do I need to upgrade to Pro?',
       answer:
-        'Pro unlocks the full power of the validator for professional use. You can check <b>unlimited numbers</b>, easily <b>import/export from Excel</b>, and use <b>safe batch processing</b> for very large lists. It turns a simple checker into a powerful data cleaning tool.',
+        'Pro unlocks the core automation features. You can <b>schedule posts</b> for the future and use rich media like <b>images and videos</b>. It transforms the tool from a simple status maker into a powerful marketing and engagement assistant.',
     },
     {
       icon: 'tabler:key',
@@ -941,18 +914,17 @@ const FaqSection = () => {
     },
     {
       icon: 'tabler:shield-check',
-      question: 'Is this safe? Can my WhatsApp account get banned?',
+      question: 'Is this safe to use for my WhatsApp account?',
       answer:
-        'We have designed this tool with safety as a priority. The Pro version includes <b>randomized delays and batch processing</b> to mimic human behavior, which significantly reduces any risk. However, we always recommend using it responsibly.',
+        'Yes. The scheduler uses the official WhatsApp Web interface to post statuses, just as you would manually. It operates with delays between actions to ensure natural-looking activity, keeping your account in good standing.',
     },
     {
       icon: 'tabler:help',
-      question: 'How does the validation actually work?',
+      question: 'How does the scheduler actually work?',
       answer:
-        'The tool uses an official WhatsApp Web function to check if a number is registered on the platform <b>without sending any message or notification</b> to the number being checked. It is a quick and discreet process.',
+        'You create your status (text, image, or video), set a future date and time, and save it. Our extension, running in your browser on WhatsApp Web, will automatically post it for you at the scheduled time, even if you are away from your computer.',
     },
   ]
-
   return (
     <Box mt={80} id="faq">
       <Center>
@@ -999,7 +971,7 @@ const ValueStackSection = () => (
           <Text c="dimmed">
             {' '}
             Your Pro Lifetime License is a complete package for professional
-            contact list management.{' '}
+            WhatsApp engagement.{' '}
           </Text>
         </Stack>
       </Center>
@@ -1015,9 +987,9 @@ const ValueStackSection = () => (
               </ThemeIcon>
             }
           >
-            <List.Item>Unlimited Number Validations</List.Item>
-            <List.Item>Import from Excel & CSV</List.Item>
-            <List.Item>Export Results to Excel & CSV</List.Item>
+            <List.Item>Unlimited Status Scheduling</List.Item>
+            <List.Item>Image & Video Status Posts</List.Item>
+            <List.Item>Automated Posting Engine</List.Item>
           </List>
         </Grid.Col>
         <Grid.Col span={{ base: 12, sm: 6 }}>
@@ -1031,7 +1003,7 @@ const ValueStackSection = () => (
               </ThemeIcon>
             }
           >
-            <List.Item>Safe Batch Processing Controls</List.Item>
+            <List.Item>Full Status Management Dashboard</List.Item>
             <List.Item>Priority Customer Support</List.Item>
             <List.Item>30-Day Money-Back Guarantee</List.Item>
           </List>
@@ -1088,7 +1060,6 @@ const Footer = () => (
 
 const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
   const [scroll] = useWindowScroll()
-
   return (
     <Transition
       mounted={scroll.y > 200}
@@ -1139,7 +1110,6 @@ const getOfferEndDate = (): Date => {
   if (storedEndDate && new Date(storedEndDate) > new Date()) {
     return new Date(storedEndDate)
   }
-
   const newEndDate = new Date()
   newEndDate.setDate(newEndDate.getDate() + 3)
   localStorage.setItem('offerEndDate', newEndDate.toISOString())
@@ -1160,6 +1130,7 @@ const LandingPage = () => {
       { city: 'Miami', country: 'United States' },
     ]
     let timeoutId: NodeJS.Timeout
+
     const scheduleNextNotification = () => {
       clearTimeout(timeoutId)
       const randomDelay = Math.floor(Math.random() * (15000 - 8000 + 1)) + 8000 // 8-15 seconds
@@ -1167,13 +1138,13 @@ const LandingPage = () => {
         const randomLocation =
           locations[Math.floor(Math.random() * locations.length)]
         setNotification(randomLocation)
+
         timeoutId = setTimeout(() => {
           setNotification(null)
           scheduleNextNotification()
         }, 4000) // Show for 4 seconds
       }, randomDelay)
     }
-
     timeoutId = setTimeout(scheduleNextNotification, 5000) // First one after 5 seconds
 
     return () => clearTimeout(timeoutId)
@@ -1197,10 +1168,9 @@ const LandingPage = () => {
           <FaqSection />
           <ValueStackSection />
           <ContactUsSection />
-
           <Center mt={40}>
             <Stack align="center" gap="lg">
-              <Title order={2}>Ready to Supercharge Your Outreach?</Title>
+              <Title order={2}>Ready to Supercharge Your Engagement?</Title>
               <Text c="dimmed" size="lg">
                 {' '}
                 Get all Pro features for a one-time payment.{' '}
@@ -1226,7 +1196,6 @@ const LandingPage = () => {
               </Stack>
             </Stack>
           </Center>
-
           <Footer />
         </Stack>
       </Container>
