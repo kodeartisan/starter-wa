@@ -78,7 +78,7 @@ const plans = [
     description: 'Pay once, automate your WhatsApp presence forever.',
     placeholderPrice: '$89',
     price: '$39',
-    link: 'https://extdotninja.lemonsqueezy.com/buy/a1b2c3d4-e5f6-7890-ghij-k1l2m3n4o5p6?logo=0', // Placeholder for new product ID
+    link: 'https://extdotninja.lemonsqueezy.com/buy/07900b2b-ed92-4714-b111-51f07d221c0c?logo=0', // Placeholder for new product ID
     features: [
       'Schedule Unlimited Statuses',
       'Post Images & Videos',
