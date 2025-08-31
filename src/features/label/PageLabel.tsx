@@ -9,15 +9,7 @@ import db from '@/libs/db'
 import toast from '@/utils/toast'
 import { getContactName } from '@/utils/util'
 import { Icon } from '@iconify/react'
-import {
-  Badge,
-  Button,
-  Group,
-  Stack,
-  Text,
-  TextInput,
-  Tooltip,
-} from '@mantine/core'
+import { Badge, Stack, Switch, Text, Tooltip } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { DataTable, type DataTableColumn } from 'mantine-datatable'
 import React, { useCallback, useMemo, useState } from 'react'
@@ -25,21 +17,19 @@ import EditableCell from './components/EditableCell'
 import LabelActions from './components/LabelActions'
 import LabelBulkActions from './components/LabelBulkActions'
 import LabelContactsVisualization from './components/LabelContactsVisualization'
+import LabelPageHeader from './components/LabelPageHeader'
 import ModalCreateUpdateLabel from './components/ModalCreateUpdateLabel'
+import ModalImportLabels from './components/ModalImportLabels' // ++ IMPORT NEW MODAL
 import ModalManageContacts from './components/ModalManageContacts'
 
-/**
- * @component PageLabel
- * @description A dedicated page for managing labels. It allows users to create,
- * view, edit, delete, and manage contacts for each label. Now includes bulk actions and pagination.
- */
 const PageLabel: React.FC = () => {
   const dataQuery = useDataQuery<Label>({
     table: db.labels,
     searchField: 'label',
     initialSort: { field: 'label', direction: 'asc' },
-    initialPageSize: 10, // Set initial page size
+    initialPageSize: 10,
   })
+
   const wa = useWa()
   const { saveAs } = useFile()
   const [showCreateUpdateModal, createUpdateModalHandlers] =
@@ -48,8 +38,9 @@ const PageLabel: React.FC = () => {
   const [showManageContactsModal, manageContactsModalHandlers] =
     useDisclosure(false)
   const [selectedLabel, setSelectedLabel] = useState<Label | null>(null)
+  const [showImportModal, importModalHandlers] = useDisclosure(false)
 
-  // --- Handlers for CRUD operations ---
+  // Memoize handlers to prevent re-rendering of the header component
   const handleCreate = useCallback(() => {
     setEditingLabel(null)
     createUpdateModalHandlers.open()
@@ -71,42 +62,63 @@ const PageLabel: React.FC = () => {
     [manageContactsModalHandlers],
   )
 
-  const handleDelete = useCallback(async (label: Label) => {
-    if (
-      confirm(`Are you sure you want to delete the label "${label.label}"?`)
-    ) {
-      try {
-        if (label.id) {
-          await db.labels.delete(label.id)
-          toast.success(`Label "${label.label}" has been deleted.`)
-        }
-      } catch (error) {
-        console.error('Failed to delete label:', error)
-        toast.error('An error occurred while deleting the label.')
+  const handleExportAll = useCallback(async () => {
+    try {
+      toast.info('Preparing backup file...')
+      const allLabels = await db.labels.toArray()
+      if (allLabels.length === 0) {
+        toast.info('There are no labels to back up.')
+        return
       }
+      const exportableLabels = allLabels.map(({ id, ...rest }) => rest)
+      const fileName = `whats-status-labels-backup-${new Date().toISOString().slice(0, 10)}`
+      await saveAs(SaveAs.JSON, exportableLabels, fileName, {
+        skipSerialization: true,
+      })
+      toast.success('All labels have been backed up successfully.')
+    } catch (error) {
+      console.error('Failed to export all labels:', error)
+      toast.error('An error occurred while creating the backup.')
     }
-  }, [])
+  }, [saveAs])
 
-  // --- START: MODIFIED - Added handler for inline cell updates ---
+  const handleDelete = useCallback(
+    async (label: Label) => {
+      if (
+        confirm(`Are you sure you want to delete the label "${label.label}"?`)
+      ) {
+        try {
+          if (label.id) {
+            await db.labels.delete(label.id)
+            toast.success(`Label "${label.label}" has been deleted.`)
+            dataQuery.setSelectedRecords((prev) =>
+              prev.filter((r) => r.id !== label.id),
+            )
+          }
+        } catch (error) {
+          console.error('Failed to delete label:', error)
+          toast.error('An error occurred while deleting the label.')
+        }
+      }
+    },
+    [dataQuery],
+  )
+
   const handleInlineUpdate = useCallback(
-    async (label: Label, field: keyof Label, value: string) => {
+    async (label: Label, field: keyof Label, value: string | number) => {
       if (!label.id) return
-
       try {
         await db.labels.update(label.id, { [field]: value })
         toast.success(`Label field updated successfully.`)
       } catch (error) {
         console.error(`Failed to update label field "${field}":`, error)
         toast.error('An error occurred while saving the changes.')
-        // Propagate error to let EditableCell know the save failed
         throw error
       }
     },
     [],
   )
-  // --- END: MODIFIED ---
 
-  // --- Handlers for Export Action ---
   const handleExport = useCallback(
     async (label: Label, format: 'csv' | 'excel') => {
       if (!wa.isReady) {
@@ -151,7 +163,67 @@ const PageLabel: React.FC = () => {
     [wa.isReady, wa.contact, saveAs],
   )
 
-  // --- Handlers for Bulk Actions ---
+  const handleExportSelected = useCallback(
+    async (format: 'csv' | 'excel') => {
+      const selectedLabels = dataQuery.selectedRecords
+      if (selectedLabels.length === 0) {
+        toast.info('No labels selected for export.')
+        return
+      }
+      if (!wa.isReady) {
+        toast.error('WhatsApp is not connected yet. Please wait.')
+        return
+      }
+      toast.info('Preparing bulk export... This may take a moment.')
+      try {
+        let allContactsToExport: {
+          name: string
+          number: string
+          label: string
+        }[] = []
+        for (const label of selectedLabels) {
+          if (label.numbers && label.numbers.length > 0) {
+            const contactDetails = await Promise.all(
+              label.numbers.map(async (number: string) => {
+                try {
+                  const contact = await wa.contact.get(number)
+                  return {
+                    name: getContactName(contact),
+                    number: number.replace('@c.us', ''),
+                    label: label.label, // Add the source label for context
+                  }
+                } catch (e) {
+                  return {
+                    name: 'N/A',
+                    number: number.replace('@c.us', ''),
+                    label: label.label,
+                  }
+                }
+              }),
+            )
+            allContactsToExport = allContactsToExport.concat(contactDetails)
+          }
+        }
+        if (allContactsToExport.length === 0) {
+          toast.info('Selected labels have no contacts to export.')
+          return
+        }
+        const fileName = `whats-status-bulk-export-${new Date().toISOString().slice(0, 10)}`
+        const saveFormat = format === 'csv' ? SaveAs.CSV : SaveAs.EXCEL
+        await saveAs(saveFormat, allContactsToExport, fileName, {
+          skipSerialization: true,
+        })
+        toast.success(
+          `${allContactsToExport.length} contacts from ${selectedLabels.length} labels exported successfully.`,
+        )
+      } catch (error) {
+        console.error('Failed to export selected contacts:', error)
+        toast.error('An error occurred during the bulk export.')
+      }
+    },
+    [dataQuery.selectedRecords, wa.isReady, wa.contact, saveAs],
+  )
+
   const handleDeleteSelected = useCallback(async () => {
     const selectedIds = dataQuery.selectedRecords
       .map((label) => label.id)
@@ -165,13 +237,13 @@ const PageLabel: React.FC = () => {
       try {
         await db.labels.bulkDelete(selectedIds)
         toast.success(`${selectedIds.length} labels have been deleted.`)
-        dataQuery.setSelectedRecords([]) // Clear selection
+        dataQuery.setSelectedRecords([])
       } catch (error) {
         console.error('Failed to delete selected labels:', error)
         toast.error('An error occurred while deleting the labels.')
       }
     }
-  }, [dataQuery.selectedRecords, dataQuery.setSelectedRecords])
+  }, [dataQuery])
 
   const handlePinToggleSelected = useCallback(
     async (pin: boolean) => {
@@ -188,7 +260,7 @@ const PageLabel: React.FC = () => {
             pin ? 'pinned' : 'unpinned'
           }.`,
         )
-        dataQuery.setSelectedRecords([]) // Clear selection
+        dataQuery.setSelectedRecords([])
       } catch (error) {
         console.error(
           `Failed to ${pin ? 'pin' : 'unpin'} selected labels:`,
@@ -197,12 +269,11 @@ const PageLabel: React.FC = () => {
         toast.error('An error occurred while updating the labels.')
       }
     },
-    [dataQuery.selectedRecords, dataQuery.setSelectedRecords],
+    [dataQuery],
   )
 
   const columns = useMemo<DataTableColumn<Label>[]>(
     () => [
-      // --- START: MODIFIED - Made Label column editable ---
       {
         accessor: 'label',
         title: 'Label',
@@ -224,8 +295,6 @@ const PageLabel: React.FC = () => {
           </EditableCell>
         ),
       },
-      // --- END: MODIFIED ---
-      // --- START: MODIFIED - Added editable Group column ---
       {
         accessor: 'group',
         title: 'Group',
@@ -240,12 +309,37 @@ const PageLabel: React.FC = () => {
           </EditableCell>
         ),
       },
-      // --- END: MODIFIED ---
       {
         accessor: 'numbers',
         title: 'Contacts',
         render: (label) => (
           <LabelContactsVisualization contactIds={label.numbers || []} />
+        ),
+      },
+      {
+        accessor: 'show',
+        title: 'Visible',
+        textAlign: 'center',
+        render: (label) => (
+          <Tooltip
+            label={
+              label.show
+                ? 'Visible in header filters'
+                : 'Hidden from header filters'
+            }
+          >
+            <Switch
+              checked={!!label.show}
+              onChange={(event) =>
+                handleInlineUpdate(
+                  label,
+                  'show',
+                  event.currentTarget.checked ? 1 : 0,
+                )
+              }
+              onClick={(e) => e.stopPropagation()} // Prevent row click event
+            />
+          </Tooltip>
         ),
       },
       {
@@ -277,7 +371,6 @@ const PageLabel: React.FC = () => {
         ),
       },
     ],
-    // --- START: MODIFIED - Added dependency ---
     [
       handleDelete,
       handleEdit,
@@ -285,30 +378,20 @@ const PageLabel: React.FC = () => {
       handleExport,
       handleInlineUpdate,
     ],
-    // --- END: MODIFIED ---
   )
 
   return (
     <>
       <LayoutPage>
         <Stack gap="md">
-          <Group justify="space-between">
-            <TextInput
-              placeholder="Search by label name..."
-              value={dataQuery.search}
-              size="sm"
-              onChange={(e) => dataQuery.setSearch(e.currentTarget.value)}
-              leftSection={<Icon icon="tabler:search" fontSize={16} />}
-              style={{ flex: 1, maxWidth: 400 }}
-            />
-            <Button
-              leftSection={<Icon icon="tabler:plus" fontSize={18} />}
-              onClick={handleCreate}
-            >
-              {' '}
-              Add Label{' '}
-            </Button>
-          </Group>
+          {/* ++ USE THE NEW HEADER COMPONENT ++ */}
+          <LabelPageHeader
+            dataQuery={dataQuery}
+            onAdd={handleCreate}
+            onBackup={handleExportAll}
+            onRestore={importModalHandlers.open}
+          />
+
           {dataQuery.selectedRecords.length > 0 && (
             <LabelBulkActions
               selectedCount={dataQuery.selectedRecords.length}
@@ -316,8 +399,10 @@ const PageLabel: React.FC = () => {
               onPin={() => handlePinToggleSelected(true)}
               onUnpin={() => handlePinToggleSelected(false)}
               onClear={() => dataQuery.setSelectedRecords([])}
+              onExport={handleExportSelected}
             />
           )}
+
           <DataTable
             minHeight={420}
             records={dataQuery.data}
@@ -340,15 +425,24 @@ const PageLabel: React.FC = () => {
           />
         </Stack>
       </LayoutPage>
+
       <ModalCreateUpdateLabel
         opened={showCreateUpdateModal}
         data={editingLabel}
         onClose={createUpdateModalHandlers.close}
+        onSuccess={dataQuery.clearFilters}
       />
       <ModalManageContacts
         opened={showManageContactsModal}
         label={selectedLabel}
         onClose={manageContactsModalHandlers.close}
+      />
+      <ModalImportLabels
+        opened={showImportModal}
+        onClose={importModalHandlers.close}
+        onSuccess={() => {
+          dataQuery.clearFilters() // Refresh data after successful import
+        }}
       />
     </>
   )

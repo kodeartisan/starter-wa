@@ -1,8 +1,7 @@
-import { Action, Page } from '@/constants'
+import { Action } from '@/constants'
 import useWa from '@/hooks/useWa'
 import db, { type Label } from '@/libs/db'
 import theme from '@/libs/theme'
-import page from '@/utils/page'
 import style from '@/utils/style'
 import { postMessage } from '@/utils/util'
 import { Icon } from '@iconify/react'
@@ -10,17 +9,18 @@ import {
   ActionIcon,
   Badge,
   Box,
+  Center,
   Checkbox,
   Group,
   MantineProvider,
   Menu,
   ScrollArea,
   Text,
+  TextInput,
   Tooltip,
 } from '@mantine/core'
 import { useLiveQuery } from 'dexie-react-hooks'
 import $ from 'jquery'
-import _ from 'lodash'
 import type {
   PlasmoCSConfig,
   PlasmoGetInlineAnchor,
@@ -50,6 +50,7 @@ const Header = () => {
   const wa = useWa()
   const [activeLabelId, setActiveLabelId] = useState<number | null>(null)
   const allLabels = useLiveQuery(() => db.labels.toArray())
+  const [labelSearch, setLabelSearch] = useState('') // State for menu search
 
   const { pinnedLabels, unpinnedLabels } = useMemo(() => {
     const pinned =
@@ -58,6 +59,15 @@ const Header = () => {
       allLabels?.filter((label) => !label.isPinned && label.show) || []
     return { pinnedLabels: pinned, unpinnedLabels: unpinned }
   }, [allLabels])
+
+  // Memoized search results for the management menu
+  const filteredMenuLabels = useMemo(() => {
+    if (!allLabels) return []
+    if (!labelSearch) return allLabels
+    return allLabels.filter((label) =>
+      label.label.toLowerCase().includes(labelSearch.toLowerCase()),
+    )
+  }, [allLabels, labelSearch])
 
   const handleFilterChat = async (label: Label) => {
     if (label.id === activeLabelId) {
@@ -75,11 +85,15 @@ const Header = () => {
   }
 
   const handleToggleVisibility = async (label: Label) => {
-    await db.labels.update(label.id, { show: label.show ? 0 : 1 })
+    if (label.id) {
+      await db.labels.update(label.id, { show: label.show ? 0 : 1 })
+    }
   }
 
   const handleTogglePin = async (label: Label) => {
-    await db.labels.update(label.id, { isPinned: label.isPinned ? 0 : 1 })
+    if (label.id) {
+      await db.labels.update(label.id, { isPinned: label.isPinned ? 0 : 1 })
+    }
   }
 
   const handleManageLabels = () => {
@@ -89,18 +103,28 @@ const Header = () => {
   const renderLabel = (label: Label) => {
     const isActive = activeLabelId === label.id
     return (
-      <Badge
+      // MODIFIED: Added Tooltip to show label description on hover.
+      <Tooltip
         key={label.id}
-        size="lg"
-        color={label.color || 'gray'}
-        radius={'sm'}
-        variant={isActive ? 'filled' : 'light'}
-        onClick={() => handleFilterChat(label)}
-        mr={'sm'}
-        style={{ cursor: 'pointer' }}
+        label={label.description}
+        position="bottom"
+        withArrow
+        disabled={!label.description}
+        multiline
+        w={220}
       >
-        {label.label} ({label.numbers?.length || 0})
-      </Badge>
+        <Badge
+          size="lg"
+          color={label.color || 'gray'}
+          radius={'sm'}
+          variant={isActive ? 'filled' : 'light'}
+          onClick={() => handleFilterChat(label)}
+          mr={'sm'}
+          style={{ cursor: 'pointer' }}
+        >
+          {label.label} ({label.numbers?.length || 0})
+        </Badge>
+      </Tooltip>
     )
   }
 
@@ -127,12 +151,25 @@ const Header = () => {
         wrap="nowrap"
       >
         <ScrollArea w={1100}>
-          <Box style={{ textWrap: 'nowrap' }}>
-            {pinnedLabels.map(renderLabel)}
-            {unpinnedLabels.map(renderLabel)}
-          </Box>
+          {/* MODIFIED: Added informative empty state when no labels exist. */}
+          {allLabels && allLabels.length > 0 ? (
+            <Box style={{ textWrap: 'nowrap' }}>
+              {pinnedLabels.map(renderLabel)}
+              {unpinnedLabels.map(renderLabel)}
+            </Box>
+          ) : (
+            <Center h={36}>
+              <Text c="dimmed" size="sm">
+                No filters yet. Click the{' '}
+                <Icon
+                  icon="tabler:adjustments-alt"
+                  style={{ display: 'inline-block', verticalAlign: 'middle' }}
+                />{' '}
+                icon to create your first label!
+              </Text>
+            </Center>
+          )}
         </ScrollArea>
-
         <Group mr={60} justify="flex-end" wrap="nowrap">
           <When condition={activeLabelId !== null}>
             <Tooltip label="Clear Filter" position="bottom">
@@ -146,8 +183,12 @@ const Header = () => {
               </ActionIcon>
             </Tooltip>
           </When>
-
-          <Menu shadow="md" width={280} position="bottom-end">
+          <Menu
+            shadow="md"
+            width={280}
+            position="bottom-end"
+            closeOnItemClick={false}
+          >
             <Menu.Target>
               <Tooltip label="Manage Filters & Labels" position="bottom">
                 <ActionIcon variant="subtle" size="lg">
@@ -156,47 +197,64 @@ const Header = () => {
               </Tooltip>
             </Menu.Target>
             <Menu.Dropdown>
+              {/* MODIFIED: Added search input inside the management menu. */}
+              <TextInput
+                placeholder="Search labels..."
+                value={labelSearch}
+                onChange={(event) => setLabelSearch(event.currentTarget.value)}
+                leftSection={<Icon icon="tabler:search" fontSize={14} />}
+                m="xs"
+                onClick={(e) => e.stopPropagation()}
+              />
+              <Menu.Divider />
               <ScrollArea h={200}>
-                {allLabels?.map((label) => (
-                  <Menu.Item key={label.id} closeMenuOnClick={false}>
-                    <Group justify="space-between" wrap="nowrap">
-                      <Checkbox
-                        checked={!!label.show}
-                        onChange={() => handleToggleVisibility(label)}
-                        label={
-                          <Text size="sm" truncate>
-                            {label.label}
-                          </Text>
-                        }
-                        color={label.color}
-                      />
-                      <Tooltip
-                        label={label.isPinned ? 'Unpin' : 'Pin'}
-                        position="left"
-                      >
-                        <ActionIcon
-                          variant="subtle"
-                          color={label.isPinned ? 'yellow' : 'gray'}
-                          onClick={() => handleTogglePin(label)}
+                {filteredMenuLabels.length > 0 ? (
+                  filteredMenuLabels.map((label) => (
+                    <Menu.Item key={label.id}>
+                      <Group justify="space-between" wrap="nowrap">
+                        <Checkbox
+                          checked={!!label.show}
+                          onChange={() => handleToggleVisibility(label)}
+                          label={
+                            <Text size="sm" truncate>
+                              {label.label}
+                            </Text>
+                          }
+                          color={label.color}
+                        />
+                        <Tooltip
+                          label={label.isPinned ? 'Unpin' : 'Pin'}
+                          position="left"
                         >
-                          <Icon
-                            icon={
-                              label.isPinned
-                                ? 'tabler:star-filled'
-                                : 'tabler:star'
-                            }
-                            fontSize={16}
-                          />
-                        </ActionIcon>
-                      </Tooltip>
-                    </Group>
-                  </Menu.Item>
-                ))}
+                          <ActionIcon
+                            variant="subtle"
+                            color={label.isPinned ? 'yellow' : 'gray'}
+                            onClick={() => handleTogglePin(label)}
+                          >
+                            <Icon
+                              icon={
+                                label.isPinned
+                                  ? 'tabler:star-filled'
+                                  : 'tabler:star'
+                              }
+                              fontSize={16}
+                            />
+                          </ActionIcon>
+                        </Tooltip>
+                      </Group>
+                    </Menu.Item>
+                  ))
+                ) : (
+                  <Text c="dimmed" ta="center" size="sm" p="xs">
+                    No labels found.
+                  </Text>
+                )}
               </ScrollArea>
               <Menu.Divider />
               <Menu.Item
                 leftSection={<Icon icon="tabler:settings" fontSize={16} />}
                 onClick={handleManageLabels}
+                closeMenuOnClick={true}
               >
                 Manage labels
               </Menu.Item>

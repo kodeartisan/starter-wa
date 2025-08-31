@@ -1,6 +1,6 @@
 // src/features/label/components/LabelBulkActions.tsx
 import { Icon } from '@iconify/react'
-import { ActionIcon, Button, Group, Text, Tooltip } from '@mantine/core'
+import { ActionIcon, Button, Group, Menu, Text, Tooltip } from '@mantine/core'
 import React from 'react'
 
 interface Props {
@@ -9,6 +9,7 @@ interface Props {
   onPin: () => void
   onUnpin: () => void
   onClear: () => void
+  onExport: (format: 'csv' | 'excel') => void // Added export handler
 }
 
 const LabelBulkActions: React.FC<Props> = ({
@@ -17,6 +18,7 @@ const LabelBulkActions: React.FC<Props> = ({
   onPin,
   onUnpin,
   onClear,
+  onExport, // Destructure new prop
 }) => {
   return (
     <Group
@@ -50,6 +52,35 @@ const LabelBulkActions: React.FC<Props> = ({
         >
           Unpin
         </Button>
+        {/* START: MODIFIED - Added bulk export button with a format selection menu */}
+        <Menu shadow="md" width={150}>
+          <Menu.Target>
+            <Button
+              size="xs"
+              variant="light"
+              color="blue"
+              leftSection={<Icon icon="tabler:file-export" fontSize={16} />}
+            >
+              Export Selected
+            </Button>
+          </Menu.Target>
+          <Menu.Dropdown>
+            <Menu.Label>Export as</Menu.Label>
+            <Menu.Item
+              leftSection={<Icon icon="tabler:file-type-csv" />}
+              onClick={() => onExport('csv')}
+            >
+              CSV
+            </Menu.Item>
+            <Menu.Item
+              leftSection={<Icon icon="tabler:file-type-xls" />}
+              onClick={() => onExport('excel')}
+            >
+              Excel
+            </Menu.Item>
+          </Menu.Dropdown>
+        </Menu>
+        {/* END: MODIFIED */}
         <Button
           size="xs"
           variant="light"

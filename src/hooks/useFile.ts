@@ -1,4 +1,4 @@
-// src/utils/file.ts
+// src/hooks/useFile.ts
 import { SaveAs, Setting } from '@/constants'
 import { storage } from '@/libs/storage'
 import FileSaver from 'file-saver'
@@ -90,6 +90,7 @@ const useFile = () => {
       ? data
       : await serializeData(data)
     const finalFilename = filename || defaultFilename()
+
     switch (fileType) {
       case SaveAs.CSV:
         saveAsCSV(processedData, finalFilename)

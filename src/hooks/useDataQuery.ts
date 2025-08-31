@@ -1,8 +1,10 @@
+// src/hooks/useDataQuery.ts
 import type { EntityTable } from 'dexie'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo, useState } from 'react'
 
 type SortDirection = 'asc' | 'desc'
+
 interface Sort {
   field: string
   direction: SortDirection
@@ -10,7 +12,8 @@ interface Sort {
 
 type SortState = Sort | null
 
-type FilterOperator =
+// START: MODIFIED - Added new filter operators for contact count and array checks
+export type FilterOperator =
   | 'equals'
   | 'contains'
   | 'startsWith'
@@ -18,8 +21,12 @@ type FilterOperator =
   | 'greaterThan'
   | 'lessThan'
   | 'between'
+  | 'isEmpty'
+  | 'isNotEmpty'
+  | 'countGreaterThan'
+// END: MODIFIED
 
-interface Filter {
+export interface Filter {
   field: string
   operator: FilterOperator
   value: any
@@ -51,52 +58,61 @@ export const useDataQuery = <T>(options: useDataQueryOptions<T>) => {
   const [sort, setSort] = useState<SortState>(initialSort)
   const [filters, setFilters] = useState<Filter[]>(initialFilters)
 
-  const applyFilter = (query: any, filter: Filter) => {
-    const { field, operator, value, secondValue } = filter
-    switch (operator) {
-      case 'equals':
-        return query.filter((item: any) => item[field] === value)
-      case 'contains':
-        return query.filter((item: any) =>
-          String(item[field])
+  const applyFilter = (data: any[], filter: Filter) => {
+    const { field, operator, value } = filter
+
+    // START: MODIFIED - Added logic for new operators and improved filtering
+    return data.filter((item: any) => {
+      const itemValue = item[field]
+      switch (operator) {
+        case 'equals':
+          return itemValue === value
+        case 'contains':
+          return String(itemValue)
             .toLowerCase()
-            .includes(String(value).toLowerCase()),
-        )
-      case 'startsWith':
-        return query.filter((item: any) =>
-          String(item[field])
+            .includes(String(value).toLowerCase())
+        case 'startsWith':
+          return String(itemValue)
             .toLowerCase()
-            .startsWith(String(value).toLowerCase()),
-        )
-      case 'endsWith':
-        return query.filter((item: any) =>
-          String(item[field])
+            .startsWith(String(value).toLowerCase())
+        case 'endsWith':
+          return String(itemValue)
             .toLowerCase()
-            .endsWith(String(value).toLowerCase()),
-        )
-      case 'greaterThan':
-        return query.filter((item: any) => item[field] > value)
-      case 'lessThan':
-        return query.filter((item: any) => item[field] < value)
-      case 'between':
-        return query.filter(
-          (item: any) =>
-            item[field] >= value && item[field] <= (secondValue ?? value),
-        )
-      default:
-        return query
-    }
+            .endsWith(String(value).toLowerCase())
+        case 'greaterThan':
+          return itemValue > value
+        case 'lessThan':
+          return itemValue < value
+        case 'between':
+          return (
+            itemValue >= value && itemValue <= (filter.secondValue ?? value)
+          )
+        case 'isEmpty':
+          return (
+            !itemValue || (Array.isArray(itemValue) && itemValue.length === 0)
+          )
+        case 'isNotEmpty':
+          return Array.isArray(itemValue) && itemValue.length > 0
+        case 'countGreaterThan':
+          return Array.isArray(itemValue) && itemValue.length > value
+        default:
+          return true
+      }
+    })
+    // END: MODIFIED
   }
 
   const data = useLiveQuery(async () => {
     if (pageSize <= 0) return { data: [], totalItems: 0, hasMore: false }
-
     const startIndex = (page - 1) * pageSize
+
     let query = search
       ? table.where(searchField).startsWithIgnoreCase(search)
       : table.toCollection()
+
     let results = await query.toArray()
 
+    // Apply all filters sequentially
     filters.forEach((filter) => {
       results = applyFilter(results, filter)
     })
@@ -113,7 +129,6 @@ export const useDataQuery = <T>(options: useDataQueryOptions<T>) => {
     }
 
     const paginatedResults = results.slice(startIndex, startIndex + pageSize)
-
     return {
       data: paginatedResults,
       totalItems: results.length,
@@ -129,37 +144,41 @@ export const useDataQuery = <T>(options: useDataQueryOptions<T>) => {
 
   const toggleSort = (field: string) => {
     setSort((currentSort) => {
-      // Case 1: No current sort, or a new column is clicked. Start with 'asc'.
       if (!currentSort || currentSort.field !== field) {
         return { field, direction: 'asc' }
       }
-      // Case 2: Currently sorted 'asc'. Switch to 'desc'.
       if (currentSort.direction === 'asc') {
         return { field, direction: 'desc' }
       }
-      // Case 3: Currently sorted 'desc'. Switch to null to remove sorting.
       if (currentSort.direction === 'desc') {
         return null
       }
-      // Fallback, should not be reached.
       return currentSort
     })
   }
 
+  // START: MODIFIED - Improved filter management functions
   const addFilter = (filter: Filter) => {
     setFilters((prev) => [...prev, filter])
     setPage(1)
   }
 
-  const removeFilter = (index: number) => {
-    setFilters((prev) => prev.filter((_, i) => i !== index))
+  const removeFilter = (field: string) => {
+    setFilters((prev) => prev.filter((f) => f.field !== field))
     setPage(1)
   }
 
-  const updateFilter = (index: number, filter: Filter) => {
-    setFilters((prev) => prev.map((f, i) => (i === index ? filter : f)))
+  const updateFilter = (filter: Filter) => {
+    setFilters((prev) => {
+      const existing = prev.find((f) => f.field === filter.field)
+      if (existing) {
+        return prev.map((f) => (f.field === filter.field ? filter : f))
+      }
+      return [...prev, filter]
+    })
     setPage(1)
   }
+  // END: MODIFIED
 
   const clearFilters = () => {
     setFilters([])
