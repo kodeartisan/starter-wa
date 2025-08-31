@@ -2,7 +2,7 @@
 export * as Action from './action'
 export * as Setting from './setting'
 
-export const PRIMARY_ICON = 'tabler:history-toggle'
+export const PRIMARY_ICON = 'tabler:tags'
 
 export const Status = {
   SUCCESS: 'SUCCESS',

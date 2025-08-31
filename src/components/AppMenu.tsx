@@ -1,6 +1,5 @@
-// src/components/AppMenu.tsx
 import { Action, Page, PRIMARY_ICON, Setting } from '@/constants'
-import PageStatus from '@/features/status/PageStatus'
+import PageLabel from '@/features/label/PageLabel'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
 import useWindowMessage from '@/hooks/useWindowMessage'
@@ -63,6 +62,9 @@ const AppMenu: React.FC = () => {
         break
       case Action.Window.SHOW_MODAL_PROFILE:
         modalProfile.toggle()
+        break
+      case Action.Window.SHOW_MODAL_MAIN:
+        modalMain.toggle()
         break
       default:
         break
@@ -169,7 +171,7 @@ const AppMenu: React.FC = () => {
     return (
       <>
         <Tabs.Panel value={Page.HOME}>
-          <PageStatus />
+          <PageLabel />
         </Tabs.Panel>
       </>
     )
