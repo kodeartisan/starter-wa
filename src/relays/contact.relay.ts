@@ -9,7 +9,8 @@ const get = () => {
       name: Action.Contact.GET,
     },
     async ({ body }) => {
-      return await WPP.contact.get(body)
+      const contact = await WPP.contact.get(body)
+      return serialize.contact(contact)
     },
   )
 }

@@ -27,7 +27,6 @@ const useFile = () => {
     let filteredData = data.map((item: any) =>
       _.pickBy(item, (_, key) => selectedColumns[key] === true),
     )
-
     if (license.isFree() && filteredData.length > 10) {
       filteredData = filteredData.map((item, index) =>
         index >= 10 ? _.mapValues(item, () => '********') : item,
@@ -79,11 +78,18 @@ const useFile = () => {
    * @param fileType The format to save as (e.g., 'csv', 'xlsx').
    * @param data The array of data objects to save.
    * @param filename (Optional) The base name for the file, without extension.
+   * @param options (Optional) Additional options like skipping serialization.
    */
-  const saveAs = async (fileType: string, data: any[], filename?: string) => {
-    const processedData = await serializeData(data)
+  const saveAs = async (
+    fileType: string,
+    data: any[],
+    filename?: string,
+    options?: { skipSerialization?: boolean },
+  ) => {
+    const processedData = options?.skipSerialization
+      ? data
+      : await serializeData(data)
     const finalFilename = filename || defaultFilename()
-
     switch (fileType) {
       case SaveAs.CSV:
         saveAsCSV(processedData, finalFilename)

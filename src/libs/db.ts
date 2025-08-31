@@ -62,6 +62,7 @@ export interface Label {
   color?: string
   group?: string
   isPinned?: number
+  description?: string // MODIFIED: Added description field
 }
 
 export interface DirectChatTemplate {
@@ -115,7 +116,7 @@ db.version(1).stores({
     '++id, broadcastId, number, name, status, error, scheduledAt, sendAt, [broadcastId+status]',
   broadcastTemplates: '++id, name, type, message',
   broadcastRecipients: '++id, name, createdAt',
-  labels: '++id, label, value, show, custom, color, group, isPinned, *numbers',
+  labels: '++id, label, value, show, custom, color, group, isPinned, *numbers', // MODIFIED: `description` is not indexed as it's not for querying
   directChatTemplates: '++id, name',
   quickReplies: '++id, name, type, isPinned, createdAt',
   userStatuses:

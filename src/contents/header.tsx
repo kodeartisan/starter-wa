@@ -1,4 +1,3 @@
-// src/contents/header.tsx
 import { Action, Page } from '@/constants'
 import useWa from '@/hooks/useWa'
 import db, { type Label } from '@/libs/db'
@@ -21,6 +20,7 @@ import {
 } from '@mantine/core'
 import { useLiveQuery } from 'dexie-react-hooks'
 import $ from 'jquery'
+import _ from 'lodash'
 import type {
   PlasmoCSConfig,
   PlasmoGetInlineAnchor,
@@ -46,10 +46,6 @@ export const getInlineAnchor: PlasmoGetInlineAnchor = async () => ({
   insertPosition: 'afterbegin',
 })
 
-/**
- * The Header component is injected at the top of the chat list on WhatsApp Web.
- * It displays pinned labels for quick filtering and a menu to manage all labels.
- */
 const Header = () => {
   const wa = useWa()
   const [activeLabelId, setActiveLabelId] = useState<number | null>(null)
@@ -69,8 +65,7 @@ const Header = () => {
       setActiveLabelId(null)
       return
     }
-    const numbers = label.numbers?.map((number) => `${number}`)
-    await wa.chat.setChatList('custom', numbers)
+    await wa.chat.setChatList('custom', label.numbers)
     setActiveLabelId(label.id)
   }
 
@@ -80,18 +75,13 @@ const Header = () => {
   }
 
   const handleToggleVisibility = async (label: Label) => {
-    if (label.id) {
-      await db.labels.update(label.id, { show: label.show ? 0 : 1 })
-    }
+    await db.labels.update(label.id, { show: label.show ? 0 : 1 })
   }
 
   const handleTogglePin = async (label: Label) => {
-    if (label.id) {
-      await db.labels.update(label.id, { isPinned: label.isPinned ? 0 : 1 })
-    }
+    await db.labels.update(label.id, { isPinned: label.isPinned ? 0 : 1 })
   }
 
-  // ADDED: Handler to navigate to the label management page.
   const handleManageLabels = () => {
     postMessage(Action.Window.SHOW_MODAL_MAIN)
   }
@@ -136,14 +126,13 @@ const Header = () => {
         gap="xs"
         wrap="nowrap"
       >
-        <Group gap="xs">
-          {pinnedLabels.map(renderLabel)}
-          <ScrollArea w={'100%'} style={{ whiteSpace: 'nowrap' }}>
-            <Box style={{ display: 'inline-block' }}>
-              {unpinnedLabels.map(renderLabel)}
-            </Box>
-          </ScrollArea>
-        </Group>
+        <ScrollArea w={1100}>
+          <Box style={{ textWrap: 'nowrap' }}>
+            {pinnedLabels.map(renderLabel)}
+            {unpinnedLabels.map(renderLabel)}
+          </Box>
+        </ScrollArea>
+
         <Group mr={60} justify="flex-end" wrap="nowrap">
           <When condition={activeLabelId !== null}>
             <Tooltip label="Clear Filter" position="bottom">
@@ -157,6 +146,7 @@ const Header = () => {
               </ActionIcon>
             </Tooltip>
           </When>
+
           <Menu shadow="md" width={280} position="bottom-end">
             <Menu.Target>
               <Tooltip label="Manage Filters & Labels" position="bottom">
@@ -204,7 +194,6 @@ const Header = () => {
                 ))}
               </ScrollArea>
               <Menu.Divider />
-              {/* MODIFIED: Added onClick handler to navigate to the management page. */}
               <Menu.Item
                 leftSection={<Icon icon="tabler:settings" fontSize={16} />}
                 onClick={handleManageLabels}

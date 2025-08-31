@@ -1,3 +1,4 @@
+// src/features/label/components/ModalCreateUpdateLabel.tsx
 import Modal from '@/components/Modal/Modal'
 import type { Label } from '@/libs/db'
 import db from '@/libs/db'
@@ -10,6 +11,7 @@ import {
   Stack,
   Switch,
   Text,
+  Textarea, // MODIFIED: Imported Textarea
   TextInput,
   Title,
 } from '@mantine/core'
@@ -24,6 +26,25 @@ interface Props {
   onSuccess?: () => void
 }
 
+// START: MODIFIED - Added a predefined color palette
+const PREDEFINED_COLORS = [
+  '#25262b',
+  '#868e96',
+  '#fa5252',
+  '#e64980',
+  '#be4bdb',
+  '#7950f2',
+  '#4c6ef5',
+  '#228be6',
+  '#15aabf',
+  '#12b886',
+  '#40c057',
+  '#82c91e',
+  '#fab005',
+  '#fd7e14',
+]
+// END: MODIFIED
+
 const ModalCreateUpdateLabel: React.FC<Props> = ({
   opened,
   data,
@@ -36,6 +57,7 @@ const ModalCreateUpdateLabel: React.FC<Props> = ({
       group: '',
       color: '#228be6',
       isPinned: false,
+      description: '', // MODIFIED: Added description
     },
     validate: {
       name: (value) => {
@@ -57,6 +79,7 @@ const ModalCreateUpdateLabel: React.FC<Props> = ({
         group: data.group || '',
         color: data.color || '#228be6',
         isPinned: data.isPinned === 1,
+        description: data.description || '', // MODIFIED: Set description value
       })
     } else {
       form.reset()
@@ -71,6 +94,7 @@ const ModalCreateUpdateLabel: React.FC<Props> = ({
       group: values.group,
       color: values.color,
       isPinned: values.isPinned ? 1 : 0,
+      description: values.description, // MODIFIED: Added description
     }
     try {
       await db.labels.add({ ...payload, show: 1, custom: 1, numbers: [] })
@@ -91,6 +115,7 @@ const ModalCreateUpdateLabel: React.FC<Props> = ({
       group: values.group,
       color: values.color,
       isPinned: values.isPinned ? 1 : 0,
+      description: values.description, // MODIFIED: Added description
     }
     try {
       await db.labels.update(data.id, payload)
@@ -138,11 +163,24 @@ const ModalCreateUpdateLabel: React.FC<Props> = ({
               placeholder="e.g., Leads, Customers"
               {...form.getInputProps('group')}
             />
+            {/* START: MODIFIED - Added color swatches */}
             <ColorInput
               label="Color"
               placeholder="Pick a color"
+              swatches={PREDEFINED_COLORS}
               {...form.getInputProps('color')}
             />
+            {/* END: MODIFIED */}
+
+            {/* START: MODIFIED - Added description field */}
+            <Textarea
+              label="Description (Optional)"
+              placeholder="Add notes or context for this label..."
+              autosize
+              minRows={2}
+              {...form.getInputProps('description')}
+            />
+            {/* END: MODIFIED */}
 
             <Switch
               mt="md"
