@@ -9,10 +9,19 @@ import db from '@/libs/db'
 import toast from '@/utils/toast'
 import { getContactName } from '@/utils/util'
 import { Icon } from '@iconify/react'
-import { Badge, Button, Group, Stack, TextInput, Tooltip } from '@mantine/core'
+import {
+  Badge,
+  Button,
+  Group,
+  Stack,
+  Text,
+  TextInput,
+  Tooltip,
+} from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import { DataTable, type DataTableColumn } from 'mantine-datatable'
 import React, { useCallback, useMemo, useState } from 'react'
+import EditableCell from './components/EditableCell'
 import LabelActions from './components/LabelActions'
 import LabelBulkActions from './components/LabelBulkActions'
 import LabelContactsVisualization from './components/LabelContactsVisualization'
@@ -31,7 +40,6 @@ const PageLabel: React.FC = () => {
     initialSort: { field: 'label', direction: 'asc' },
     initialPageSize: 10, // Set initial page size
   })
-
   const wa = useWa()
   const { saveAs } = useFile()
   const [showCreateUpdateModal, createUpdateModalHandlers] =
@@ -79,6 +87,25 @@ const PageLabel: React.FC = () => {
     }
   }, [])
 
+  // --- START: MODIFIED - Added handler for inline cell updates ---
+  const handleInlineUpdate = useCallback(
+    async (label: Label, field: keyof Label, value: string) => {
+      if (!label.id) return
+
+      try {
+        await db.labels.update(label.id, { [field]: value })
+        toast.success(`Label field updated successfully.`)
+      } catch (error) {
+        console.error(`Failed to update label field "${field}":`, error)
+        toast.error('An error occurred while saving the changes.')
+        // Propagate error to let EditableCell know the save failed
+        throw error
+      }
+    },
+    [],
+  )
+  // --- END: MODIFIED ---
+
   // --- Handlers for Export Action ---
   const handleExport = useCallback(
     async (label: Label, format: 'csv' | 'excel') => {
@@ -105,7 +132,6 @@ const PageLabel: React.FC = () => {
             }
           }),
         )
-
         const fileName = `whats-status-export-${label.label.replace(
           /\s/g,
           '_',
@@ -151,12 +177,10 @@ const PageLabel: React.FC = () => {
     async (pin: boolean) => {
       const selectedLabels = dataQuery.selectedRecords
       if (selectedLabels.length === 0) return
-
       const updatedLabels = selectedLabels.map((label) => ({
         ...label,
         isPinned: pin ? 1 : 0,
       }))
-
       try {
         await db.labels.bulkPut(updatedLabels)
         toast.success(
@@ -178,22 +202,45 @@ const PageLabel: React.FC = () => {
 
   const columns = useMemo<DataTableColumn<Label>[]>(
     () => [
+      // --- START: MODIFIED - Made Label column editable ---
       {
         accessor: 'label',
         title: 'Label',
         render: (label) => (
-          <Tooltip
-            label={label.description}
-            position="top-start"
-            withArrow
-            multiline
-            w={220}
-            disabled={!label.description}
+          <EditableCell
+            value={label.label}
+            onSave={(newValue) => handleInlineUpdate(label, 'label', newValue)}
           >
-            <Badge color={label.color || 'gray'}>{label.label}</Badge>
-          </Tooltip>
+            <Tooltip
+              label={label.description}
+              position="top-start"
+              withArrow
+              multiline
+              w={220}
+              disabled={!label.description}
+            >
+              <Badge color={label.color || 'gray'}>{label.label}</Badge>
+            </Tooltip>
+          </EditableCell>
         ),
       },
+      // --- END: MODIFIED ---
+      // --- START: MODIFIED - Added editable Group column ---
+      {
+        accessor: 'group',
+        title: 'Group',
+        render: (label) => (
+          <EditableCell
+            value={label.group || ''}
+            onSave={(newValue) => handleInlineUpdate(label, 'group', newValue)}
+          >
+            <Text size="sm" truncate>
+              {label.group || '-'}
+            </Text>
+          </EditableCell>
+        ),
+      },
+      // --- END: MODIFIED ---
       {
         accessor: 'numbers',
         title: 'Contacts',
@@ -230,7 +277,15 @@ const PageLabel: React.FC = () => {
         ),
       },
     ],
-    [handleDelete, handleEdit, handleManageContacts, handleExport],
+    // --- START: MODIFIED - Added dependency ---
+    [
+      handleDelete,
+      handleEdit,
+      handleManageContacts,
+      handleExport,
+      handleInlineUpdate,
+    ],
+    // --- END: MODIFIED ---
   )
 
   return (
@@ -254,7 +309,6 @@ const PageLabel: React.FC = () => {
               Add Label{' '}
             </Button>
           </Group>
-
           {dataQuery.selectedRecords.length > 0 && (
             <LabelBulkActions
               selectedCount={dataQuery.selectedRecords.length}
@@ -264,7 +318,6 @@ const PageLabel: React.FC = () => {
               onClear={() => dataQuery.setSelectedRecords([])}
             />
           )}
-
           <DataTable
             minHeight={420}
             records={dataQuery.data}
@@ -278,18 +331,15 @@ const PageLabel: React.FC = () => {
             selectedRecords={dataQuery.selectedRecords}
             onSelectedRecordsChange={dataQuery.setSelectedRecords}
             idAccessor="id"
-            // START: MODIFIED - Added pagination properties
             totalRecords={dataQuery.totalRecords}
             recordsPerPage={dataQuery.pageSize}
             page={dataQuery.page}
             onPageChange={dataQuery.setPage}
             recordsPerPageOptions={[10, 20, 50, 100]}
             onRecordsPerPageChange={dataQuery.setPageSize}
-            // END: MODIFIED
           />
         </Stack>
       </LayoutPage>
-
       <ModalCreateUpdateLabel
         opened={showCreateUpdateModal}
         data={editingLabel}
