@@ -1,8 +1,10 @@
 // src/features/label/components/ModalCreateUpdateLabel.tsx
 import Modal from '@/components/Modal/Modal'
+import useLicense from '@/hooks/useLicense' // ++ IMPORT
 import type { Label } from '@/libs/db'
 import db from '@/libs/db'
 import toast from '@/utils/toast'
+import { showModalUpgrade } from '@/utils/util' // ++ IMPORT
 import {
   Button,
   Center,
@@ -11,11 +13,12 @@ import {
   Stack,
   Switch,
   Text,
-  Textarea, // MODIFIED: Imported Textarea
+  Textarea,
   TextInput,
   Title,
 } from '@mantine/core'
 import { useForm } from '@mantine/form'
+import { useLiveQuery } from 'dexie-react-hooks' // ++ IMPORT
 import _ from 'lodash'
 import React, { useEffect } from 'react'
 
@@ -26,7 +29,6 @@ interface Props {
   onSuccess?: () => void
 }
 
-// START: MODIFIED - Added a predefined color palette
 const PREDEFINED_COLORS = [
   '#25262b',
   '#868e96',
@@ -43,7 +45,6 @@ const PREDEFINED_COLORS = [
   '#fab005',
   '#fd7e14',
 ]
-// END: MODIFIED
 
 const ModalCreateUpdateLabel: React.FC<Props> = ({
   opened,
@@ -51,13 +52,16 @@ const ModalCreateUpdateLabel: React.FC<Props> = ({
   onClose,
   onSuccess,
 }: Props) => {
+  const license = useLicense() // ++ ADD
+  const labelCount = useLiveQuery(() => db.labels.count(), []) // ++ ADD
+
   const form = useForm({
     initialValues: {
       name: '',
       group: '',
       color: '#228be6',
       isPinned: false,
-      description: '', // MODIFIED: Added description
+      description: '',
     },
     validate: {
       name: (value) => {
@@ -79,7 +83,7 @@ const ModalCreateUpdateLabel: React.FC<Props> = ({
         group: data.group || '',
         color: data.color || '#228be6',
         isPinned: data.isPinned === 1,
-        description: data.description || '', // MODIFIED: Set description value
+        description: data.description || '',
       })
     } else {
       form.reset()
@@ -88,13 +92,22 @@ const ModalCreateUpdateLabel: React.FC<Props> = ({
   }, [data, opened])
 
   const handleCreate = async (values: typeof form.values) => {
+    // ++ ADD: License check for label creation limit
+    if (license.isFree() && (labelCount || 0) >= 3) {
+      showModalUpgrade(
+        'Unlimited Labels',
+        'Create up to 3 labels on the Free plan. Upgrade to Pro for unlimited labels.',
+      )
+      return
+    }
+
     const payload = {
       label: values.name,
       value: values.name,
       group: values.group,
       color: values.color,
       isPinned: values.isPinned ? 1 : 0,
-      description: values.description, // MODIFIED: Added description
+      description: values.description,
     }
     try {
       await db.labels.add({ ...payload, show: 1, custom: 1, numbers: [] })
@@ -115,7 +128,7 @@ const ModalCreateUpdateLabel: React.FC<Props> = ({
       group: values.group,
       color: values.color,
       isPinned: values.isPinned ? 1 : 0,
-      description: values.description, // MODIFIED: Added description
+      description: values.description,
     }
     try {
       await db.labels.update(data.id, payload)
@@ -163,16 +176,12 @@ const ModalCreateUpdateLabel: React.FC<Props> = ({
               placeholder="e.g., Leads, Customers"
               {...form.getInputProps('group')}
             />
-            {/* START: MODIFIED - Added color swatches */}
             <ColorInput
               label="Color"
               placeholder="Pick a color"
               swatches={PREDEFINED_COLORS}
               {...form.getInputProps('color')}
             />
-            {/* END: MODIFIED */}
-
-            {/* START: MODIFIED - Added description field */}
             <Textarea
               label="Description (Optional)"
               placeholder="Add notes or context for this label..."
@@ -180,8 +189,6 @@ const ModalCreateUpdateLabel: React.FC<Props> = ({
               minRows={2}
               {...form.getInputProps('description')}
             />
-            {/* END: MODIFIED */}
-
             <Switch
               mt="md"
               label={

@@ -29,7 +29,8 @@ import '@mantine/core/styles.css'
 import { useWindowScroll } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
 
-// --- Start: New Config for Status Scheduler ---
+// --- Start: New Config for Label & Contact Manager ---
+
 // Define a structured feature type for the comparison table
 export interface PlanFeature {
   feature: string
@@ -39,16 +40,24 @@ export interface PlanFeature {
 
 // Centralized list of features for easy management and comparison
 const comparisonFeatures: PlanFeature[] = [
-  { feature: 'Text Status Updates', free: true, pro: true },
-  { feature: 'Image & Video Status Updates', free: false, pro: true },
-  { feature: 'Schedule Statuses for Later', free: false, pro: true },
+  { feature: 'Create Labels', free: 'Up to 3 labels', pro: 'Unlimited' },
+  { feature: 'Contacts per Label', free: 'Up to 5 contacts', pro: 'Unlimited' },
   {
-    feature: 'Status Management Dashboard',
-    free: 'Limited (3 Drafts)',
-    pro: 'Unlimited',
+    feature: 'Advanced Filtering (by Group, Color)',
+    free: true,
+    pro: true,
   },
-  { feature: 'Automated Posting', free: false, pro: true },
-  { feature: 'Save Statuses as Drafts', free: true, pro: true },
+  {
+    feature: 'Export Contacts to CSV/Excel',
+    free: false,
+    pro: true,
+  },
+  {
+    feature: 'Backup & Restore All Labels',
+    free: false,
+    pro: true,
+  },
+  { feature: 'Search & Organization Tools', free: true, pro: true },
   {
     feature: 'Customer Support',
     free: 'Standard Support',
@@ -61,29 +70,29 @@ const plans = [
   {
     name: 'Free',
     isFree: true,
-    description: 'For basic, manual status updates.',
+    description: 'For basic contact organization.',
     price: '$0',
     placeholderPrice: null,
     link: '#',
     features: [
-      'Post text-only statuses',
-      'Save up to 3 drafts',
-      'Manual posting only',
+      'Create up to 3 labels',
+      'Add up to 5 contacts per label',
+      'Basic filtering',
       'Standard support',
     ],
   },
   {
     name: 'Pro Lifetime',
     isFree: false,
-    description: 'Pay once, automate your WhatsApp presence forever.',
+    description: 'Pay once, unlock powerful CRM features forever.',
     placeholderPrice: '$89',
     price: '$39',
-    link: 'https://extdotninja.lemonsqueezy.com/buy/07900b2b-ed92-4714-b111-51f07d221c0c?logo=0', // Placeholder for new product ID
+    link: 'https://extdotninja.lemonsqueezy.com/buy/7a81472f-2102-4e24-aba0-508a8cbc8da1?logo=0', // NOTE: This is a placeholder link for the new product
     features: [
-      'Schedule Unlimited Statuses',
-      'Post Images & Videos',
-      'Fully Automated Posting',
-      'Full Management Dashboard',
+      'Unlimited Labels',
+      'Unlimited Contacts per Label',
+      'Export Contacts (CSV/Excel)',
+      'Backup & Restore Your Data',
       'Priority Customer Support',
       'All Future Updates Included',
     ],
@@ -206,13 +215,12 @@ const HeroSection = () => (
       </ThemeIcon>
       <Title order={1} fz={{ base: 36, sm: 48 }}>
         {' '}
-        Automate Your WhatsApp Status. Engage Your Audience 24/7.{' '}
+        Organize Your WhatsApp Contacts with Smart Labels{' '}
       </Title>
       <Text c="dimmed" fz="lg">
         {' '}
-        Schedule text, image, and video statuses to post automatically. Keep
-        your contacts engaged, promote your business, and save time—all from a
-        simple dashboard.{' '}
+        Stop scrolling endlessly. Create custom labels, filter chats, and manage
+        your contacts like a pro. A simple CRM right inside WhatsApp.{' '}
       </Text>
       <Stack align="center">
         <Button
@@ -226,7 +234,7 @@ const HeroSection = () => (
           radius="md"
         >
           {' '}
-          Get Lifetime Access
+          Get Lifetime Access{' '}
         </Button>
         <Text size="xs" c="dimmed">
           {' '}
@@ -240,45 +248,45 @@ const HeroSection = () => (
 const FeaturesSection = () => {
   const featuresData = [
     {
-      icon: 'tabler:calendar-time',
-      title: 'Schedule & Forget',
+      icon: 'tabler:tags',
+      title: 'Smart Labeling',
       description:
-        "Plan your statuses for days, weeks, or months in advance. Our tool will post them for you at the perfect time, even when you're offline.",
+        'Create unlimited color-coded labels and groups. Organize contacts by project, priority, or status—whatever fits your workflow.',
     },
     {
-      icon: 'tabler:photo-video',
-      title: 'Post Rich Media',
+      icon: 'tabler:filter',
+      title: 'Advanced Filtering',
       description:
-        'Go beyond text. Capture attention by scheduling stunning images and engaging videos directly to your status.',
+        'Instantly filter your chat list by one or more labels. Focus on the right conversations and never lose track of important contacts.',
     },
     {
-      icon: 'tabler:dashboard',
-      title: 'All-in-One Dashboard',
+      icon: 'tabler:database-export',
+      title: 'Backup & Export',
       description:
-        "Manage all your statuses from one place. See what's scheduled, what's been posted, and what's in drafts. Stay organized and in control.",
+        'Never lose your organized contacts. Pro users can back up all labels to a file and export contact lists to CSV or Excel for use in other tools.',
     },
     {
       icon: 'tabler:shield-check',
-      title: 'Safe & Reliable',
+      title: '100% Private',
       description:
-        'Our scheduler interacts with WhatsApp Web in a responsible way to ensure your updates are posted reliably, following best practices.',
+        'Your labels and contact lists are stored securely on your own computer. We never see, save, or have access to your data.',
     },
     {
-      icon: 'tabler:rocket',
-      title: 'Boost Engagement',
+      icon: 'tabler:users-group',
+      title: 'Bulk Management',
       description:
-        'Maintain a consistent presence and keep your brand top-of-mind. Perfect for announcements, promotions, and daily updates.',
+        'Easily add or remove contacts from labels, import contacts from a file, and manage your lists with powerful, time-saving tools.',
     },
   ]
   return (
     <Box mt={80}>
       <Center>
         <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>A Smarter Way to Manage Your Presence</Title>
+          <Title order={2}>A Smarter Way to Manage Your Contacts</Title>
           <Text c="dimmed">
             {' '}
-            Unlock powerful tools that make your communication more effective
-            and efficient.{' '}
+            Unlock powerful CRM-like tools that make your communication more
+            effective and efficient.{' '}
           </Text>
         </Stack>
       </Center>
@@ -314,7 +322,7 @@ const UserPersonaSection = () => (
         <Title order={2}>Built For Professionals</Title>
         <Text c="dimmed">
           {' '}
-          Whether you're in marketing, sales, or community management, we've got
+          Whether you're in sales, marketing, or community management, we've got
           you covered.{' '}
         </Text>
       </Stack>
@@ -327,12 +335,12 @@ const UserPersonaSection = () => (
               <ThemeIcon variant="light" size={40} radius="md">
                 <Icon icon="tabler:target-arrow" fontSize={22} />
               </ThemeIcon>
-              <Title order={3}>For Marketers & Businesses</Title>
+              <Title order={3}>For Sales & Business</Title>
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Schedule product launches, daily deals, and promotional content.
-              Keep your audience engaged without being tied to your phone.{' '}
+              Manage your sales funnel directly in WhatsApp. Label contacts as
+              "Leads," "Follow-Up," or "Clients" to streamline communication.{' '}
             </Text>
             <List
               spacing="xs"
@@ -344,9 +352,9 @@ const UserPersonaSection = () => (
                 </ThemeIcon>
               }
             >
-              <List.Item> Automate marketing campaigns </List.Item>
-              <List.Item> Announce limited-time offers </List.Item>
-              <List.Item> Drive traffic with consistent updates </List.Item>
+              <List.Item> Track leads and prospects efficiently </List.Item>
+              <List.Item> Segment customers for targeted broadcasts </List.Item>
+              <List.Item> Export contact lists for your CRM </List.Item>
             </List>
             <Button
               component="a"
@@ -368,13 +376,12 @@ const UserPersonaSection = () => (
               <ThemeIcon variant="light" size={40} radius="md">
                 <Icon icon="tabler:users-group" fontSize={22} />
               </ThemeIcon>
-              <Title order={3}>For Creators & Influencers</Title>
+              <Title order={3}>For Community Managers</Title>
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Plan your content calendar and schedule updates to connect with
-              your followers. Share your work, behind-the-scenes content, and
-              announcements automatically.{' '}
+              Organize members of your groups, clubs, or events. Use labels to
+              manage volunteers, attendees, VIPs, or different interest groups.{' '}
             </Text>
             <List
               spacing="xs"
@@ -386,9 +393,9 @@ const UserPersonaSection = () => (
                 </ThemeIcon>
               }
             >
-              <List.Item> Maintain daily engagement </List.Item>
-              <List.Item> Promote new content or events </List.Item>
-              <List.Item> Build a stronger community </List.Item>
+              <List.Item> Easily categorize group members </List.Item>
+              <List.Item> Filter and contact specific segments </List.Item>
+              <List.Item> Keep your community organized </List.Item>
             </List>
             <Button
               component="a"
@@ -413,22 +420,22 @@ const CaseStudySection = () => {
       icon: 'tabler:building-store',
       title: 'E-Commerce Store',
       description:
-        "A local clothing brand schedules daily 'Outfit of the Day' image statuses and weekend video promotions. This consistent engagement led to a 15% increase in direct inquiries via WhatsApp.",
-      features: ['Image & Video Statuses', 'Content Planning'],
+        "A boutique owner uses labels to segment customers into 'New Orders,' 'VIPs,' and 'Feedback Requested.' This helps her send targeted follow-ups and promotions, leading to a 20% increase in repeat business.",
+      features: ['Contact Segmentation', 'Targeted Outreach'],
     },
     {
       icon: 'tabler:home-cog',
       title: 'Real Estate Agent',
       description:
-        "An agent schedules 'Just Listed' video tours and 'Open House' reminders. This keeps potential buyers informed and saves the agent hours each week.",
-      features: ['Scheduled Updates', 'Time-Saving Automation'],
+        "An agent labels contacts by 'Hot Leads,' 'Past Clients,' and 'Rentals.' With one click, she can filter her list to send new property updates, saving hours of manual work.",
+      features: ['Lead Management', 'Time-Saving Filters'],
     },
     {
       icon: 'tabler:play-football',
       title: 'Online Coach',
       description:
-        'A fitness coach schedules motivational text statuses and short workout video clips for their clients every morning, providing value and keeping their community active.',
-      features: ['Daily Scheduling', 'Audience Engagement'],
+        "A fitness coach organizes clients into 'Beginner,' 'Advanced,' and 'Meal Plan' groups. This makes it easy to send relevant tips and check in with specific client segments.",
+      features: ['Client Organization', 'Personalized Communication'],
     },
   ]
   return (
@@ -438,8 +445,7 @@ const CaseStudySection = () => {
           <Title order={2}>Solves Real-World Problems</Title>
           <Text c="dimmed">
             {' '}
-            See how professionals use our tool to make their communication
-            smarter.{' '}
+            See how professionals use our tool to organize their communication.{' '}
           </Text>
         </Stack>
       </Center>
@@ -774,14 +780,13 @@ const SecuritySection = () => (
           >
             <List.Item>
               {' '}
-              <b>Local Processing:</b> All your status drafts and media are
-              stored directly in your browser. They are never uploaded to our
-              servers.{' '}
+              <b>Local Storage:</b> All your labels and contact data are stored
+              directly in your browser. They are never uploaded to our servers.{' '}
             </List.Item>
             <List.Item>
               {' '}
-              <b>No Data Storage:</b> We never see, save, or have access to your
-              status content or contacts.{' '}
+              <b>No Data Access:</b> We never see, save, or have access to your
+              contacts or chat history.{' '}
             </List.Item>
             <List.Item>
               {' '}
@@ -801,33 +806,33 @@ const TestimonialsSection = () => {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-8.png',
       name: 'Sarah L.',
-      role: 'E-commerce Owner',
+      role: 'Sales Manager',
       quote:
-        'The status scheduler is a game-changer. I can plan a whole week of promotions in 30 minutes. Our <b>customer engagement has never been higher</b>. The ability to schedule images of our new products is fantastic.',
+        'This tool is a game-changer for my team. We manage all our leads with labels like "Hot," "Warm," and "Cold." The ability to <b>filter our chats instantly</b> has made us so much more efficient. The backup feature gives me peace of mind.',
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png',
       name: 'Mike P.',
-      role: 'Fitness Coach',
+      role: 'Event Organizer',
       quote:
-        'I use it to post daily workout tips for my clients. The ability to <b>schedule video statuses is amazing</b>. It saves me so much time every single day and keeps my community motivated.',
+        'I use it to organize attendees for my workshops. Creating labels for "Paid," "Unpaid," and "VIPs" is a breeze. Being able to <b>export the contact lists to Excel</b> is a massive time-saver for my records.',
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-4.png',
       name: 'Alisha C.',
-      role: 'Digital Marketer',
+      role: 'Community Manager',
       quote:
-        'We manage several business accounts, and this tool allows us to maintain a consistent brand presence across all of them. The <b>dashboard is intuitive, and the scheduling is flawless</b>.',
+        'Finally, a simple CRM for WhatsApp! I manage several community groups, and this lets me tag members by interest. It makes sending targeted messages so easy. The <b>UI is clean and very intuitive</b>.',
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-5.png',
       name: 'David G.',
-      role: 'Freelance Photographer',
+      role: 'Freelancer',
       quote:
-        "As a photographer, I can schedule my portfolio images to post throughout the week. It's a fantastic way to <b>showcase my work without constantly being on my phone</b>. Worth every penny for the lifetime license.",
+        "As a freelancer, keeping track of clients is crucial. I use labels for each project. It's so much better than scrolling through hundreds of chats. <b>Worth every penny for the lifetime license</b>.",
     },
   ]
   return (
@@ -904,7 +909,7 @@ const FaqSection = () => {
       icon: 'tabler:rocket',
       question: 'Why do I need to upgrade to Pro?',
       answer:
-        'Pro unlocks the core automation features. You can <b>schedule posts</b> for the future and use rich media like <b>images and videos</b>. It transforms the tool from a simple status maker into a powerful marketing and engagement assistant.',
+        'Pro unlocks the most powerful features for professionals. You get <b>unlimited labels and contacts</b>, which is essential for active users. Plus, you gain access to critical data tools like <b>exporting to CSV/Excel</b> and <b>backing up your entire setup</b>.',
     },
     {
       icon: 'tabler:key',
@@ -916,13 +921,13 @@ const FaqSection = () => {
       icon: 'tabler:shield-check',
       question: 'Is this safe to use for my WhatsApp account?',
       answer:
-        'Yes. The scheduler uses the official WhatsApp Web interface to post statuses, just as you would manually. It operates with delays between actions to ensure natural-looking activity, keeping your account in good standing.',
+        'Yes. The extension is designed to be safe and private. All your data is stored locally on your computer. It simply adds an organizational layer on top of the official WhatsApp Web interface.',
     },
     {
       icon: 'tabler:help',
-      question: 'How does the scheduler actually work?',
+      question: 'Where is my data stored?',
       answer:
-        'You create your status (text, image, or video), set a future date and time, and save it. Our extension, running in your browser on WhatsApp Web, will automatically post it for you at the scheduled time, even if you are away from your computer.',
+        "All your labels and contact associations are stored <b>100% locally in your browser's secure storage</b> on your own computer. Your data is never sent to our servers, ensuring complete privacy and control.",
     },
   ]
   return (
@@ -971,7 +976,7 @@ const ValueStackSection = () => (
           <Text c="dimmed">
             {' '}
             Your Pro Lifetime License is a complete package for professional
-            WhatsApp engagement.{' '}
+            contact management on WhatsApp.{' '}
           </Text>
         </Stack>
       </Center>
@@ -987,9 +992,9 @@ const ValueStackSection = () => (
               </ThemeIcon>
             }
           >
-            <List.Item>Unlimited Status Scheduling</List.Item>
-            <List.Item>Image & Video Status Posts</List.Item>
-            <List.Item>Automated Posting Engine</List.Item>
+            <List.Item>Unlimited Label Creation</List.Item>
+            <List.Item>Unlimited Contacts Per Label</List.Item>
+            <List.Item>Advanced Filtering and Search</List.Item>
           </List>
         </Grid.Col>
         <Grid.Col span={{ base: 12, sm: 6 }}>
@@ -1003,9 +1008,9 @@ const ValueStackSection = () => (
               </ThemeIcon>
             }
           >
-            <List.Item>Full Status Management Dashboard</List.Item>
+            <List.Item>Export Contacts to CSV & Excel</List.Item>
+            <List.Item>Full Data Backup & Restore</List.Item>
             <List.Item>Priority Customer Support</List.Item>
-            <List.Item>30-Day Money-Back Guarantee</List.Item>
           </List>
         </Grid.Col>
       </Grid>
@@ -1110,6 +1115,7 @@ const getOfferEndDate = (): Date => {
   if (storedEndDate && new Date(storedEndDate) > new Date()) {
     return new Date(storedEndDate)
   }
+
   const newEndDate = new Date()
   newEndDate.setDate(newEndDate.getDate() + 3)
   localStorage.setItem('offerEndDate', newEndDate.toISOString())
@@ -1170,7 +1176,7 @@ const LandingPage = () => {
           <ContactUsSection />
           <Center mt={40}>
             <Stack align="center" gap="lg">
-              <Title order={2}>Ready to Supercharge Your Engagement?</Title>
+              <Title order={2}>Ready to Supercharge Your Workflow?</Title>
               <Text c="dimmed" size="lg">
                 {' '}
                 Get all Pro features for a one-time payment.{' '}
@@ -1196,6 +1202,7 @@ const LandingPage = () => {
               </Stack>
             </Stack>
           </Center>
+
           <Footer />
         </Stack>
       </Container>

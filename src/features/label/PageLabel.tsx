@@ -3,11 +3,12 @@ import LayoutPage from '@/components/Layout/LayoutPage'
 import { SaveAs } from '@/constants'
 import useDataQuery from '@/hooks/useDataQuery'
 import useFile from '@/hooks/useFile'
+import useLicense from '@/hooks/useLicense' // ++ IMPORT
 import useWa from '@/hooks/useWa'
 import type { Label } from '@/libs/db'
 import db from '@/libs/db'
 import toast from '@/utils/toast'
-import { getContactName } from '@/utils/util'
+import { getContactName, showModalUpgrade } from '@/utils/util' // ++ IMPORT showModalUpgrade
 import { Icon } from '@iconify/react'
 import { Badge, Stack, Switch, Text, Tooltip } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
@@ -19,7 +20,7 @@ import LabelBulkActions from './components/LabelBulkActions'
 import LabelContactsVisualization from './components/LabelContactsVisualization'
 import LabelPageHeader from './components/LabelPageHeader'
 import ModalCreateUpdateLabel from './components/ModalCreateUpdateLabel'
-import ModalImportLabels from './components/ModalImportLabels' // ++ IMPORT NEW MODAL
+import ModalImportLabels from './components/ModalImportLabels'
 import ModalManageContacts from './components/ModalManageContacts'
 
 const PageLabel: React.FC = () => {
@@ -29,9 +30,9 @@ const PageLabel: React.FC = () => {
     initialSort: { field: 'label', direction: 'asc' },
     initialPageSize: 10,
   })
-
   const wa = useWa()
   const { saveAs } = useFile()
+  const license = useLicense() // ++ ADD
   const [showCreateUpdateModal, createUpdateModalHandlers] =
     useDisclosure(false)
   const [editingLabel, setEditingLabel] = useState<Label | null>(null)
@@ -40,7 +41,6 @@ const PageLabel: React.FC = () => {
   const [selectedLabel, setSelectedLabel] = useState<Label | null>(null)
   const [showImportModal, importModalHandlers] = useDisclosure(false)
 
-  // Memoize handlers to prevent re-rendering of the header component
   const handleCreate = useCallback(() => {
     setEditingLabel(null)
     createUpdateModalHandlers.open()
@@ -62,7 +62,15 @@ const PageLabel: React.FC = () => {
     [manageContactsModalHandlers],
   )
 
+  // MODIFIED: Added license check for backup/export all
   const handleExportAll = useCallback(async () => {
+    if (license.isFree()) {
+      showModalUpgrade(
+        'Backup & Restore',
+        'Back up all your labels and contacts to a file. Restore them anytime. This is a Pro feature.',
+      )
+      return
+    }
     try {
       toast.info('Preparing backup file...')
       const allLabels = await db.labels.toArray()
@@ -71,7 +79,9 @@ const PageLabel: React.FC = () => {
         return
       }
       const exportableLabels = allLabels.map(({ id, ...rest }) => rest)
-      const fileName = `whats-status-labels-backup-${new Date().toISOString().slice(0, 10)}`
+      const fileName = `whats-status-labels-backup-${new Date()
+        .toISOString()
+        .slice(0, 10)}`
       await saveAs(SaveAs.JSON, exportableLabels, fileName, {
         skipSerialization: true,
       })
@@ -80,7 +90,19 @@ const PageLabel: React.FC = () => {
       console.error('Failed to export all labels:', error)
       toast.error('An error occurred while creating the backup.')
     }
-  }, [saveAs])
+  }, [saveAs, license])
+
+  // ++ ADDED: New handler for restore with license check
+  const handleRestore = useCallback(() => {
+    if (license.isFree()) {
+      showModalUpgrade(
+        'Backup & Restore',
+        'Restore your labels and contacts from a backup file. This is a Pro feature.',
+      )
+      return
+    }
+    importModalHandlers.open()
+  }, [license, importModalHandlers])
 
   const handleDelete = useCallback(
     async (label: Label) => {
@@ -119,8 +141,16 @@ const PageLabel: React.FC = () => {
     [],
   )
 
+  // MODIFIED: Added license check for single export
   const handleExport = useCallback(
     async (label: Label, format: 'csv' | 'excel') => {
+      if (license.isFree()) {
+        showModalUpgrade(
+          'Export Contacts',
+          'Export contacts from your labels to CSV or Excel files. This is a Pro feature.',
+        )
+        return
+      }
       if (!wa.isReady) {
         toast.error('WhatsApp is not connected yet. Please wait.')
         return
@@ -160,11 +190,19 @@ const PageLabel: React.FC = () => {
         toast.error('An error occurred while exporting contacts.')
       }
     },
-    [wa.isReady, wa.contact, saveAs],
+    [wa.isReady, wa.contact, saveAs, license],
   )
 
+  // MODIFIED: Added license check for bulk export
   const handleExportSelected = useCallback(
     async (format: 'csv' | 'excel') => {
+      if (license.isFree()) {
+        showModalUpgrade(
+          'Bulk Export Contacts',
+          'Export contacts from multiple selected labels at once. This is a Pro feature.',
+        )
+        return
+      }
       const selectedLabels = dataQuery.selectedRecords
       if (selectedLabels.length === 0) {
         toast.info('No labels selected for export.')
@@ -208,7 +246,9 @@ const PageLabel: React.FC = () => {
           toast.info('Selected labels have no contacts to export.')
           return
         }
-        const fileName = `whats-status-bulk-export-${new Date().toISOString().slice(0, 10)}`
+        const fileName = `whats-status-bulk-export-${new Date()
+          .toISOString()
+          .slice(0, 10)}`
         const saveFormat = format === 'csv' ? SaveAs.CSV : SaveAs.EXCEL
         await saveAs(saveFormat, allContactsToExport, fileName, {
           skipSerialization: true,
@@ -221,7 +261,7 @@ const PageLabel: React.FC = () => {
         toast.error('An error occurred during the bulk export.')
       }
     },
-    [dataQuery.selectedRecords, wa.isReady, wa.contact, saveAs],
+    [dataQuery.selectedRecords, wa.isReady, wa.contact, saveAs, license],
   )
 
   const handleDeleteSelected = useCallback(async () => {
@@ -384,14 +424,13 @@ const PageLabel: React.FC = () => {
     <>
       <LayoutPage>
         <Stack gap="md">
-          {/* ++ USE THE NEW HEADER COMPONENT ++ */}
+          {/* MODIFIED: Pass the new restore handler */}
           <LabelPageHeader
             dataQuery={dataQuery}
             onAdd={handleCreate}
             onBackup={handleExportAll}
-            onRestore={importModalHandlers.open}
+            onRestore={handleRestore}
           />
-
           {dataQuery.selectedRecords.length > 0 && (
             <LabelBulkActions
               selectedCount={dataQuery.selectedRecords.length}
@@ -402,9 +441,8 @@ const PageLabel: React.FC = () => {
               onExport={handleExportSelected}
             />
           )}
-
           <DataTable
-            minHeight={420}
+            minHeight={500}
             records={dataQuery.data}
             columns={columns}
             striped
@@ -425,7 +463,6 @@ const PageLabel: React.FC = () => {
           />
         </Stack>
       </LayoutPage>
-
       <ModalCreateUpdateLabel
         opened={showCreateUpdateModal}
         data={editingLabel}

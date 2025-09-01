@@ -6,6 +6,7 @@ import { PRIMARY_ICON } from '@/constants'
 import theme from '@/libs/theme'
 import { Icon } from '@iconify/react'
 import {
+  Avatar,
   Badge,
   Button,
   Card,
@@ -29,8 +30,6 @@ import {
   Title,
 } from '@mantine/core'
 import '@mantine/core/styles.css'
-import { DateTimePicker } from '@mantine/dates'
-import '@mantine/dates/styles.css'
 import FileSaver from 'file-saver'
 import html2canvas from 'html2canvas'
 import React, { useRef } from 'react'
@@ -39,63 +38,71 @@ import React, { useRef } from 'react'
 const PROMO_GRADIENT_BACKGROUND =
   'linear-gradient(135deg, var(--mantine-color-teal-8), var(--mantine-color-lime-8))'
 
-// The primary icon representing the Status Scheduler feature.
-const STATUS_SCHEDULER_ICON = 'tabler:calendar-stats'
+// --- START: New Mockups for Label & Contact Management Feature ---
 
-// --- START: New Mockups for Status Scheduler Feature ---
-
-// Mockup of the main dashboard showing a list of scheduled and posted statuses.
-const MockupStatusDashboard = () => (
+// Mockup of the main dashboard showing the list of labels.
+const MockupLabelDashboard = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
-      <Title order={4}>Status Management Dashboard</Title>
+      <Title order={4}>Contact Label Dashboard</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        Track all your statuses—drafts, scheduled, and posted—in one place.{' '}
+        Manage all your contact labels in one place. Edit, filter, and organize
+        with ease.{' '}
       </Text>
       <Table striped highlightOnHover withTableBorder mt="sm">
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>Status Name</Table.Th>
-            <Table.Th>Type</Table.Th>
+            <Table.Th>Label</Table.Th>
+            <Table.Th>Group</Table.Th>
+            <Table.Th>Contacts</Table.Th>
             <Table.Th>Status</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
           <Table.Tr>
-            <Table.Td>Weekend Promotion</Table.Td>
             <Table.Td>
-              <Badge variant="light" leftSection={<Icon icon="tabler:photo" />}>
-                Image
-              </Badge>
+              <Badge color="blue">New Leads</Badge>
+            </Table.Td>
+            <Table.Td>Sales</Table.Td>
+            <Table.Td>
+              <Avatar.Group spacing="sm">
+                <Avatar radius="xl" size="sm" />
+                <Avatar radius="xl" size="sm" />
+                <Avatar radius="xl" size="sm" />
+              </Avatar.Group>
             </Table.Td>
             <Table.Td>
-              <Badge color="blue">Scheduled</Badge>
-            </Table.Td>
-          </Table.Tr>
-          <Table.Tr>
-            <Table.Td>Morning Update</Table.Td>
-            <Table.Td>
-              <Badge
-                variant="light"
-                leftSection={<Icon icon="tabler:file-text" />}
-              >
-                Text
-              </Badge>
-            </Table.Td>
-            <Table.Td>
-              <Badge color="green">Posted</Badge>
+              <Badge color="green">Visible</Badge>
             </Table.Td>
           </Table.Tr>
           <Table.Tr>
-            <Table.Td>New Product Announcement</Table.Td>
             <Table.Td>
-              <Badge variant="light" leftSection={<Icon icon="tabler:video" />}>
-                Video
-              </Badge>
+              <Badge color="red">Urgent Follow-up</Badge>
+            </Table.Td>
+            <Table.Td>Sales</Table.Td>
+            <Table.Td>
+              <Avatar.Group spacing="sm">
+                <Avatar radius="xl" size="sm" />
+              </Avatar.Group>
             </Table.Td>
             <Table.Td>
-              <Badge color="gray">Draft</Badge>
+              <Badge color="green">Visible</Badge>
+            </Table.Td>
+          </Table.Tr>
+          <Table.Tr>
+            <Table.Td>
+              <Badge color="teal">VIP Clients</Badge>
+            </Table.Td>
+            <Table.Td>Clients</Table.Td>
+            <Table.Td>
+              <Avatar.Group spacing="sm">
+                <Avatar radius="xl" size="sm" />
+                <Avatar radius="xl" size="sm" />
+              </Avatar.Group>
+            </Table.Td>
+            <Table.Td>
+              <Badge color="gray">Hidden</Badge>
             </Table.Td>
           </Table.Tr>
         </Table.Tbody>
@@ -104,54 +111,27 @@ const MockupStatusDashboard = () => (
   </Card>
 )
 
-// Mockup showing the Pro scheduling feature.
-const MockupCreateStatusPro = () => (
+// Mockup showing the Pro feature for managing contacts within a label.
+const MockupManageContactsPro = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
-      <Title order={4}>Create & Schedule Status</Title>
+      <Title order={4}>Manage Contacts for "New Leads"</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        Craft your content, set the time, and let us do the posting.{' '}
+        Easily add or remove contacts from your labels. Import from files to
+        save even more time.{' '}
       </Text>
-      <Fieldset legend="Status Type: Image">
-        <Center
-          p="lg"
-          style={{
-            border: '2px dashed var(--mantine-color-gray-3)',
-            borderRadius: 'var(--mantine-radius-md)',
-          }}
-        >
-          <Stack align="center">
-            <Icon
-              icon="tabler:photo-up"
-              fontSize={48}
-              color="var(--mantine-color-gray-5)"
-            />
-            <Text c="dimmed">promo_banner.jpg</Text>
-          </Stack>
-        </Center>
-        <Textarea
-          label="Caption"
-          placeholder="50% off this weekend!"
-          disabled
-          mt="md"
-        />
+      <Fieldset legend="Select Contacts">
+        <Stack>
+          <Switch checked label="John Doe" disabled />
+          <Switch label="Jane Smith" disabled />
+          <Switch checked label="Peter Jones" disabled />
+          <Switch checked label="Sarah Miller" disabled />
+        </Stack>
       </Fieldset>
-      <Fieldset
-        legend={
-          <Group gap="xs">
-            <Text>Automated Scheduling</Text>
-          </Group>
-        }
-      >
-        <Switch checked label="Schedule for later" disabled />
-        <DateTimePicker
-          label="Post Date & Time"
-          value={new Date()}
-          disabled
-          mt="sm"
-        />
-      </Fieldset>
+      <Button variant="light" color="blue" mt="md" disabled>
+        Import from File...
+      </Button>
     </Stack>
   </Card>
 )
@@ -169,8 +149,8 @@ const FeatureMockupPrivacy = () => (
       </Title>
       <Text c="dimmed" size="sm" ta="center">
         {' '}
-        Your status drafts and media files are stored locally in your browser
-        and are never seen, stored, or uploaded by us.{' '}
+        Your labels and contact lists are stored locally in your browser. They
+        are never seen, stored, or uploaded by us.{' '}
       </Text>
       <List
         mt="lg"
@@ -185,33 +165,32 @@ const FeatureMockupPrivacy = () => (
       >
         <List.Item>
           {' '}
-          <b>Local Processing:</b> Uses official WhatsApp Web functions in your
-          browser.{' '}
+          <b>Local Storage:</b> All data is saved on your computer.{' '}
         </List.Item>
         <List.Item>
           {' '}
-          <b>No Data Storage:</b> Your content is never saved by us.{' '}
+          <b>No Data Collection:</b> Your contacts and messages are never sent
+          to our servers.{' '}
         </List.Item>
         <List.Item>
           {' '}
-          <b>You Are in Control:</b> All actions happen on your own computer.{' '}
+          <b>You Are in Control:</b> You have full ownership and control over
+          your data.{' '}
         </List.Item>
       </List>
     </Stack>
   </Card>
 )
 
-// --- START: Two New Mockups ---
-
-// Mockup showcasing the ability to upload and schedule images or videos.
-const MockupRichMediaPosting = () => (
+// Mockup showcasing the Backup & Restore feature.
+const MockupBackupAndRestore = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
-      <Title order={4}>Rich Media Posting</Title>
+      <Title order={4}>Backup & Restore Your Data</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        Upload and schedule engaging images or videos for your status. Capture
-        your audience's attention.{' '}
+        Never lose your hard work. Securely back up all your labels and contacts
+        to a file, and restore them anytime.{' '}
       </Text>
       <Center
         p="lg"
@@ -223,18 +202,24 @@ const MockupRichMediaPosting = () => (
       >
         <Stack align="center" gap="xs">
           <Icon
-            icon="tabler:photo-video"
+            icon="tabler:database-export"
             fontSize={60}
             color="var(--mantine-color-teal-6)"
           />
           <Text fw={500} c="teal.8">
             {' '}
-            Upload Your Image or Video{' '}
+            Secure Your Contact Organization{' '}
           </Text>
-          <Button variant="outline" color="teal" size="xs">
-            {' '}
-            Select File{' '}
-          </Button>
+          <Group>
+            <Button variant="outline" color="teal" size="xs">
+              {' '}
+              Backup Now{' '}
+            </Button>
+            <Button variant="outline" color="gray" size="xs">
+              {' '}
+              Restore from File{' '}
+            </Button>
+          </Group>
         </Stack>
       </Center>
       <List
@@ -248,16 +233,16 @@ const MockupRichMediaPosting = () => (
           </ThemeIcon>
         }
       >
-        <List.Item> Supported image formats: JPG, PNG, GIF </List.Item>
-        <List.Item> Supported video formats: MP4, MOV </List.Item>
-        <List.Item> Secure & encrypted media uploads (local) </List.Item>
+        <List.Item>One-click backup to a JSON file</List.Item>
+        <List.Item>Easily restore on a new device</List.Item>
+        <List.Item>Complete peace of mind </List.Item>
       </List>
     </Stack>
   </Card>
 )
 
-// Mockup emphasizing time-saving and automation.
-const MockupTimeSavingAutomation = () => (
+// Mockup emphasizing time-saving with advanced filtering.
+const MockupAdvancedFiltering = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack align="center">
       <ThemeIcon
@@ -266,34 +251,33 @@ const MockupTimeSavingAutomation = () => (
         variant="gradient"
         gradient={{ from: 'teal', to: 'lime' }}
       >
-        <Icon icon="tabler:clock-hour-4" fontSize={32} />
+        <Icon icon="tabler:filter-search" fontSize={32} />
       </ThemeIcon>
       <Title order={4} mt="md">
         {' '}
-        Save Time with Status Automation{' '}
+        Find Contacts in Seconds{' '}
       </Title>
       <Text c="dimmed" size="sm" ta="center">
         {' '}
-        Spend less time on manual tasks and more time growing your business.
-        Automated posting keeps you engaged, even when you're away from your
-        desk.{' '}
+        Stop scrolling endlessly. Use powerful filters to instantly find the
+        exact contacts or groups you need.{' '}
       </Text>
       <Grid mt="lg" gutter="md">
         <Grid.Col span={6}>
           <Card withBorder shadow="xs" p="md">
             <Stack align="center" gap="xs">
               <Icon
-                icon="tabler:alarm-minus"
+                icon="tabler:search-off"
                 fontSize={36}
                 color="var(--mantine-color-red-6)"
               />
               <Text fw={500} size="sm" ta="center">
                 {' '}
-                Without Scheduler{' '}
+                Without Filters{' '}
               </Text>
               <Text size="xs" c="dimmed" ta="center">
                 {' '}
-                Manual posting, time-consuming, inconsistent presence.{' '}
+                Endless scrolling, wasted time, missed opportunities.{' '}
               </Text>
             </Stack>
           </Card>
@@ -302,17 +286,17 @@ const MockupTimeSavingAutomation = () => (
           <Card withBorder shadow="xs" p="md">
             <Stack align="center" gap="xs">
               <Icon
-                icon="tabler:alarm-plus"
+                icon="tabler:search"
                 fontSize={36}
                 color="var(--mantine-color-teal-6)"
               />
               <Text fw={500} size="sm" ta="center">
                 {' '}
-                With Scheduler{' '}
+                With Filters{' '}
               </Text>
               <Text size="xs" c="dimmed" ta="center">
                 {' '}
-                Set & forget, 24/7 engagement, save hours of work.{' '}
+                Instant results, improved workflow, efficient communication.{' '}
               </Text>
             </Stack>
           </Card>
@@ -321,11 +305,9 @@ const MockupTimeSavingAutomation = () => (
     </Stack>
   </Card>
 )
-
-// --- END: Two New Mockups ---
+// --- END: New Mockups ---
 
 // --- Page Components ---
-
 const MarqueeTileFeatureShowcase = () => (
   <Paper
     w={1280}
@@ -347,16 +329,16 @@ const MarqueeTileFeatureShowcase = () => (
               variant="gradient"
               gradient={{ from: 'teal', to: 'lime' }}
             >
-              <Icon icon={STATUS_SCHEDULER_ICON} fontSize={70} />
+              <Icon icon={PRIMARY_ICON} fontSize={70} />
             </ThemeIcon>
             <Title fz={48} lh={1.2} c="white">
               {' '}
-              Automate Your WhatsApp Status Like a Pro{' '}
+              A Simple CRM Inside Your WhatsApp{' '}
             </Title>
             <Title order={2} c="white" fw={500} mt="md">
               {' '}
-              Keep your audience engaged, save time, and boost your reach. The
-              essential tool for marketers and business owners.{' '}
+              Organize contacts with labels, filter chats instantly, and manage
+              your workflow like a pro.{' '}
             </Title>
           </Stack>
         </Grid.Col>
@@ -370,16 +352,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={44}
                 >
-                  <Icon icon="tabler:calendar-time" fontSize={30} />
+                  <Icon icon="tabler:tags" fontSize={30} />
                 </ThemeIcon>
                 <Title order={2} fw={700}>
                   {' '}
-                  Schedule Posts{' '}
+                  Smart Labels{' '}
                 </Title>
               </Group>
               <Text size="xl" c="gray.7" fw={500} mt="xs">
                 {' '}
-                Plan status content for days or weeks in advance.{' '}
+                Create color-coded labels to categorize your contacts.{' '}
               </Text>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -390,16 +372,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={44}
                 >
-                  <Icon icon="tabler:photo-video" fontSize={30} />
+                  <Icon icon="tabler:filter" fontSize={30} />
                 </ThemeIcon>
                 <Title fw={700} order={2}>
                   {' '}
-                  Use Rich Media{' '}
+                  Filter Chats{' '}
                 </Title>
               </Group>
               <Text size="xl" c="gray.7" fw={500} mt="xs">
                 {' '}
-                Engage your audience with scheduled images & videos.{' '}
+                Instantly view chats based on the labels you've applied.{' '}
               </Text>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -410,16 +392,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={40}
                 >
-                  <Icon icon="tabler:dashboard" fontSize={30} />
+                  <Icon icon="tabler:database-export" fontSize={30} />
                 </ThemeIcon>
                 <Title order={2} fw={700}>
                   {' '}
-                  Content Dashboard{' '}
+                  Export & Backup{' '}
                 </Title>
               </Group>
               <Text size="xl" c="gray.7" fw={500} mt="xs">
                 {' '}
-                Manage all your statuses from one central place.{' '}
+                Export contact lists to CSV/Excel and back up your data.{' '}
               </Text>
             </Card>
           </Stack>
@@ -486,49 +468,49 @@ const ScreenshotGallery: React.FC = () => {
     },
     {
       title: 'Feature Screenshot: Organized Dashboard (1280x800)',
-      filename: 'feature_dashboard.png',
+      filename: 'feature_label_dashboard.png',
       component: (
         <MarqueeTileFeatureDetail
           icon="tabler:layout-dashboard"
-          title="Your Content, Organized"
-          description="Manage all your scheduled, posted, and draft statuses from a single, powerful dashboard. Stay on top of your content calendar with ease."
-          featureComponent={<MockupStatusDashboard />}
+          title="Your Contacts, Organized"
+          description="Manage all your labels from a single, powerful dashboard. See contact counts, group by category, and access actions in one click."
+          featureComponent={<MockupLabelDashboard />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: Plan Content in Advance (1280x800)',
-      filename: 'feature_scheduling_pro.png',
+      title: 'Feature Screenshot: Manage Contact Lists (1280x800)',
+      filename: 'feature_contact_management_pro.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:calendar-plus"
-          title="Plan Content in Advance"
-          description="Craft your text, image, or video status, pick a future date and time, and let us handle the rest. Perfect for campaigns, announcements, and daily updates."
-          featureComponent={<MockupCreateStatusPro />}
+          icon="tabler:users-plus"
+          title="Build Custom Contact Lists"
+          description="Easily assign contacts to your labels. Search your address book and build targeted lists for any purpose."
+          featureComponent={<MockupManageContactsPro />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: Rich Media Posting (1280x800)',
-      filename: 'feature_rich_media.png',
+      title: 'Feature Screenshot: Backup & Restore (1280x800)',
+      filename: 'feature_backup_restore.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:photo-video"
-          title="Post Rich Media"
-          description="Upload and schedule engaging images or captivating videos for your status. Capture your audience's attention with stunning visual content."
-          featureComponent={<MockupRichMediaPosting />}
+          icon="tabler:database-export"
+          title="Export and Backup Your Data"
+          description="Never lose your setup. Securely back up your labels and export your organized contact lists to CSV or Excel."
+          featureComponent={<MockupBackupAndRestore />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: Effortless Time Saving (1280x800)',
-      filename: 'feature_time_saving.png',
+      title: 'Feature Screenshot: Find Contacts Instantly (1280x800)',
+      filename: 'feature_filtering.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:clock-hour-4"
-          title="Save Time with Automation"
-          description="Focus on what matters most. Automate your status updates to maintain a consistent presence, freeing up your time for core business tasks."
-          featureComponent={<MockupTimeSavingAutomation />}
+          icon="tabler:filter-search"
+          title="Save Time with Advanced Filters"
+          description="Focus on what matters. Filter your chats by labels to instantly find the conversations you need, saving you hours of searching."
+          featureComponent={<MockupAdvancedFiltering />}
         />
       ),
     },
@@ -539,13 +521,12 @@ const ScreenshotGallery: React.FC = () => {
         <MarqueeTileFeatureDetail
           icon="tabler:shield-lock"
           title="Your Privacy is Our Priority"
-          description="This extension operates 100% locally on your computer. Your status drafts and files are never uploaded to any server, ensuring complete privacy."
+          description="This extension operates 100% locally on your computer. Your labels and contact lists are never uploaded to any server."
           featureComponent={<FeatureMockupPrivacy />}
         />
       ),
     },
   ]
-
   return (
     <Stack>
       <Text c="dimmed" mb="md">
@@ -580,62 +561,65 @@ const ResourcePage = () => {
 
   const storeListingText = {
     titles: [
-      'Status Scheduler for WhatsApp',
-      'Automate & Schedule WA Statuses',
-      'WhatsApp Status Planner & Poster',
+      'Label Manager for WhatsApp',
+      'Simple CRM for WhatsApp Chats',
+      'WhatsApp Contact Organizer',
     ],
     shortDescriptions: [
-      'Schedule text, image, and video statuses to post automatically. Save time, increase engagement, and plan your content in advance.',
-      'The essential tool for marketers. Plan your WhatsApp statuses ahead of time. Supports images, videos, and fully automated posting.',
-      'Automate your WhatsApp presence. Create statuses, schedule them, and let the extension post them for you at the perfect time.',
+      'Organize your chats with custom labels. Filter conversations, manage contacts, and create a simple CRM inside WhatsApp Web.',
+      'The essential tool for professionals. Create labels, build contact lists, and filter your chats to manage your workflow efficiently.',
+      'Bring order to your WhatsApp. Use labels to categorize your contacts, making it easy to find anyone and manage your communication.',
     ],
-    longDescription: `🚀 Elevate Your Audience Engagement with Automatic Status Scheduling!
+    longDescription: `🚀 Turn Your WhatsApp into a Powerful Contact Organizer!
 
-Tired of manually posting WhatsApp statuses every day? Status Scheduler for WhatsApp is the ultimate tool to automate your presence, save you precious time, and keep your audience consistently engaged.
+Tired of endless scrolling to find important chats? Label Manager for WhatsApp is the ultimate tool to add a simple, effective CRM layer directly onto WhatsApp Web, helping you save time and streamline your communication.
 
 ✨ Key Features
-- 🗓️ Schedule & Forget: Plan your status content for days, weeks, or even months in advance. Set the perfect time, and we'll post it for you.
-- 📸 Rich Media: Go beyond text! Schedule stunning images and captivating videos to grab your contacts' attention.
-- 📋 Full Content Dashboard: Manage all your statuses—drafts, scheduled, and already posted—from one clean, intuitive interface.
-- 🛡️ Safe & Reliable: Built with safety first, our tool interacts responsibly with WhatsApp Web to ensure reliable posting without compromising your account.
-- ⏰ Save Time: Focus on your business. Spend less time on manual tasks and more time on what matters.
+- 🏷️ **Smart Labeling**: Create unlimited color-coded labels and groups to categorize your contacts by project, priority, or status.
+- 🔍 **Instant Filtering**: Apply labels to your chats and filter your conversation list with a single click. Focus only on what matters, when it matters.
+- 👥 **Contact Management**: Easily add contacts to your labels, see at a glance who belongs to which group, and manage your lists efficiently.
+- 🛡️ **100% Private & Secure**: All your labels and contact data are stored securely on your own computer. We never see, save, or have access to your information.
+
+⭐ Pro Features
+- **Unlimited Everything**: Create unlimited labels and add unlimited contacts to each label.
+- **Backup & Restore**: Never lose your setup! Securely back up all your labels and contacts to a file and restore it anytime.
+- **Export to CSV/Excel**: Export your organized contact lists for use in other CRM systems, marketing tools, or spreadsheets.
 
 🤔 Who Is This For?
-- 💼 Digital Marketers: Plan and automate promotional campaigns, product launches, and daily deals.
-- 📈 Business Owners: Maintain a consistent brand presence and keep your customers informed of the latest news.
-- 🎨 Content Creators & Influencers: Share your work, behind-the-scenes content, and announcements automatically.
-- 👥 Community Managers: Send scheduled updates, reminders, and news to your community.
+- 💼 **Sales Professionals**: Manage leads, track follow-ups, and segment clients without leaving WhatsApp.
+- 📈 **Business Owners**: Organize customers, suppliers, and internal teams for better communication.
+- 🎨 **Freelancers**: Keep track of clients and projects with dedicated labels.
+- 👥 **Community Managers**: Categorize members by interest, status, or group to manage your community effectively.
 
-🚀 Get started in seconds and take control of your WhatsApp content strategy!
+🚀 Get started in seconds and take control of your WhatsApp workflow!
 
 WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other countries. This extension has no relationship to WhatsApp or WhatsApp Inc.`,
   }
 
   const justificationTexts = {
-    singlePurpose: `The core purpose of this extension is to allow users to create, manage, and automatically schedule WhatsApp statuses. All features, such as text/image/video status creation, the management dashboard, and scheduling controls, are directly related to this single purpose of automating and planning status content.`,
-    storage: `The 'storage' permission is used to store essential user settings and license information locally on the user's device. This includes:
-- The user's license key to unlock Pro features.
-- An instance ID for license activation management.
-- User-created data such as status drafts and references to related media files, which are stored locally in IndexedDB for persistence.
-This data is stored only on the user's computer and is crucial for providing a persistent and personalized experience without requiring a remote server or user accounts.`,
-    scripting: `Content scripts are essential for the extension's functionality. They are used exclusively on web.whatsapp.com to:
-1. Inject the user interface (the main modal for managing statuses) onto the page.
-2. Communicate with the WhatsApp Web JavaScript context to securely post the scheduled statuses on the user's behalf. This process is handled locally and is necessary to fulfill the extension's core purpose.`,
-    hostWhatsapp: `The permission for "https://web.whatsapp.com/*" is required to allow the extension's content scripts to run on WhatsApp Web. The extension needs to access the DOM and interact with the page to inject its UI and perform the status posting on the user's behalf. The extension's functionality is entirely dependent on its ability to operate on this specific domain.`,
-    hostLemonSqueezy: `The permission for "https://api.lemonsqueezy.com/*" is used to securely communicate with the Lemon Squeezy API for license validation and management. When a user activates a Pro license, the extension sends a request to this domain to verify, activate, or deactivate the license key. This is a standard and secure method for handling software licensing and does not transmit any personal data or status content.`,
+    singlePurpose: `The core purpose of this extension is to provide a simple CRM-like system for WhatsApp Web by allowing users to create, manage, and apply labels to their contacts. All features—such as label creation, contact assignment, chat filtering, and data export—are directly related to this single purpose of organizing contacts and chats.`,
+    storage: `The 'storage' permission is crucial for the extension to function. It is used to store all user-generated data locally and securely on their device via IndexedDB. This includes:
+- The user's created labels (name, color, group, etc.).
+- The association between labels and the user's contacts.
+- The user's license key for unlocking Pro features.
+This data is stored only on the user's computer and is never transmitted to our servers, ensuring user privacy.`,
+    scripting: `The 'scripting' permission is essential for injecting the extension's user interface (UI) into the WhatsApp Web page. It allows us to add the label management dashboard and filtering controls so the user can interact with the extension in context. It is also used to read the DOM to apply filters to the chat list, fulfilling the extension's core functionality.`,
+    hostWhatsapp: `The permission for "https://web.whatsapp.com/*" is the primary requirement for the extension to operate. It allows our content scripts and UI to be injected into the WhatsApp Web interface, enabling the user to manage labels and filter their chats directly on the site. The extension cannot function without access to this domain.`,
+    hostLemonSqueezy: `The permission for "https://api.lemonsqueezy.com/*" is used exclusively for secure license management. When a user purchases and activates a Pro license, the extension communicates with the Lemon Squeezy API to validate the license key. This is a standard and secure practice for handling software licensing and does not transmit any of the user's personal WhatsApp data.`,
   }
 
   const keywords = [
-    'whatsapp status scheduler',
-    'whatsapp status planner',
-    'schedule whatsapp status',
-    'whatsapp marketing automation',
-    'auto post whatsapp status',
-    'whatsapp status automation',
-    'image status scheduler',
-    'video status scheduler',
-    'whatsapp content planner',
-    'status auto poster',
+    'whatsapp crm',
+    'whatsapp label manager',
+    'organize whatsapp contacts',
+    'whatsapp contact labels',
+    'whatsapp group contacts',
+    'export whatsapp contacts',
+    'whatsapp filter chats',
+    'whatsapp contact manager',
+    'whatsapp business labels',
+    'whatsapp productivity',
+    'whatsapp sales tool',
   ]
   const keywordsString = keywords.join(', ')
 
@@ -651,7 +635,6 @@ This data is stored only on the user's computer and is crucial for providing a p
       if (blob) FileSaver.saveAs(blob, filename)
     })
   }
-
   return (
     <MantineProvider theme={theme}>
       <Container size="lg" py="xl">
@@ -702,7 +685,6 @@ This data is stored only on the user's computer and is crucial for providing a p
                 Privacy Justifications{' '}
               </Tabs.Tab>
             </Tabs.List>
-
             <Tabs.Panel value="text" pt="lg">
               <Stack gap="xl">
                 <Stack>
@@ -801,7 +783,6 @@ This data is stored only on the user's computer and is crucial for providing a p
                 </Card>
               </Stack>
             </Tabs.Panel>
-
             <Tabs.Panel value="icons" pt="lg">
               <Center>
                 <Card withBorder radius="md" p="xl" w={300}>
@@ -823,11 +804,9 @@ This data is stored only on the user's computer and is crucial for providing a p
                 </Card>
               </Center>
             </Tabs.Panel>
-
             <Tabs.Panel value="screenshots" pt="lg">
               <ScreenshotGallery />
             </Tabs.Panel>
-
             <Tabs.Panel value="keywords" pt="lg">
               <Card withBorder radius="md">
                 <Group justify="space-between">
@@ -868,7 +847,6 @@ This data is stored only on the user's computer and is crucial for providing a p
                 </Paper>
               </Card>
             </Tabs.Panel>
-
             <Tabs.Panel value="privacy" pt="lg">
               <Stack gap="xl">
                 <Card withBorder radius="md">
@@ -921,7 +899,7 @@ This data is stored only on the user's computer and is crucial for providing a p
                 </Card>
                 <Card withBorder radius="md">
                   <Group justify="space-between">
-                    <Title order={4}>Content Scripting Justification</Title>
+                    <Title order={4}>Scripting Permission Justification</Title>
                     <CopyButton value={justificationTexts.scripting}>
                       {({ copied, copy }) => (
                         <Button

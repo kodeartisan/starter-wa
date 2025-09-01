@@ -1,9 +1,9 @@
 {
-  "name": "whats-status",
-  "shortName": "WhatsStatus",
-  "displayName": "WhatsStatus - Automate & Schedule WA Status",
+  "name": "whats-label",
+  "shortName": "WhatsLabel",
+  "displayName": "WhatsLabel - Filter Whatsapp Chats",
   "version": "1.0.0",
-  "description": "Easily schedule whatsapp text, image, and video status automatically.",
+  "description": "Create custom labels, filter chats, and manage your contacts like a pro.",
   "author": "Extninja",
   "scripts": {
     "dev": "plasmo dev --no-cs-reload",
