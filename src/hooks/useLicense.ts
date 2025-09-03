@@ -8,32 +8,42 @@ import { getStoreId } from '@/utils/util'
 import { sendToBackground } from '@plasmohq/messaging'
 import { isPast } from 'date-fns'
 
+// English: Define a type for the cached license object, including a timestamp for expiration.
+interface CachedLicense {
+  data: License
+  timestamp: number
+}
+
 const useLicense = () => {
   const { license, setLicense } = useAppStore()
 
   const callLemonSqueezyApi = async (action: string, body: any) => {
     return await sendToBackground({
       name: 'lemonsqueezy',
-      body: {
-        action,
-        body,
-      },
+      body: { action, body },
     })
   }
 
   const init = async () => {
     // First, check for a cached, valid license to avoid unnecessary API calls.
-    const cachedLicense = await storage.get<License | null>(
+    const cachedLicense = await storage.get<CachedLicense | null>(
       Setting.LICENSE_DATA_CACHE,
     )
 
-    if (cachedLicense?.license_key?.status === 'active') {
-      setLicense(cachedLicense)
-      return
+    if (cachedLicense) {
+      const twoDaysInMillis = 2 * 24 * 60 * 60 * 1000
+      const isCacheValid =
+        Date.now() - cachedLicense.timestamp < twoDaysInMillis
+
+      if (isCacheValid && cachedLicense.data.license_key.status === 'active') {
+        setLicense(cachedLicense.data)
+        return
+      }
     }
 
     // If no valid cache, proceed with the standard validation flow.
     const licenseKey = await storage.get<string | null>(Setting.LICENSE_KEY)
+
     if (!licenseKey) {
       setLicense(null)
       await storage.remove(Setting.LICENSE_DATA_CACHE)
@@ -72,7 +82,11 @@ const useLicense = () => {
     // Validation successful, update app state and cache the license data if active.
     setLicense(response.data)
     if (response.data.license_key.status === 'active') {
-      await storage.set(Setting.LICENSE_DATA_CACHE, response.data)
+      const cachePayload: CachedLicense = {
+        data: response.data,
+        timestamp: Date.now(),
+      }
+      await storage.set(Setting.LICENSE_DATA_CACHE, cachePayload)
     }
 
     if (
@@ -118,7 +132,6 @@ const useLicense = () => {
     const response = await callLemonSqueezyApi('activateLicense', {
       licenseKey,
     })
-
     if (!response.error) {
       setLicense(response.data)
       await storage.set(Setting.LICENSE_KEY, licenseKey)
@@ -126,7 +139,11 @@ const useLicense = () => {
 
       // Cache the license data immediately on successful activation.
       if (response.data.license_key.status === 'active') {
-        await storage.set(Setting.LICENSE_DATA_CACHE, response.data)
+        const cachePayload: CachedLicense = {
+          data: response.data,
+          timestamp: Date.now(),
+        }
+        await storage.set(Setting.LICENSE_DATA_CACHE, cachePayload)
       }
     }
     return response
@@ -140,7 +157,6 @@ const useLicense = () => {
         licenseKey,
         instanceId,
       })
-
       if (response.data.deactivated) {
         // Clear all license-related data from storage on deactivation.
         await storage.remove(Setting.LICENSE_KEY)
