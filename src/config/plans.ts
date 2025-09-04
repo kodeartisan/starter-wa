@@ -1,5 +1,4 @@
 // src/config/plans.ts
-
 // English: Define a structured feature type for the comparison table
 export interface PlanFeature {
   feature: string
@@ -56,6 +55,23 @@ const plans = [
       'Text-only backups',
       'Export to HTML format',
       'Limited to the last 7 days',
+    ],
+  },
+  // ADDED: New daily plan for short-term Pro access.
+  {
+    name: 'Pro Per Day',
+    isFree: false,
+    description: 'Ideal for testing.',
+    placeholderPrice: '$5',
+    price: '$1.99',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/your-daily-plan-id', // Note: Replace with your actual daily plan link
+    features: [
+      'Unlimited Message Backups',
+      'Backup All Media Types',
+      'Advanced Date & Keyword Filters',
+      'Multiple Export Formats',
+      'Priority Customer Support',
+      'All Future Updates Included',
     ],
   },
   {

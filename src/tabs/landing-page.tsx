@@ -37,6 +37,7 @@ const CheckIcon = () => (
     color="var(--mantine-color-teal-6)"
   />
 )
+
 const CrossIcon = () => (
   <Icon
     icon="tabler:x"
@@ -45,93 +46,6 @@ const CrossIcon = () => (
     color="var(--mantine-color-red-6)"
   />
 )
-
-// --- Countdown Timer Logic --- //
-// English: Define TimeLeft interface for type safety.
-interface TimeLeft {
-  days: number
-  hours: number
-  minutes: number
-  seconds: number
-}
-
-// English: Calculate the time remaining until the offer ends.
-const calculateTimeLeft = (offerEndDate: Date): TimeLeft | null => {
-  const difference = +offerEndDate - +new Date()
-  if (difference <= 0) {
-    return null
-  }
-  return {
-    days: Math.floor(difference / (1000 * 60 * 60 * 24)),
-    hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-    minutes: Math.floor((difference / 1000 / 60) % 60),
-    seconds: Math.floor((difference / 1000) % 60),
-  }
-}
-
-const TimeSegment: React.FC<{ value: number; label: string }> = ({
-  value,
-  label,
-}) => (
-  <Stack align="center" gap={0}>
-    <Text fz={32} fw={700} c="yellow.6">
-      {' '}
-      {String(value).padStart(2, '0')}{' '}
-    </Text>
-    <Text size="xs" c="dimmed">
-      {' '}
-      {label}{' '}
-    </Text>
-  </Stack>
-)
-
-const CountdownTimer: React.FC<{ offerEndDate: Date; isMini?: boolean }> = ({
-  offerEndDate,
-  isMini = false,
-}) => {
-  const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(
-    calculateTimeLeft(offerEndDate),
-  )
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(calculateTimeLeft(offerEndDate))
-    }, 1000)
-    return () => clearInterval(timer)
-  }, [offerEndDate])
-
-  if (!timeLeft) {
-    return (
-      <Text c="red.7" fw={700} size="lg">
-        {' '}
-        Offer has ended!{' '}
-      </Text>
-    )
-  }
-
-  if (isMini) {
-    return (
-      <Text c="white" size="sm" fw={500}>
-        {' '}
-        Offer Ends In: {String(timeLeft.days).padStart(2, '0')}:
-        {String(timeLeft.hours).padStart(2, '0')}:
-        {String(timeLeft.minutes).padStart(2, '0')}:
-        {String(timeLeft.seconds).padStart(2, '0')}
-      </Text>
-    )
-  }
-
-  return (
-    <Group justify="center" gap="lg">
-      <TimeSegment value={timeLeft.days} label="DAYS" />
-      <TimeSegment value={timeLeft.hours} label="HOURS" />
-      <TimeSegment value={timeLeft.minutes} label="MINUTES" />
-      <TimeSegment value={timeLeft.seconds} label="SECONDS" />
-    </Group>
-  )
-}
-
-// --- End Countdown Timer Logic --- //
 
 // --- Section Components --- //
 const HeroSection = () => (
@@ -159,7 +73,7 @@ const HeroSection = () => (
         <Button
           size="lg"
           component="a"
-          href={plans.find((p) => !p.isFree)?.link}
+          href={plans.find((p) => p.name === 'Pro Lifetime')?.link}
           target="_blank"
           leftSection={<Icon icon="tabler:crown" fontSize={20} />}
           variant="gradient"
@@ -454,8 +368,7 @@ const CaseStudySection = () => {
   )
 }
 
-const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
-  // ADDED: Added an ID for anchor links from the persona section.
+const PricingSection = () => (
   <Box mt={80} id="pricing">
     <Center>
       <Stack align="center" ta="center" maw={600}>
@@ -468,16 +381,18 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
         <Paper
           key={index}
           withBorder
-          w={{ base: '100%', sm: 380 }}
+          w={{ base: '100%', sm: 320 }}
           radius={'lg'}
           p="xl"
           style={{
-            border: !plan.isFree
-              ? '2px solid var(--mantine-color-teal-6)'
-              : undefined,
-            boxShadow: !plan.isFree
-              ? 'var(--mantine-shadow-lg)'
-              : 'var(--mantine-shadow-sm)',
+            border:
+              plan.name === 'Pro Lifetime'
+                ? '2px solid var(--mantine-color-teal-6)'
+                : undefined,
+            boxShadow:
+              plan.name === 'Pro Lifetime'
+                ? 'var(--mantine-shadow-lg)'
+                : 'var(--mantine-shadow-sm)',
             position: 'relative',
           }}
         >
@@ -490,21 +405,18 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
               </Text>
             </Box>
             <Box my="lg" ta="center">
-              {!plan.isFree && (
+              {plan.name === 'Pro Lifetime' && (
                 <Stack mb="lg">
                   <Title order={4} c="orange.7">
                     {' '}
-                    LAUNCH OFFER: 56% OFF ENDS SOON!{' '}
+                    LAUNCH OFFER: 56% OFF!{' '}
                   </Title>
-                  <CountdownTimer offerEndDate={offerEndDate} />
                   <Text size="xs" c="dimmed" mt="xs">
                     {' '}
-                    Don't miss out on saving $50. Price returns to normal after
-                    the timer ends.{' '}
+                    Don't miss out on saving $50.{' '}
                   </Text>
                 </Stack>
               )}
-              {/* MODIFIED: Wrapped price in a Box with relative positioning to place the savings badge. */}
               <Box pos="relative">
                 <Group gap={8} align={'baseline'} justify="center">
                   {plan.placeholderPrice && (
@@ -565,7 +477,6 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                     {' '}
                     Upgrade to Pro{' '}
                   </Button>
-                  {/* MODIFIED: Enhanced trust signals below the purchase button for clarity. */}
                   <Stack gap={4} align="center" mt="xs">
                     <Group justify="center" gap={6}>
                       <Icon
@@ -600,7 +511,6 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
   </Box>
 )
 
-// ADDED: New section to highlight the "one-time payment" value proposition.
 const NoSubscriptionSection = () => (
   <Box mt={80}>
     <Center>
@@ -720,6 +630,7 @@ const FeatureComparisonTable = () => (
     </Card>
   </Box>
 )
+
 const SecuritySection = () => (
   <Box mt={80}>
     <Card withBorder p="xl" radius="lg" bg="gray.0">
@@ -767,6 +678,7 @@ const SecuritySection = () => (
     </Card>
   </Box>
 )
+
 const TestimonialsSection = () => {
   const testimonialsData = [
     {
@@ -862,7 +774,6 @@ const TestimonialsSection = () => {
   )
 }
 
-// MODIFIED: Guarantee section redesigned to be more visually convincing.
 const GuaranteeSection = () => (
   <Paper
     bg="teal.0"
@@ -1031,7 +942,6 @@ const ContactUsSection = () => (
   </Box>
 )
 
-// ADDED: A simple, clean footer for copyright and disclaimers.
 const Footer = () => (
   <Box mt={80} py="xl">
     <Divider />
@@ -1049,10 +959,8 @@ const Footer = () => (
   </Box>
 )
 
-// MODIFIED: Sticky header CTA optimized for conversion.
-const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
+const StickyHeader = () => {
   const [scroll] = useWindowScroll()
-
   return (
     <Transition
       mounted={scroll.y > 200}
@@ -1076,13 +984,11 @@ const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
           }}
         >
           <Container size="md">
-            <Group justify="space-between">
-              <CountdownTimer offerEndDate={offerEndDate} isMini />
-              {/* MODIFIED: Button text is more specific and value-oriented. */}
+            <Group justify="flex-end">
               <Button
                 size="sm"
                 component="a"
-                href={plans.find((p) => !p.isFree)?.link}
+                href={plans.find((p) => p.name === 'Pro Lifetime')?.link}
                 target="_blank"
                 leftSection={<Icon icon="tabler:crown" fontSize={18} />}
                 variant="gradient"
@@ -1099,29 +1005,11 @@ const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
   )
 }
 
-// English: Get the offer end date from local storage, or create a new one if it doesn't exist or is in the past.
-const getOfferEndDate = (): Date => {
-  const storedEndDate = localStorage.getItem('offerEndDate')
-
-  // English: If a valid end date is stored, use it.
-  if (storedEndDate && new Date(storedEndDate) > new Date()) {
-    return new Date(storedEndDate)
-  }
-
-  // English: Otherwise, create a new end date 3 days from now and store it.
-  const newEndDate = new Date()
-  newEndDate.setDate(newEndDate.getDate() + 3)
-  localStorage.setItem('offerEndDate', newEndDate.toISOString())
-  return newEndDate
-}
-
 const LandingPage = () => {
   const [notification, setNotification] = useState<{
     city: string
     country: string
   } | null>(null)
-  // English: Get the persistent offer end date. It will be created and stored on the first visit.
-  const [offerEndDate] = useState(getOfferEndDate)
 
   useEffect(() => {
     const locations = [
@@ -1143,22 +1031,19 @@ const LandingPage = () => {
         }, 4000) // Show for 4 seconds
       }, randomDelay)
     }
-
     timeoutId = setTimeout(scheduleNextNotification, 5000) // First one after 5 seconds
-
     return () => clearTimeout(timeoutId)
   }, [])
-
   return (
     <MantineProvider theme={theme}>
-      <StickyHeader offerEndDate={offerEndDate} />
+      <StickyHeader />
       <Container size="md" py="xl">
         <Stack gap={80}>
           <HeroSection />
           <FeaturesSection />
           <UserPersonaSection />
           <CaseStudySection />
-          <PricingSection offerEndDate={offerEndDate} />
+          <PricingSection />
           <NoSubscriptionSection />
           <FeatureComparisonTable />
           <SecuritySection />
@@ -1178,7 +1063,7 @@ const LandingPage = () => {
                 <Button
                   size="lg"
                   component="a"
-                  href={plans.find((p) => !p.isFree)?.link}
+                  href={plans.find((p) => p.name === 'Pro Lifetime')?.link}
                   target="_blank"
                   leftSection={<Icon icon="tabler:crown" fontSize={20} />}
                   variant="gradient"
@@ -1195,7 +1080,6 @@ const LandingPage = () => {
               </Stack>
             </Stack>
           </Center>
-          {/* ADDED: Footer component at the end of the page content. */}
           <Footer />
         </Stack>
       </Container>
