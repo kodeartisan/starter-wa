@@ -70,7 +70,6 @@ const plans = [
       'Advanced Date & Keyword Filters',
       'Multiple Export Formats',
       'Priority Customer Support',
-      'All Future Updates Included',
     ],
   },
   {
@@ -87,7 +86,6 @@ const plans = [
       'Advanced Date & Keyword Filters',
       'Multiple Export Formats',
       'Priority Customer Support',
-      'All Future Updates Included',
     ],
   },
 ]

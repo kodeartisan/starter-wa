@@ -103,13 +103,7 @@ const FeaturesSection = () => {
       icon: 'tabler:device-mobile-message',
       title: 'Media Included',
       description:
-        'Don’t just save text. The Pro version allows you to include all media types in your backups.',
-    },
-    {
-      icon: 'tabler:headset',
-      title: 'Priority Support',
-      description:
-        'Get help when you need it. Pro users get priority access to our dedicated support team.',
+        'Don’t just save text. Include all media types in your backups.',
     },
   ]
   return (
@@ -147,127 +141,6 @@ const FeaturesSection = () => {
     </Box>
   )
 }
-
-// English: New section to address specific user needs.
-const UserPersonaSection = () => (
-  <Box mt={80}>
-    <Center>
-      <Stack align="center" ta="center" maw={600}>
-        <Title order={2}>Built For Everyone</Title>
-        <Text c="dimmed">
-          {' '}
-          Whether for work or personal memories, we've got you covered.{' '}
-        </Text>
-      </Stack>
-    </Center>
-    <Grid mt="xl" gutter="xl">
-      <Grid.Col span={{ base: 12, md: 6 }}>
-        <Card withBorder radius="lg" p="xl" style={{ height: '100%' }}>
-          {/* English: Use a Stack with 100% height to allow the button to be pushed to the bottom. */}
-          <Stack style={{ height: '100%' }}>
-            <Group>
-              <ThemeIcon variant="light" size={40} radius="md">
-                <Icon icon="tabler:briefcase" fontSize={22} />
-              </ThemeIcon>
-              <Title order={3}>For Professionals & Business</Title>
-            </Group>
-            <Text c="dimmed" size="sm" mt="md">
-              {' '}
-              Effortlessly manage client communications, generate reports, and
-              maintain legal records.{' '}
-            </Text>
-            <List
-              spacing="xs"
-              size="sm"
-              center
-              icon={
-                <ThemeIcon color="teal" size={20} radius="xl">
-                  <Icon icon="tabler:check" fontSize={12} />
-                </ThemeIcon>
-              }
-            >
-              <List.Item>
-                {' '}
-                Export client chats to Excel/CSV for reporting.{' '}
-              </List.Item>
-              <List.Item>
-                {' '}
-                Backup unlimited project data without risk of loss.{' '}
-              </List.Item>
-              <List.Item>
-                {' '}
-                Use keyword filters to find specific agreements or details.{' '}
-              </List.Item>
-            </List>
-            {/* ADDED: Contextual CTA for professionals that links to the pricing section. */}
-            <Button
-              component="a"
-              href="#pricing"
-              mt="auto"
-              variant="light"
-              color="teal"
-            >
-              {' '}
-              Upgrade for Business Needs{' '}
-            </Button>
-          </Stack>
-        </Card>
-      </Grid.Col>
-      <Grid.Col span={{ base: 12, md: 6 }}>
-        <Card withBorder radius="lg" p="xl" style={{ height: '100%' }}>
-          {/* English: Use a Stack with 100% height to allow the button to be pushed to the bottom. */}
-          <Stack style={{ height: '100%' }}>
-            <Group>
-              <ThemeIcon variant="light" size={40} radius="md">
-                <Icon icon="tabler:heart" fontSize={22} />
-              </ThemeIcon>
-              <Title order={3}>For Personal Use</Title>
-            </Group>
-            <Text c="dimmed" size="sm" mt="md">
-              {' '}
-              Securely save precious conversations with loved ones, from family
-              chats to special moments.{' '}
-            </Text>
-            <List
-              spacing="xs"
-              size="sm"
-              center
-              icon={
-                <ThemeIcon color="teal" size={20} radius="xl">
-                  <Icon icon="tabler:check" fontSize={12} />
-                </ThemeIcon>
-              }
-            >
-              <List.Item>
-                {' '}
-                Save conversations as a readable PDF, complete with photos.{' '}
-              </List.Item>
-              <List.Item>
-                {' '}
-                Backup all your media so you never lose a precious memory.{' '}
-              </List.Item>
-              <List.Item>
-                {' '}
-                Keep a permanent, private archive of your most important chats.{' '}
-              </List.Item>
-            </List>
-            {/* ADDED: Contextual CTA for personal users that links to the pricing section. */}
-            <Button
-              component="a"
-              href="#pricing"
-              mt="auto"
-              variant="light"
-              color="teal"
-            >
-              {' '}
-              Secure Your Precious Memories{' '}
-            </Button>
-          </Stack>
-        </Card>
-      </Grid.Col>
-    </Grid>
-  </Box>
-)
 
 // ADDED: New Case Study section to show practical, result-focused user scenarios.
 const CaseStudySection = () => {
@@ -399,18 +272,6 @@ const PricingSection = () => (
               </Text>
             </Box>
             <Box my="lg" ta="center">
-              {plan.name === 'Pro Lifetime' && (
-                <Stack mb="lg">
-                  <Title order={4} c="orange.7">
-                    {' '}
-                    LAUNCH OFFER: 56% OFF!{' '}
-                  </Title>
-                  <Text size="xs" c="dimmed" mt="xs">
-                    {' '}
-                    Don't miss out on saving $50.{' '}
-                  </Text>
-                </Stack>
-              )}
               <Box pos="relative">
                 <Group gap={8} align={'baseline'} justify="center">
                   <Title order={1} fz={52}>
@@ -425,12 +286,12 @@ const PricingSection = () => (
                 </Group>
               </Box>
             </Box>
-            <Divider label="Key Features" labelPosition="center" my="sm" />
-            <Stack gap="sm" mb="lg">
+            <Divider label="Key Features" labelPosition="center" />
+            <Stack gap="sm">
               {plan.features.map((feature, idx) => (
                 <Group key={idx} gap="sm" wrap="nowrap" align="flex-start">
                   <ThemeIcon
-                    variant="light"
+                    variant="transparent"
                     color={plan.isFree ? 'gray' : 'teal'}
                     size="sm"
                     radius="xl"
@@ -438,14 +299,20 @@ const PricingSection = () => (
                     {plan.isFree ? (
                       <Icon icon="tabler:circle-check" fontSize={16} />
                     ) : (
-                      <Icon icon="tabler:star" fontSize={16} />
+                      <Icon
+                        icon="tabler:star-filled"
+                        fontSize={16}
+                        color="orange"
+                      />
                     )}
                   </ThemeIcon>
-                  <Text size="sm">{feature}</Text>
+                  <Text size="sm" fw={500}>
+                    {feature}
+                  </Text>
                 </Group>
               ))}
             </Stack>
-            <Box mt="auto">
+            <Box mt="xl">
               {plan.isFree ? (
                 <Button size="md" variant="default" fullWidth disabled>
                   {' '}
@@ -466,30 +333,6 @@ const PricingSection = () => (
                     {' '}
                     Upgrade to Pro{' '}
                   </Button>
-                  <Stack gap={4} align="center" mt="xs">
-                    <Group justify="center" gap={6}>
-                      <Icon
-                        icon="tabler:lock"
-                        fontSize={14}
-                        color="var(--mantine-color-gray-6)"
-                      />
-                      <Text size="xs" c="dimmed">
-                        {' '}
-                        100% Secure Payment via Lemon Squeezy{' '}
-                      </Text>
-                    </Group>
-                    <Group justify="center" gap={6}>
-                      <Icon
-                        icon="tabler:shield-check"
-                        fontSize={14}
-                        color="var(--mantine-color-gray-6)"
-                      />
-                      <Text size="xs" c="dimmed">
-                        {' '}
-                        30-Day Money-Back Guarantee{' '}
-                      </Text>
-                    </Group>
-                  </Stack>
                 </Stack>
               )}
             </Box>
@@ -497,59 +340,19 @@ const PricingSection = () => (
         </Paper>
       ))}
     </Group>
-  </Box>
-)
-const NoSubscriptionSection = () => (
-  <Box mt={80}>
-    <Center>
-      <Stack align="center" ta="center" maw={600}>
-        <Title order={2}>No Monthly Fees. Own It Forever.</Title>
-        <Text c="dimmed">
+    <Stack gap={4} align="center" mt="lg">
+      <Group justify="center" gap={6}>
+        <Icon
+          icon="tabler:lock"
+          fontSize={24}
+          color="var(--mantine-color-gray-6)"
+        />
+        <Text size="md" c="dimmed" fw={500}>
           {' '}
-          Forget recurring subscription costs. With the Pro version, you pay
-          once for lifetime access to all current features and future updates.{' '}
+          100% Secure Payment via Lemon Squeezy{' '}
         </Text>
-        <Card withBorder p="xl" radius="lg" mt="md" w="100%">
-          <Grid align="center">
-            <Grid.Col span={5} ta="center">
-              <Stack align="center">
-                <Icon
-                  icon="tabler:calendar-dollar"
-                  fontSize={48}
-                  color="var(--mantine-color-red-6)"
-                />
-                <Text fw={500}>Endless Subscriptions</Text>
-                <Icon
-                  icon="tabler:x"
-                  fontSize={32}
-                  color="var(--mantine-color-red-6)"
-                />
-              </Stack>
-            </Grid.Col>
-            <Grid.Col span={2}>
-              <Center>
-                <Divider orientation="vertical" />
-              </Center>
-            </Grid.Col>
-            <Grid.Col span={5} ta="center">
-              <Stack align="center">
-                <Icon
-                  icon="tabler:pig-money"
-                  fontSize={48}
-                  color="var(--mantine-color-teal-6)"
-                />
-                <Text fw={500}>One-Time Payment</Text>
-                <Icon
-                  icon="tabler:check"
-                  fontSize={32}
-                  color="var(--mantine-color-teal-6)"
-                />
-              </Stack>
-            </Grid.Col>
-          </Grid>
-        </Card>
-      </Stack>
-    </Center>
+      </Group>
+    </Stack>
   </Box>
 )
 const FeatureComparisonTable = () => (
@@ -778,7 +581,7 @@ const GuaranteeSection = () => (
         <Text c="dimmed" maw={500}>
           {' '}
           We're confident you'll love the Pro features. If you're not 100%
-          satisfied, contact us within 30 days of your purchase for a full,
+          satisfied, contact us within 7 days of your purchase for a full,
           no-questions-asked refund.{' '}
         </Text>
       </Stack>
@@ -849,56 +652,6 @@ const FaqSection = () => {
   )
 }
 
-const ValueStackSection = () => (
-  <Box mt={80}>
-    <Card withBorder radius="lg" p="xl">
-      <Center>
-        <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>Here's Everything You Get</Title>
-          <Text c="dimmed">
-            {' '}
-            Your Pro Lifetime License is a complete package for total peace of
-            mind.{' '}
-          </Text>
-        </Stack>
-      </Center>
-      <Grid mt="xl" gutter="xl">
-        <Grid.Col span={{ base: 12, sm: 6 }}>
-          <List
-            spacing="sm"
-            size="sm"
-            center
-            icon={
-              <ThemeIcon color="teal" size={24} radius="xl">
-                <Icon icon="tabler:check" fontSize={14} />
-              </ThemeIcon>
-            }
-          >
-            <List.Item>Unlimited Message & Media Backups</List.Item>
-            <List.Item>Export to All Formats (PDF, Excel, etc.)</List.Item>
-            <List.Item>Advanced Date & Keyword Filtering</List.Item>
-          </List>
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, sm: 6 }}>
-          <List
-            spacing="sm"
-            size="sm"
-            center
-            icon={
-              <ThemeIcon color="teal" size={24} radius="xl">
-                <Icon icon="tabler:check" fontSize={14} />
-              </ThemeIcon>
-            }
-          >
-            <List.Item>Priority Customer Support</List.Item>
-            <List.Item>All Future Updates Included</List.Item>
-            <List.Item>30-Day Money-Back Guarantee</List.Item>
-          </List>
-        </Grid.Col>
-      </Grid>
-    </Card>
-  </Box>
-)
 const ContactUsSection = () => (
   <Box mt={80}>
     <Card withBorder p="xl" shadow="sm" radius="lg">
@@ -978,46 +731,13 @@ const LandingPage = () => {
         <Stack gap={80}>
           <HeroSection />
           <FeaturesSection />
-          <UserPersonaSection />
-          <CaseStudySection />
-          <PricingSection />
-          <NoSubscriptionSection />
           <FeatureComparisonTable />
+          <PricingSection />
+          <CaseStudySection />
           <SecuritySection />
           <TestimonialsSection />
-          <GuaranteeSection />
           <FaqSection />
-          <ValueStackSection />
           <ContactUsSection />
-          <Center mt={40}>
-            <Stack align="center" gap="lg">
-              <Title order={2}>Ready to Secure Your Chats?</Title>
-              <Text c="dimmed" size="lg">
-                {' '}
-                Get all Pro features for a one-time payment.{' '}
-              </Text>
-              <Stack align="center">
-                <Button
-                  size="lg"
-                  component="a"
-                  href={plans.find((p) => p.name === 'Pro Lifetime')?.link}
-                  target="_blank"
-                  leftSection={<Icon icon="tabler:crown" fontSize={20} />}
-                  variant="gradient"
-                  gradient={{ from: 'teal', to: 'lime' }}
-                  radius="md"
-                >
-                  {' '}
-                  Get Lifetime Access Now for Just $39{' '}
-                </Button>
-                <Text size="xs" c="dimmed">
-                  {' '}
-                  30-day no-questions-asked money-back guarantee.{' '}
-                </Text>
-              </Stack>
-            </Stack>
-          </Center>
-
           <Footer />
         </Stack>
       </Container>
