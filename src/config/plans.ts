@@ -48,7 +48,7 @@ const plans = [
     isFree: true,
     description: 'For basic chat backup needs.',
     price: '$0',
-    placeholderPrice: null,
+    priceSuffix: null, // <-- priceSuffix ditambahkan di sini
     link: '#',
     features: [
       'Backup up to 10 messages per chat',
@@ -57,14 +57,13 @@ const plans = [
       'Limited to the last 7 days',
     ],
   },
-  // ADDED: New daily plan for short-term Pro access.
   {
-    name: 'Pro Per Day',
+    name: 'Per Day',
     isFree: false,
     description: 'Ideal for testing.',
-    placeholderPrice: '$5',
-    price: '$1.99',
-    link: 'https://extdotninja.lemonsqueezy.com/buy/your-daily-plan-id', // Note: Replace with your actual daily plan link
+    price: '$5',
+    priceSuffix: '/day',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/your-daily-plan-id',
     features: [
       'Unlimited Message Backups',
       'Backup All Media Types',
@@ -75,11 +74,12 @@ const plans = [
     ],
   },
   {
-    name: 'Pro Lifetime',
+    name: 'Lifetime',
     isFree: false,
     description: 'Pay once, access all features forever.',
     placeholderPrice: '$89',
-    price: '$39',
+    price: '$29',
+    priceSuffix: 'one-time', // <-- priceSuffix ditambahkan di sini
     link: 'https://extdotninja.lemonsqueezy.com/buy/7f1401c0-fd00-4898-af64-15a869f9fb12?logo=0',
     features: [
       'Unlimited Message Backups',

@@ -48,8 +48,9 @@ const CrossIcon = () => (
 )
 
 // --- Section Components --- //
+
 const HeroSection = () => (
-  <Center p="xl" pt={80}>
+  <Center>
     <Stack align="center" gap="xl" ta="center" maw={700}>
       <ThemeIcon
         size={80}
@@ -63,31 +64,11 @@ const HeroSection = () => (
         {' '}
         Archive & Export Your WhatsApp Chats into Secure Files.{' '}
       </Title>
-      <Text c="dimmed" fz="lg">
+      <Text c="dimmed" size="xl">
         {' '}
-        A one-time payment solution to back up and convert your WhatsApp history
-        into PDF, Excel, CSV, and more—all processed securely on your own
-        computer.{' '}
+        Solution to back up and convert your WhatsApp history into PDF, Excel,
+        CSV, and more—all processed securely on your own computer.{' '}
       </Text>
-      <Stack align="center">
-        <Button
-          size="lg"
-          component="a"
-          href={plans.find((p) => p.name === 'Pro Lifetime')?.link}
-          target="_blank"
-          leftSection={<Icon icon="tabler:crown" fontSize={20} />}
-          variant="gradient"
-          gradient={{ from: 'teal', to: 'lime' }}
-          radius="md"
-        >
-          {' '}
-          Get Lifetime Access Now{' '}
-        </Button>
-        <Text size="xs" c="dimmed">
-          {' '}
-          Includes 30-day money-back guarantee{' '}
-        </Text>
-      </Stack>
     </Stack>
   </Center>
 )
@@ -138,8 +119,7 @@ const FeaturesSection = () => {
           <Title order={2}>Powerful Features at Your Fingertips</Title>
           <Text c="dimmed">
             {' '}
-            Unlock the full potential of your WhatsApp data with the Pro
-            version.{' '}
+            Unlock the full potential of your WhatsApp data
           </Text>
         </Stack>
       </Center>
@@ -372,8 +352,8 @@ const PricingSection = () => (
   <Box mt={80} id="pricing">
     <Center>
       <Stack align="center" ta="center" maw={600}>
-        <Title order={2}>Get a Lifetime License</Title>
-        <Text c="dimmed">One single payment. All Pro features forever.</Text>
+        <Title order={2}>Simple, transparent pricing</Title>
+        <Text c="dimmed">Choose the perfect plan for your needs.</Text>
       </Stack>
     </Center>
     <Group justify="center" align="stretch" mt="xl" gap="lg">
@@ -381,25 +361,39 @@ const PricingSection = () => (
         <Paper
           key={index}
           withBorder
-          w={{ base: '100%', sm: 320 }}
           radius={'lg'}
-          p="xl"
+          p={46}
           style={{
             border:
-              plan.name === 'Pro Lifetime'
+              plan.name === 'Per Day'
                 ? '2px solid var(--mantine-color-teal-6)'
                 : undefined,
             boxShadow:
-              plan.name === 'Pro Lifetime'
+              plan.name === 'Per Day'
                 ? 'var(--mantine-shadow-lg)'
                 : 'var(--mantine-shadow-sm)',
             position: 'relative',
           }}
         >
+          {plan.name === 'Per Day' && (
+            <Badge
+              variant="gradient"
+              gradient={{ from: 'yellow', to: 'orange' }}
+              size="lg"
+              style={{
+                position: 'absolute',
+                top: -15,
+                left: '50%',
+                transform: 'translateX(-50%)',
+              }}
+            >
+              Most Popular
+            </Badge>
+          )}
           <Stack justify="space-between" style={{ height: '100%' }}>
             <Box ta="center">
               <Title order={2}>{plan.name}</Title>
-              <Text c="dimmed" mt={4} size="sm">
+              <Text mt={4} size="sm">
                 {' '}
                 {plan.description}{' '}
               </Text>
@@ -419,20 +413,15 @@ const PricingSection = () => (
               )}
               <Box pos="relative">
                 <Group gap={8} align={'baseline'} justify="center">
-                  {plan.placeholderPrice && (
-                    <Title
-                      order={3}
-                      c={'dimmed'}
-                      style={{ textDecorationLine: 'line-through' }}
-                    >
-                      {' '}
-                      {plan.placeholderPrice}{' '}
-                    </Title>
-                  )}
                   <Title order={1} fz={52}>
                     {' '}
                     {plan.price}{' '}
                   </Title>
+                  {plan.priceSuffix && (
+                    <Text component="span" c="dimmed" fz="xl" fw={500}>
+                      {plan.priceSuffix}
+                    </Text>
+                  )}
                 </Group>
               </Box>
             </Box>
@@ -510,7 +499,6 @@ const PricingSection = () => (
     </Group>
   </Box>
 )
-
 const NoSubscriptionSection = () => (
   <Box mt={80}>
     <Center>
@@ -564,7 +552,6 @@ const NoSubscriptionSection = () => (
     </Center>
   </Box>
 )
-
 const FeatureComparisonTable = () => (
   <Box mt={80}>
     <Center>
@@ -798,7 +785,6 @@ const GuaranteeSection = () => (
     </Group>
   </Paper>
 )
-
 const FaqSection = () => {
   const faqData = [
     {
@@ -913,7 +899,6 @@ const ValueStackSection = () => (
     </Card>
   </Box>
 )
-
 const ContactUsSection = () => (
   <Box mt={80}>
     <Card withBorder p="xl" shadow="sm" radius="lg">
@@ -959,58 +944,11 @@ const Footer = () => (
   </Box>
 )
 
-const StickyHeader = () => {
-  const [scroll] = useWindowScroll()
-  return (
-    <Transition
-      mounted={scroll.y > 200}
-      transition="slide-down"
-      duration={300}
-      timingFunction="ease"
-    >
-      {(styles) => (
-        <Paper
-          shadow="md"
-          radius={0}
-          p="xs"
-          style={{
-            ...styles,
-            position: 'fixed',
-            top: 0,
-            left: 0,
-            right: 0,
-            zIndex: 1000,
-            backgroundColor: 'var(--mantine-color-dark-8)',
-          }}
-        >
-          <Container size="md">
-            <Group justify="flex-end">
-              <Button
-                size="sm"
-                component="a"
-                href={plans.find((p) => p.name === 'Pro Lifetime')?.link}
-                target="_blank"
-                leftSection={<Icon icon="tabler:crown" fontSize={18} />}
-                variant="gradient"
-                gradient={{ from: 'teal', to: 'lime' }}
-              >
-                {' '}
-                Get Lifetime Access for Just $39!{' '}
-              </Button>
-            </Group>
-          </Container>
-        </Paper>
-      )}
-    </Transition>
-  )
-}
-
 const LandingPage = () => {
   const [notification, setNotification] = useState<{
     city: string
     country: string
   } | null>(null)
-
   useEffect(() => {
     const locations = [
       { city: 'Torino', country: 'Italy' },
@@ -1036,8 +974,7 @@ const LandingPage = () => {
   }, [])
   return (
     <MantineProvider theme={theme}>
-      <StickyHeader />
-      <Container size="md" py="xl">
+      <Container size="lg" py="xl">
         <Stack gap={80}>
           <HeroSection />
           <FeaturesSection />
@@ -1080,6 +1017,7 @@ const LandingPage = () => {
               </Stack>
             </Stack>
           </Center>
+
           <Footer />
         </Stack>
       </Container>
@@ -1124,5 +1062,4 @@ const LandingPage = () => {
     </MantineProvider>
   )
 }
-
 export default LandingPage

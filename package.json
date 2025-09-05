@@ -21,7 +21,7 @@
     "@plasmohq/messaging": "0.7.1",
     "@plasmohq/storage": "^1.15.0",
     "@react-pdf/renderer": "^4.3.0",
-    "@wppconnect/wa-js": "^3.18.0",
+    "@wppconnect/wa-js": "^3.18.3",
     "axios": "^1.11.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
