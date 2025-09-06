@@ -2,7 +2,7 @@
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
 import env from '@/utils/env'
-import { goToLandingPage } from '@/utils/util'
+import { goToLandingPage, showModalPricing } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   ActionIcon,
@@ -89,7 +89,7 @@ const LayoutPage: React.FC<Props> = ({
               size="xs"
               radius="md"
               leftSection={<Icon icon="tabler:crown" fontSize={16} />}
-              onClick={goToLandingPage}
+              onClick={showModalPricing}
             >
               Go Pro
             </Button>

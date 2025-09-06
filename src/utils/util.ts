@@ -28,8 +28,8 @@ export const postMessage = (action: string, body: any = null) => {
   window.postMessage({ action, body })
 }
 
-export const showModalUpgrade = () => {
-  postMessage(Action.Window.SHOW_MODAL_UPGRADE)
+export const showModalPricing = () => {
+  postMessage(Action.Window.SHOW_MODAL_PRICING)
 }
 
 export const showModalMain = () => {

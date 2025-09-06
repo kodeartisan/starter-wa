@@ -1,6 +1,6 @@
 // src/components/Modal/ModalUpgrade.tsx
 import Modal from '@/components/Modal/Modal'
-import { goToLandingPage } from '@/utils/util'
+import { showModalPricing } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   Button,
@@ -31,7 +31,7 @@ const ModalUpgrade: React.FC<Props> = ({
   featureBenefit,
 }) => {
   const handleUpgrade = () => {
-    goToLandingPage()
+    showModalPricing()
     onClose()
   }
 
@@ -55,7 +55,6 @@ const ModalUpgrade: React.FC<Props> = ({
         <Text size="sm" ta="center" fw={500}>
           Upgrade to Pro to unlock this feature and many more!
         </Text>
-        {/* MODIFIED: Wrapped CTA button and added trust signals. */}
         <Stack align="center" gap="xs" mt="md" w="100%">
           <Group justify="center" style={{ width: '100%' }}>
             <Button variant="outline" onClick={onClose}>
@@ -70,7 +69,7 @@ const ModalUpgrade: React.FC<Props> = ({
               Upgrade Now
             </Button>
           </Group>
-          {/* English: Add trust signals below the CTA to increase user confidence. */}
+
           <Group justify="center" gap={6} mt="xs">
             <Icon
               icon="tabler:lock"

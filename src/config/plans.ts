@@ -51,7 +51,7 @@ const plans = [
     priceSuffix: null, // <-- priceSuffix ditambahkan di sini
     link: '#',
     features: [
-      'Backup up to 10 messages per chat',
+      'Backup up to 10 messages',
       'Text-only backups',
       'Export to HTML format',
       'Limited to the last 7 days',

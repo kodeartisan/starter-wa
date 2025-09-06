@@ -58,8 +58,8 @@ const MarqueeTileFeatureShowcase = () => (
     }}
   >
     <Stack h="100%" justify="center">
-      <Grid align="center" gutter={40}>
-        <Grid.Col span={5}>
+      <Grid align="center">
+        <Grid.Col span={4}>
           <Stack>
             <ThemeIcon
               size={90}
@@ -80,7 +80,7 @@ const MarqueeTileFeatureShowcase = () => (
             </Title>
           </Stack>
         </Grid.Col>
-        <Grid.Col span={4}>
+        <Grid.Col span={5}>
           {/* English: Changed the Grid layout to a Stack for a vertical list of features. */}
           <Stack gap="lg">
             <Card withBorder shadow="lg" p="lg">
@@ -89,19 +89,19 @@ const MarqueeTileFeatureShowcase = () => (
                   variant="gradient"
                   gradient={{ from: 'teal', to: 'lime' }}
                   radius="xl"
-                  size={44}
+                  size={60}
                 >
-                  <Icon icon="tabler:files" fontSize={30} />
+                  <Icon icon="tabler:files" fontSize={45} />
                 </ThemeIcon>
-                <Title order={2} fw={700}>
+                <Title order={1} fw={700}>
                   {' '}
                   Multiple Formats{' '}
                 </Title>
               </Group>
-              <Text size="xl" c="gray.7" fw={500} mt="xs">
+              <Title size={26} c="gray.7" fw={500} mt="md">
                 {' '}
                 HTML, PDF, Excel, CSV, JSON, TXT.{' '}
-              </Text>
+              </Title>
             </Card>
 
             <Card withBorder shadow="lg" p="lg">
@@ -110,19 +110,19 @@ const MarqueeTileFeatureShowcase = () => (
                   variant="gradient"
                   gradient={{ from: 'teal', to: 'lime' }}
                   radius="xl"
-                  size={44}
+                  size={60}
                 >
-                  <Icon icon="tabler:photo-video" fontSize={30} />
+                  <Icon icon="tabler:photo-video" fontSize={45} />
                 </ThemeIcon>
-                <Title order={2} fw={700}>
+                <Title order={1} fw={700}>
                   {' '}
                   Include Media{' '}
                 </Title>
               </Group>
-              <Text size="xl" c="gray.7" fw={500} mt="xs">
+              <Title size={26} c="gray.7" fw={500} mt="md">
                 {' '}
                 Save images, videos, and files.{' '}
-              </Text>
+              </Title>
             </Card>
             <Card withBorder shadow="lg" p="lg">
               <Group>
@@ -130,19 +130,19 @@ const MarqueeTileFeatureShowcase = () => (
                   variant="gradient"
                   gradient={{ from: 'teal', to: 'lime' }}
                   radius="xl"
-                  size={44}
+                  size={60}
                 >
-                  <Icon icon="tabler:filter" fontSize={30} />
+                  <Icon icon="tabler:filter" fontSize={45} />
                 </ThemeIcon>
-                <Title order={2} fw={700}>
+                <Title order={1} fw={700}>
                   {' '}
                   Advanced Filtering{' '}
                 </Title>
               </Group>
-              <Text size="xl" c="gray.7" fw={500} mt="xs">
+              <Title size={26} c="gray.7" fw={500} mt="md">
                 {' '}
                 Filter by date range and keywords.{' '}
-              </Text>
+              </Title>
             </Card>
           </Stack>
         </Grid.Col>
