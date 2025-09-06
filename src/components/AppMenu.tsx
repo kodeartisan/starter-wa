@@ -93,6 +93,7 @@ const AppMenu: React.FC = () => {
       return
     }
     if (Page.FAQ === value) {
+      modalFaq.toggle()
       return
     }
     if (Page.PROFILE === value) {
