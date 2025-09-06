@@ -3,11 +3,9 @@ import { Action, Page, Setting } from '@/constants'
 import PageChatBackup from '@/features/tools/backup-chat/PageChatBackup'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
-import useWa from '@/hooks/useWa'
 import useWindowMessage from '@/hooks/useWindowMessage'
 import { useAppStore } from '@/stores/app'
 import env from '@/utils/env'
-import { goToLandingPage } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import { Box, Stack, Tabs, Tooltip } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
@@ -88,7 +86,6 @@ const AppMenu: React.FC = () => {
 
   const handleChangeTab = (value: string | null) => {
     if (Page.UPGRADE === value) {
-      goToLandingPage()
       return
     }
     if (Page.ACTIVATE === value) {
@@ -96,7 +93,6 @@ const AppMenu: React.FC = () => {
       return
     }
     if (Page.FAQ === value) {
-      goToLandingPage()
       return
     }
     if (Page.PROFILE === value) {

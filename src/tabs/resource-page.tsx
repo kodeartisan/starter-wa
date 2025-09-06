@@ -340,24 +340,24 @@ const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
     }}
   >
     <Stack h="100%" justify="center">
-      <Grid align="center" gutter={50}>
-        <Grid.Col span={5}>
+      <Grid align="center">
+        <Grid.Col span={4}>
           <Stack>
-            <ThemeIcon size={60} radius="lg">
-              <Icon icon={icon} fontSize={40} />
+            <ThemeIcon size={90} radius="lg">
+              <Icon icon={icon} fontSize={60} />
             </ThemeIcon>
             {/* English: [MODIFIED] Font size adjusted and color changed for dark background. */}
-            <Title order={1} fz={44} lh={1.2} c="white">
+            <Title order={1} fz={50} lh={1.2} c="white">
               {' '}
               {title}{' '}
             </Title>
-            <Text size="xl" fw={500} c="gray.1" mt="md">
+            <Title order={2} fz={32} fw={500} c="gray.1" mt="md">
               {' '}
               {description}{' '}
-            </Text>
+            </Title>
           </Stack>
         </Grid.Col>
-        <Grid.Col span={7}>
+        <Grid.Col span={6}>
           <Center h="100%">{featureComponent}</Center>
         </Grid.Col>
       </Grid>
@@ -381,7 +381,7 @@ const ScreenshotGallery: React.FC = () => {
         <MarqueeTileFeatureDetail
           icon="tabler:files"
           title="Multiple Export Formats"
-          description="Convert your chats into HTML, PDF, CSV, Excel, JSON, and TXT files for any purpose."
+          description="Convert into HTML, PDF, CSV, Excel, JSON, and TXT files."
           featureComponent={<FeatureMockupExportFormats />}
         />
       ),
@@ -393,7 +393,7 @@ const ScreenshotGallery: React.FC = () => {
         <MarqueeTileFeatureDetail
           icon="tabler:filter"
           title="Advanced Filtering"
-          description="Easily find what you need. Filter your exports by custom date ranges or multiple keywords to pinpoint specific messages."
+          description="Filter your exports by custom date ranges or multiple keywords."
           featureComponent={<FeatureMockupAdvancedFiltering />}
         />
       ),
@@ -405,7 +405,7 @@ const ScreenshotGallery: React.FC = () => {
         <MarqueeTileFeatureDetail
           icon="tabler:photo-video"
           title="Save Your Media"
-          description="Don’t just save text. Back up and include all media types in your exports."
+          description="Back up and include all media types."
           featureComponent={<FeatureMockupMediaBackup />}
         />
       ),
@@ -417,7 +417,7 @@ const ScreenshotGallery: React.FC = () => {
         <MarqueeTileFeatureDetail
           icon="tabler:shield-lock"
           title="Your Privacy is Our Priority"
-          description="This extension operates 100% locally on your computer. Your messages and media are never uploaded to any server, ensuring complete privacy."
+          description="Your messages and media are never uploaded to any server, ensuring complete privacy."
           featureComponent={<FeatureMockupPrivacy />}
         />
       ),

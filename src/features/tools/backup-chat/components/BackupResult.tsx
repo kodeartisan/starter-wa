@@ -1,5 +1,5 @@
 // src/features/tools/backup-chat/components/BackupResult.tsx
-import { goToLandingPage, showModalUpgrade } from '@/utils/util'
+import { showModalPricing } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   Button,
@@ -73,7 +73,7 @@ const BackupResult: React.FC<Props> = ({ result, onDone }) => {
               <Button
                 mt="sm"
                 color="teal"
-                onClick={goToLandingPage}
+                onClick={showModalPricing}
                 leftSection={<Icon icon="tabler:crown" fontSize={18} />}
               >
                 Upgrade to Protect Everything

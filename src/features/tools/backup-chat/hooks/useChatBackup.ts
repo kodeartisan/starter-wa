@@ -2,7 +2,7 @@
 import useLicense from '@/hooks/useLicense'
 import wa from '@/libs/wa'
 import toast from '@/utils/toast'
-import { getContactName, goToLandingPage } from '@/utils/util'
+import { getContactName, showModalPricing } from '@/utils/util'
 import { useForm } from '@mantine/form'
 import {
   endOfDay,
@@ -89,7 +89,7 @@ export const useChatBackup = () => {
         'This export format is a Pro feature. Please upgrade to unlock.',
         'Upgrade Required',
       )
-      goToLandingPage() // ADDED: Redirect to landing page on Pro feature attempt.
+      showModalPricing()
       return
     }
     setIsBackingUp(true)

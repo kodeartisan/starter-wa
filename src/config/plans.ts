@@ -63,7 +63,7 @@ const plans = [
     description: 'Ideal for testing.',
     price: '$5',
     priceSuffix: '/day',
-    link: 'https://extdotninja.lemonsqueezy.com/buy/your-daily-plan-id',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/3f090cee-2dc3-4900-b134-26b83b58f650?logo=0',
     features: [
       'Unlimited Message Backups',
       'Backup All Media Types',
@@ -78,7 +78,7 @@ const plans = [
     description: 'Pay once, access all features forever.',
     placeholderPrice: '$89',
     price: '$29',
-    priceSuffix: 'one-time', // <-- priceSuffix ditambahkan di sini
+    priceSuffix: 'one-time',
     link: 'https://extdotninja.lemonsqueezy.com/buy/7f1401c0-fd00-4898-af64-15a869f9fb12?logo=0',
     features: [
       'Unlimited Message Backups',

@@ -48,9 +48,9 @@ export const showModalFaq = () => {
   postMessage(Action.Window.SHOW_MODAL_FAQ)
 }
 
-export const goToLandingPage = async () => {
+export const goToResourcePage = async () => {
   await sendToBackground({
-    name: 'landing-page',
+    name: 'resource-page',
     body: {},
   })
 }
