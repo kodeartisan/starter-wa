@@ -351,7 +351,7 @@ const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
               {' '}
               {title}{' '}
             </Title>
-            <Title order={2} fz={32} fw={500} c="gray.1" mt="md">
+            <Title order={2} fw={500} c="gray.1" mt="md">
               {' '}
               {description}{' '}
             </Title>

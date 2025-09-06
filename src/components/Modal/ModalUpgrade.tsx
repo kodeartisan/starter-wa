@@ -69,17 +69,6 @@ const ModalUpgrade: React.FC<Props> = ({
               Upgrade Now
             </Button>
           </Group>
-
-          <Group justify="center" gap={6} mt="xs">
-            <Icon
-              icon="tabler:lock"
-              fontSize={14}
-              color="var(--mantine-color-gray-6)"
-            />
-            <Text size="xs" c="dimmed">
-              Secure Payment & 30-Day Money-Back Guarantee
-            </Text>
-          </Group>
         </Stack>
       </Stack>
     </Modal>
