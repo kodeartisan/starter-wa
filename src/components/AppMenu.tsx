@@ -86,6 +86,7 @@ const AppMenu: React.FC = () => {
 
   const handleChangeTab = (value: string | null) => {
     if (Page.UPGRADE === value) {
+      modalPricing.toggle()
       return
     }
     if (Page.ACTIVATE === value) {
