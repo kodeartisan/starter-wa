@@ -226,7 +226,7 @@ const PageDirectChat: React.FC = () => {
         featureName={selectedFeature.name}
         featureBenefit={selectedFeature.benefit}
       />
-      <LayoutPage title="Direct Chat">
+      <LayoutPage>
         <Stack>
           <TextInput
             label="WhatsApp Number"
