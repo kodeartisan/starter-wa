@@ -2,15 +2,13 @@
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
 import env from '@/utils/env'
-import { goToLandingPage } from '@/utils/util'
+import { goToResourcePage, showModalPricing } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
-  ActionIcon,
   Button,
   Center,
   Group,
   Loader,
-  Menu,
   ScrollArea,
   Stack,
   Text,
@@ -81,7 +79,17 @@ const LayoutPage: React.FC<Props> = ({
               </Button>
             </When>
           </Group>
-          {/* MODIFIED: Changed button text to be more benefit-focused. */}
+          <When condition={env.isDevelopment()}>
+            <Button
+              variant="filled"
+              color="blue"
+              size="xs"
+              radius="md"
+              onClick={goToResourcePage}
+            >
+              RS
+            </Button>
+          </When>
           <When condition={license.isFree()}>
             <Button
               variant="filled"
@@ -89,9 +97,9 @@ const LayoutPage: React.FC<Props> = ({
               size="xs"
               radius="md"
               leftSection={<Icon icon="tabler:crown" fontSize={16} />}
-              onClick={goToLandingPage}
+              onClick={showModalPricing}
             >
-              Go Pro
+              Upgrade Now
             </Button>
           </When>
         </Group>

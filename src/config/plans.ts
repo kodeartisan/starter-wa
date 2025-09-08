@@ -1,5 +1,4 @@
 // src/config/plans.ts
-
 // English: Define a structured feature type for the comparison table
 export interface PlanFeature {
   feature: string
@@ -47,29 +46,44 @@ const plans = [
   {
     name: 'Free',
     isFree: true,
-    description: 'For basic chat backup needs.',
+    description: 'For basic direct messaging needs.',
     price: '$0',
-    placeholderPrice: null,
+    priceSuffix: null, // <-- priceSuffix ditambahkan di sini
     link: '#',
     features: [
-      'Backup up to 10 messages per chat',
-      'Text-only backups',
-      'Export to HTML format',
-      'Limited to the last 7 days',
+      'Start unlimited chats',
+      'No need to save contacts',
+      'Send text messages only',
+      'Standard support',
     ],
   },
   {
-    name: 'Pro Lifetime',
+    name: 'Per Day',
+    isFree: false,
+    description: 'Ideal for testing.',
+    price: '$5',
+    priceSuffix: '/day',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/9c08bd0c-17fb-4a80-8e0c-af255a60df71?logo=0',
+    features: [
+      'All Media Types (Images, Videos, Files)',
+      'Share Locations',
+      'Save Unlimited Message Templates',
+      'Priority Customer Support',
+      'All Future Updates Included',
+    ],
+  },
+  {
+    name: 'Lifetime',
     isFree: false,
     description: 'Pay once, access all features forever.',
     placeholderPrice: '$89',
-    price: '$39',
-    link: 'https://extdotninja.lemonsqueezy.com/buy/7f1401c0-fd00-4898-af64-15a869f9fb12?media=0&logo=0&desc=0&discount=0',
+    price: '$29',
+    priceSuffix: 'one-time',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?logo=0',
     features: [
-      'Unlimited Message Backups',
-      'Backup All Media Types',
-      'Advanced Date & Keyword Filters',
-      'Multiple Export Formats',
+      'All Media Types (Images, Videos, Files)',
+      'Share Locations',
+      'Save Unlimited Message Templates',
       'Priority Customer Support',
       'All Future Updates Included',
     ],
