@@ -28,11 +28,8 @@ export const postMessage = (action: string, body: any = null) => {
   window.postMessage({ action, body })
 }
 
-export const showModalUpgrade = (
-  featureName = 'Pro Feature',
-  featureBenefit = 'Upgrade to Pro to unlock this feature and many more!',
-) => {
-  postMessage(Action.Window.SHOW_MODAL_UPGRADE, { featureName, featureBenefit })
+export const showModalPricing = () => {
+  postMessage(Action.Window.SHOW_MODAL_PRICING)
 }
 
 export const showModalMain = () => {
@@ -51,9 +48,9 @@ export const showModalFaq = () => {
   postMessage(Action.Window.SHOW_MODAL_FAQ)
 }
 
-export const goToLandingPage = async () => {
+export const goToResourcePage = async () => {
   await sendToBackground({
-    name: 'landing-page',
+    name: 'resource-page',
     body: {},
   })
 }

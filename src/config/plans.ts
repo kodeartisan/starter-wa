@@ -1,5 +1,4 @@
 // src/config/plans.ts
-
 // English: Define a structured feature type for the comparison table
 export interface PlanFeature {
   feature: string
@@ -47,31 +46,46 @@ const plans = [
   {
     name: 'Free',
     isFree: true,
-    description: 'For basic chat backup needs.',
+    description: 'For basic direct messaging needs.',
     price: '$0',
-    placeholderPrice: null,
+    priceSuffix: null, // <-- priceSuffix ditambahkan di sini
     link: '#',
     features: [
-      'Backup up to 10 messages per chat',
-      'Text-only backups',
-      'Export to HTML format',
-      'Limited to the last 7 days',
+      'Post text-only statuses',
+      'Save up to 3 drafts',
+      'Manual posting only',
+      'Standard support',
     ],
   },
   {
-    name: 'Pro Lifetime',
+    name: 'Per Day',
+    isFree: false,
+    description: 'Ideal for testing.',
+    price: '$1',
+    priceSuffix: '/day',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/66237b48-d112-4194-9d93-89067c965249?logo=0',
+    features: [
+      'Schedule Unlimited Statuses',
+      'Post Images & Videos',
+      'Fully Automated Posting',
+      'Full Management Dashboard',
+      'Priority Customer Support',
+    ],
+  },
+  {
+    name: 'Lifetime',
     isFree: false,
     description: 'Pay once, access all features forever.',
     placeholderPrice: '$89',
-    price: '$39',
-    link: 'https://extdotninja.lemonsqueezy.com/buy/7f1401c0-fd00-4898-af64-15a869f9fb12?media=0&logo=0&desc=0&discount=0',
+    price: '$99',
+    priceSuffix: 'one-time',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/07900b2b-ed92-4714-b111-51f07d221c0c?logo=0',
     features: [
-      'Unlimited Message Backups',
-      'Backup All Media Types',
-      'Advanced Date & Keyword Filters',
-      'Multiple Export Formats',
+      'Schedule Unlimited Statuses',
+      'Post Images & Videos',
+      'Fully Automated Posting',
+      'Full Management Dashboard',
       'Priority Customer Support',
-      'All Future Updates Included',
     ],
   },
 ]

@@ -6,7 +6,6 @@ import useRuntimeMessage from '@/hooks/useRuntimeMessage'
 import useWindowMessage from '@/hooks/useWindowMessage'
 import { useAppStore } from '@/stores/app'
 import env from '@/utils/env'
-import { goToLandingPage } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import { Box, Stack, Tabs, Tooltip } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
@@ -16,6 +15,7 @@ import classes from './AppMenu.module.css'
 import Modal from './Modal/Modal'
 import ModalActivation from './Modal/ModalActivation'
 import ModalFaq from './Modal/ModalFaq'
+import ModalPricing from './Modal/ModalPricing'
 import ModalProfile from './Modal/ModalProfile'
 import ModalUpgrade from './Modal/ModalUpgrade'
 
@@ -26,6 +26,7 @@ const AppMenu: React.FC = () => {
   const [showModalActivation, modalActivation] = useDisclosure(false)
   const [showModalFaq, modalFaq] = useDisclosure(false)
   const [showModalProfile, modalProfile] = useDisclosure(false)
+  const [showModalPricing, modalPricing] = useDisclosure(false)
   const [showModalUpgrade, modalUpgradeHandlers] = useDisclosure(false)
   const [upgradeInfo, setUpgradeInfo] = useState({
     featureName: '',
@@ -48,12 +49,8 @@ const AppMenu: React.FC = () => {
       case Action.Window.GO_TO_PAGE:
         setActiveTab(body)
         break
-      case Action.Window.SHOW_MODAL_UPGRADE:
-        setUpgradeInfo({
-          featureName: body.featureName,
-          featureBenefit: body.featureBenefit,
-        })
-        modalUpgradeHandlers.open()
+      case Action.Window.SHOW_MODAL_PRICING:
+        modalPricing.toggle()
         break
       case Action.Window.SHOW_MODAL_ACTIVATION:
         modalActivation.toggle()
@@ -95,7 +92,7 @@ const AppMenu: React.FC = () => {
 
   const handleChangeTab = (value: string | null) => {
     if (Page.UPGRADE === value) {
-      goToLandingPage()
+      modalPricing.toggle()
       return
     }
     if (Page.ACTIVATE === value) {
@@ -103,7 +100,7 @@ const AppMenu: React.FC = () => {
       return
     }
     if (Page.FAQ === value) {
-      goToLandingPage()
+      modalFaq.toggle()
       return
     }
     if (Page.PROFILE === value) {
@@ -196,12 +193,7 @@ const AppMenu: React.FC = () => {
       />
       <ModalFaq opened={showModalFaq} onClose={modalFaq.close} />
       <ModalProfile opened={showModalProfile} onClose={modalProfile.close} />
-      <ModalUpgrade
-        opened={showModalUpgrade}
-        onClose={modalUpgradeHandlers.close}
-        featureName={upgradeInfo.featureName}
-        featureBenefit={upgradeInfo.featureBenefit}
-      />
+      <ModalPricing opened={showModalPricing} onClose={modalPricing.close} />
     </>
   )
 }
