@@ -28,6 +28,13 @@ export const postMessage = (action: string, body: any = null) => {
   window.postMessage({ action, body })
 }
 
+export const showModalUpgrade = (
+  featureName = 'Pro Feature',
+  featureBenefit = 'Upgrade to Pro to unlock this feature and many more!',
+) => {
+  postMessage(Action.Window.SHOW_MODAL_UPGRADE, { featureName, featureBenefit })
+}
+
 export const showModalPricing = () => {
   postMessage(Action.Window.SHOW_MODAL_PRICING)
 }

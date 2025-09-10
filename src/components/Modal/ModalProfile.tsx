@@ -2,7 +2,7 @@
 import { Setting } from '@/constants'
 import useLicense from '@/hooks/useLicense'
 import { useAppStore } from '@/stores/app'
-import { goToLandingPage, showModalActivation } from '@/utils/util'
+import { showModalActivation, showModalPricing } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   Badge,
@@ -43,7 +43,7 @@ const ModalProfile: React.FC<Props> = ({ opened, onClose }: Props) => {
   }
 
   const handleUpgrade = () => {
-    goToLandingPage()
+    showModalPricing()
   }
 
   const handleActivate = () => {
