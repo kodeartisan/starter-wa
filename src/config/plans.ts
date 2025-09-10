@@ -61,7 +61,7 @@ const plans = [
     name: 'Per Day',
     isFree: false,
     description: 'Ideal for testing.',
-    price: '$5',
+    price: '$1',
     priceSuffix: '/day',
     link: 'https://extdotninja.lemonsqueezy.com/buy/9c08bd0c-17fb-4a80-8e0c-af255a60df71?logo=0',
     features: [
@@ -77,7 +77,7 @@ const plans = [
     isFree: false,
     description: 'Pay once, access all features forever.',
     placeholderPrice: '$89',
-    price: '$29',
+    price: '$99',
     priceSuffix: 'one-time',
     link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?logo=0',
     features: [
