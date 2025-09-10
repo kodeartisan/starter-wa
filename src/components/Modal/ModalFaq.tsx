@@ -20,12 +20,6 @@ interface Props {
 
 const faqData = [
   {
-    icon: 'tabler:rocket',
-    question: 'What are the main benefits of upgrading to Pro?',
-    answer:
-      "With Pro, you get **Total Protection** by backing up all messages and media without limits—no more risk of losing important data or precious memories. You'll unlock **Exclusive Features** like custom date ranges, Excel/CSV exports, and upcoming premium tools. Plus, you receive **Priority Support**, ensuring our team assists you first whenever you need help.",
-  },
-  {
     icon: 'tabler:key',
     question: 'Where can I find my license key?',
     answer:

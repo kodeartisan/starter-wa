@@ -1,6 +1,6 @@
 // src/components/Modal/ModalUpgrade.tsx
 import Modal from '@/components/Modal/Modal'
-import { goToLandingPage } from '@/utils/util'
+import { showModalPricing } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   Button,
@@ -31,7 +31,7 @@ const ModalUpgrade: React.FC<Props> = ({
   featureBenefit,
 }) => {
   const handleUpgrade = () => {
-    goToLandingPage()
+    showModalPricing()
     onClose()
   }
 
