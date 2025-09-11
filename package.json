@@ -2,7 +2,7 @@
   "name": "whats-status",
   "shortName": "WhatsStatus",
   "displayName": "WhatsStatus - Automate & Schedule WA Status",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Easily schedule whatsapp text, image, and video status automatically.",
   "author": "Extninja",
   "scripts": {
