@@ -32,6 +32,13 @@ export const showModalPricing = () => {
   postMessage(Action.Window.SHOW_MODAL_PRICING)
 }
 
+export const showModalUpgrade = (
+  featureName = 'Pro Feature',
+  featureBenefit = 'Upgrade to Pro to unlock this feature and many more!',
+) => {
+  postMessage(Action.Window.SHOW_MODAL_UPGRADE, { featureName, featureBenefit })
+}
+
 export const showModalMain = () => {
   postMessage(Action.Window.SHOW_MODAL_MAIN)
 }

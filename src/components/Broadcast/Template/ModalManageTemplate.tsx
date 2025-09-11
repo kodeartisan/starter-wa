@@ -4,7 +4,7 @@ import useDataQuery from '@/hooks/useDataQuery'
 import useLicense from '@/hooks/useLicense'
 import type { BroadcastTemplate } from '@/libs/db'
 import db from '@/libs/db'
-import { showModalPricing } from '@/utils/util'
+import { showModalPricing, showModalUpgrade } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   ActionIcon,
@@ -68,7 +68,10 @@ const ModalManageTemplate: React.FC<Props> = ({ opened, onClose }) => {
 
   const handleOpenCreateModal = () => {
     if (license.isFree() && dataQuery.totalRecords >= 1) {
-      showModalPricing()
+      showModalUpgrade(
+        'Unlimited Templates',
+        'The free version is limited to 1 template. Upgrade to Pro to save unlimited message templates.',
+      )
       return
     }
     setEditingTemplate(null)

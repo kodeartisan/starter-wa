@@ -7,7 +7,7 @@ import { Message } from '@/constants'
 import useLicense from '@/hooks/useLicense'
 import wa from '@/libs/wa'
 import toast from '@/utils/toast'
-import { formHasErrors } from '@/utils/util'
+import { formHasErrors, showModalUpgrade } from '@/utils/util'
 import { Button, Group, Stack, TextInput } from '@mantine/core'
 import { useForm } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
@@ -61,14 +61,6 @@ const PageDirectChat: React.FC = () => {
 
   const [loading, setLoading] = useState<boolean>(false)
 
-  // English: A helper function to set feature details and open the upgrade modal.
-  const triggerUpgradeModal = (name: string, benefit: string) => {
-    setSelectedFeature({ name, benefit })
-    openUpgradeModal()
-  }
-
-  // English: This effect watches for changes in the message type. If a user on the
-  // free plan selects a Pro feature, it shows the upgrade modal and reverts the selection.
   useEffect(() => {
     const { type } = inputMessageForm.values
     if (license.isFree() && PRO_MESSAGE_TYPES.includes(type)) {
@@ -102,8 +94,8 @@ const PageDirectChat: React.FC = () => {
       const featureInfo = featureNameMap[type]
 
       if (featureInfo) {
-        triggerUpgradeModal(featureInfo.name, featureInfo.benefit)
-        // Revert to the default message type after showing the modal.
+        showModalUpgrade(featureInfo.name, featureInfo.benefit)
+
         inputMessageForm.setFieldValue('type', Message.TEXT)
       }
     }
@@ -220,12 +212,6 @@ const PageDirectChat: React.FC = () => {
 
   return (
     <>
-      <ModalUpgrade
-        opened={isUpgradeModalOpen}
-        onClose={closeUpgradeModal}
-        featureName={selectedFeature.name}
-        featureBenefit={selectedFeature.benefit}
-      />
       <LayoutPage>
         <Stack>
           <TextInput

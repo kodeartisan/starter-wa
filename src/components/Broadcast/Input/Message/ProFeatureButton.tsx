@@ -1,5 +1,4 @@
 import useLicense from '@/hooks/useLicense'
-import { showModalUpgrade } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import { Badge, Button, Tooltip } from '@mantine/core'
 import type { UseFormReturnType } from '@mantine/form'

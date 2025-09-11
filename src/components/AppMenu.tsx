@@ -17,6 +17,7 @@ import ModalActivation from './Modal/ModalActivation'
 import ModalFaq from './Modal/ModalFaq'
 import ModalPricing from './Modal/ModalPricing'
 import ModalProfile from './Modal/ModalProfile'
+import ModalUpgrade from './Modal/ModalUpgrade'
 
 const AppMenu: React.FC = () => {
   const { setIsReady, setActiveChat } = useAppStore()
@@ -26,6 +27,11 @@ const AppMenu: React.FC = () => {
   const [showModalFaq, modalFaq] = useDisclosure(false)
   const [showModalProfile, modalProfile] = useDisclosure(false)
   const [showModalPricing, modalPricing] = useDisclosure(false)
+  const [showModalUpgrade, modalUpgradeHandlers] = useDisclosure(false)
+  const [upgradeInfo, setUpgradeInfo] = useState({
+    featureName: '',
+    featureBenefit: '',
+  })
   const [needToOpen, setNeedToOpen] = useStorage(Setting.NEED_TO_OPEN, false)
   const [activeTab, setActiveTab] = useState<string | null>(Page.HOME)
 
@@ -42,6 +48,13 @@ const AppMenu: React.FC = () => {
         break
       case Action.Window.GO_TO_PAGE:
         setActiveTab(body)
+        break
+      case Action.Window.SHOW_MODAL_UPGRADE:
+        setUpgradeInfo({
+          featureName: body.featureName,
+          featureBenefit: body.featureBenefit,
+        })
+        modalUpgradeHandlers.open()
         break
       case Action.Window.SHOW_MODAL_PRICING:
         modalPricing.toggle()
@@ -192,6 +205,12 @@ const AppMenu: React.FC = () => {
       <ModalFaq opened={showModalFaq} onClose={modalFaq.close} />
       <ModalProfile opened={showModalProfile} onClose={modalProfile.close} />
       <ModalPricing opened={showModalPricing} onClose={modalPricing.close} />
+      <ModalUpgrade
+        opened={showModalUpgrade}
+        onClose={modalUpgradeHandlers.close}
+        featureName={upgradeInfo.featureName}
+        featureBenefit={upgradeInfo.featureBenefit}
+      />
     </>
   )
 }
