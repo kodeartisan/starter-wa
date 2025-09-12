@@ -90,7 +90,7 @@ const LayoutPage: React.FC<Props> = ({
               RS
             </Button>
           </When>
-          <When condition={license.isFree()}>
+          <When condition={license.isFree() ?? true}>
             <Button
               variant="filled"
               color="yellow"
