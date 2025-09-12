@@ -22,8 +22,8 @@ interface Props {
 
 const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
   return (
-    <Modal opened={opened} onClose={onClose} w={1200} withCloseButton={false}>
-      <Stack py={'xl'}>
+    <Modal opened={opened} onClose={onClose} w={1000} withCloseButton={false}>
+      <Stack py={'md'}>
         <Stack align="center" ta="center">
           <Title order={1}>Simple, transparent pricing</Title>
           <Text size={'xl'} c="dimmed">
@@ -39,18 +39,16 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
               px={50}
               py={36}
               style={{
-                border:
-                  plan.name === 'Per Day'
-                    ? '2px solid var(--mantine-color-teal-6)'
-                    : undefined,
-                boxShadow:
-                  plan.name === 'Per Day'
-                    ? 'var(--mantine-shadow-lg)'
-                    : 'var(--mantine-shadow-sm)',
+                border: !plan.isFree
+                  ? '2px solid var(--mantine-color-teal-6)'
+                  : undefined,
+                boxShadow: !plan.isFree
+                  ? 'var(--mantine-shadow-lg)'
+                  : 'var(--mantine-shadow-sm)',
                 position: 'relative',
               }}
             >
-              {plan.name === 'Per Day' && (
+              {!plan.isFree && (
                 <Badge
                   variant="gradient"
                   gradient={{ from: 'yellow', to: 'orange' }}
@@ -74,6 +72,17 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
                   </Text>
                 </Box>
                 <Group gap={8} align={'baseline'} justify="center">
+                  {!plan.isFree && plan.placeholderPrice && (
+                    <Text
+                      component="span"
+                      c="dimmed"
+                      fz="xl"
+                      fw={500}
+                      td="line-through"
+                    >
+                      {plan.placeholderPrice}
+                    </Text>
+                  )}
                   <Title order={1} fz={52}>
                     {' '}
                     {plan.price}{' '}
@@ -138,6 +147,18 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
             </Paper>
           ))}
         </Group>
+        <Stack gap={4} align="center" mt="md">
+          <Group justify="center" gap={6}>
+            <Icon
+              icon="tabler:lock"
+              fontSize={16}
+              color="var(--mantine-color-gray-6)"
+            />
+            <Text size="sm" c="dimmed" fw={500}>
+              100% Secure Payment via Lemon Squeezy
+            </Text>
+          </Group>
+        </Stack>
       </Stack>
     </Modal>
   )

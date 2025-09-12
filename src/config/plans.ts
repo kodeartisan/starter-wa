@@ -54,31 +54,15 @@ const plans = [
       'Validate up to 5 numbers at a time',
       'See which numbers are valid/invalid',
       'Adjustable delay settings',
-      'Standard support',
     ],
   },
-  {
-    name: 'Per Day',
-    isFree: false,
-    description: 'Ideal for testing.',
-    price: '$1',
-    priceSuffix: '/day',
-    link: 'https://extdotninja.lemonsqueezy.com/buy/35a4482e-a0a5-4a72-adcf-1355fa2bfb5c?logo=0',
-    features: [
-      'Validate Unlimited Numbers',
-      'Import from Excel & CSV Files',
-      'Export Results to Excel & CSV',
-      'Safe Batch Processing',
-      'Priority Customer Support',
-      'All Future Updates Included',
-    ],
-  },
+
   {
     name: 'Lifetime',
     isFree: false,
     description: 'Pay once, access all features forever.',
     placeholderPrice: '$89',
-    price: '$99',
+    price: '$29',
     priceSuffix: 'one-time',
     link: 'https://extdotninja.lemonsqueezy.com/buy/c2a57d45-f96b-42ab-b73d-73847a845fe5?logo=0',
     features: [
