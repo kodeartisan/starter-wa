@@ -137,9 +137,9 @@ const list = () => {
                 (participant) =>
                   participant.contact.phoneNumber?.user !== me.user,
               )
-            console.log('participants', participants)
+            const id = `${group.id.user}@${group.id.server}`
             return {
-              id: `${group.id.user}@${group.id.server}`,
+              id,
               name: group.name || group.formattedTitle,
               participants,
             }

@@ -22,7 +22,7 @@ import ModalProfile from './Modal/ModalProfile'
 import ModalUpgrade from './Modal/ModalUpgrade'
 
 const AppMenu: React.FC = () => {
-  const { setIsReady, setActiveChat } = useAppStore()
+  const { setIsReady, setGroups } = useAppStore()
   const wa = useWa()
   const license = useLicense()
   const [showModalMain, modalMain] = useDisclosure(env.isDevelopment())
@@ -45,9 +45,6 @@ const AppMenu: React.FC = () => {
     switch (action) {
       case Action.Window.READY:
         setIsReady(true)
-        break
-      case Action.Window.ACTIVE_CHAT:
-        setActiveChat(body)
         break
       case Action.Window.GO_TO_PAGE:
         setActiveTab(body)
@@ -103,14 +100,9 @@ const AppMenu: React.FC = () => {
   useEffect(() => {
     ;(async function () {
       if (!wa.isReady) return
-      // const profile = await wa.conn.getProfile()
-      // setProfile(profile)
-      // wa.chat.get('6285157790870@c.us').then((result) => {
-      //   console.log('result', result)
-      // })
       setTimeout(async () => {
         const groups = await wa.group.list()
-        console.log('groups', groups)
+        setGroups(groups)
       }, 3000)
     })()
   }, [wa.isReady])

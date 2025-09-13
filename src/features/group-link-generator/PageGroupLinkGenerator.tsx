@@ -17,7 +17,7 @@ import {
   Tooltip,
 } from '@mantine/core'
 import { useClipboard } from '@mantine/hooks'
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { When } from 'react-if'
 
 /**
@@ -30,15 +30,24 @@ const PageGroupLinkGenerator: React.FC = () => {
   const [generatedLink, setGeneratedLink] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const clipboard = useClipboard({ timeout: 1000 })
+  const [groupOptions, setGroupOptions] = useState<any[]>()
 
   // Format the group list from the store for the Select component
-  const groupOptions = useMemo(() => {
-    return (
-      groups?.map((group: any) => ({
-        label: `${group.name} (${group.participants.length} members)`,
-        value: group.id,
-      })) || []
-    )
+  // const groupOptions = useMemo(() => {
+  //   return (
+  //     groups
+  //       ?.filter((group) => {
+  //         return false
+  //       })
+  //       .map((group: any) => ({
+  //         label: `${group.name} (${group.participants.length} members)`,
+  //         value: group.id,
+  //       })) || []
+  //   )
+  // }, [groups])
+
+  useEffect(() => {
+    console.log('groups', groups)
   }, [groups])
 
   /**
