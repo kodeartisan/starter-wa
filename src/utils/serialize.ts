@@ -7,7 +7,6 @@ import type {
   ParticipantModel,
 } from '@wppconnect/wa-js/dist/whatsapp'
 import _ from 'lodash'
-import country from './country'
 
 const button = (buttons: any[]) => {
   return buttons
@@ -32,18 +31,13 @@ const list = (rows: any[]) => {
 
 const contact = (contact: ContactModel) => {
   if (!contact) return {}
-  const countryCode = WPP.whatsapp.functions.getCountryShortcodeByPhone(
-    contact.id.user,
-  )
 
   const hasUnread = WPP.chat.get(contact.id._serialized)?.hasUnread ?? false
-  const selectedCountry = country.getCountryByCode(countryCode)
   return {
     id: contact.id._serialized,
     //@ts-ignore
     phoneNumber: contact?.phoneNumber,
     avatar: contact.getProfilePicThumb().__x_eurl,
-    country: selectedCountry.label,
     name: contact.name,
     pushname: contact.pushname,
     shortname: contact.shortName,
@@ -124,7 +118,6 @@ const chat = (chat: ChatModel) => {
 
 const participant = (participant: ParticipantModel) => {
   return {
-    id: participant.id,
     isAdmin: participant.isAdmin,
     isSuperAdmin: participant.isSuperAdmin,
     contact: contact(participant.contact),

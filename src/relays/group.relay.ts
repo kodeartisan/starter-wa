@@ -1,6 +1,7 @@
 import { Action } from '@/constants'
 import serialize from '@/utils/serialize'
 import { relay } from '@plasmohq/messaging/relay'
+import { contact } from '@wppconnect/wa-js'
 import _ from 'lodash'
 
 const addParticipants = () => {
@@ -141,7 +142,18 @@ const list = () => {
             return {
               id,
               name: group.name || group.formattedTitle,
+              desc: group.groupMetadata?.desc,
+              avatar: group.contact?.getProfilePicThumb().__x_eurl,
+              size: group.groupMetadata?.size,
               participants,
+              isAdmin: group.groupMetadata?.participants?.iAmAdmin(),
+              isSuperAdmin: group.groupMetadata?.participants?.iAmSuperAdmin(),
+              superAdmin: serialize.contact(
+                group.groupMetadata?.participants?.getSuperAdmin()?.contact,
+              ),
+              admins: group.groupMetadata?.participants
+                ?.getAdmins()
+                .map((participant) => serialize.contact(participant.contact)),
             }
           },
         )
