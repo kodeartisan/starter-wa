@@ -40,6 +40,8 @@ const contact = (contact: ContactModel) => {
   const selectedCountry = country.getCountryByCode(countryCode)
   return {
     id: contact.id._serialized,
+    //@ts-ignore
+    phoneNumber: contact?.phoneNumber,
     avatar: contact.getProfilePicThumb().__x_eurl,
     country: selectedCountry.label,
     name: contact.name,

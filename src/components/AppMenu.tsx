@@ -1,8 +1,10 @@
 // src/components/AppMenu.tsx
 import { Action, Page, Setting } from '@/constants'
 import PageDirectChat from '@/features/direct-chat/PageDirectChat'
+import PageGroupLinkGenerator from '@/features/group-link-generator/PageGroupLinkGenerator'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
+import useWa from '@/hooks/useWa'
 import useWindowMessage from '@/hooks/useWindowMessage'
 import { useAppStore } from '@/stores/app'
 import env from '@/utils/env'
@@ -21,6 +23,7 @@ import ModalUpgrade from './Modal/ModalUpgrade'
 
 const AppMenu: React.FC = () => {
   const { setIsReady, setActiveChat } = useAppStore()
+  const wa = useWa()
   const license = useLicense()
   const [showModalMain, modalMain] = useDisclosure(env.isDevelopment())
   const [showModalActivation, modalActivation] = useDisclosure(false)
@@ -97,6 +100,21 @@ const AppMenu: React.FC = () => {
     }
   }, [needToOpen])
 
+  useEffect(() => {
+    ;(async function () {
+      if (!wa.isReady) return
+      // const profile = await wa.conn.getProfile()
+      // setProfile(profile)
+      // wa.chat.get('6285157790870@c.us').then((result) => {
+      //   console.log('result', result)
+      // })
+      setTimeout(async () => {
+        const groups = await wa.group.list()
+        console.log('groups', groups)
+      }, 3000)
+    })()
+  }, [wa.isReady])
+
   const handleChangeTab = (value: string | null) => {
     if (Page.UPGRADE === value) {
       modalPricing.toggle()
@@ -129,12 +147,8 @@ const AppMenu: React.FC = () => {
         <Stack justify="space-between" gap={0} style={{ height: '100%' }}>
           <Box>
             <Tabs.Tab value={Page.HOME} className={classes.tab}>
-              <Tooltip label="Direct Chat" position="left">
-                <Icon
-                  icon="tabler:message-circle-plus"
-                  fontSize={26}
-                  color="white"
-                />
+              <Tooltip label="Group Link" position="left">
+                <Icon icon="tabler:ticket" fontSize={26} color="white" />
               </Tooltip>
             </Tabs.Tab>
           </Box>
@@ -177,7 +191,7 @@ const AppMenu: React.FC = () => {
     return (
       <>
         <Tabs.Panel value={Page.HOME}>
-          <PageDirectChat />
+          <PageGroupLinkGenerator />
         </Tabs.Panel>
       </>
     )

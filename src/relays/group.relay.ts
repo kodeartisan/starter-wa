@@ -126,13 +126,29 @@ const list = () => {
       name: Action.Group.LIST,
     },
     async ({ body }) => {
-      const list = await WPP.chat.list(body)
-
-      if (!list) {
+      try {
+        const me = WPP.conn.getMyUserId()
+        const groups = (await WPP.chat.list({ onlyGroups: true })).map(
+          (group) => {
+            const participants = group.groupMetadata.participants
+              .getModelsArray()
+              .map(serialize.participant)
+              .filter(
+                (participant) =>
+                  participant.contact.phoneNumber?.user !== me.user,
+              )
+            console.log('participants', participants)
+            return {
+              id: `${group.id.user}@${group.id.server}`,
+              name: group.name || group.formattedTitle,
+              participants,
+            }
+          },
+        )
+        return _.sortBy(groups, 'name')
+      } catch (error) {
         return []
       }
-
-      return list.map(serialize.chat)
     },
   )
 }
