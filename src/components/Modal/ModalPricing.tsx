@@ -22,7 +22,7 @@ interface Props {
 
 const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
   return (
-    <Modal opened={opened} onClose={onClose} w={1000} withCloseButton={false}>
+    <Modal opened={opened} onClose={onClose} w={1300} withCloseButton={false}>
       <Stack py={'md'}>
         <Stack align="center" ta="center">
           <Title order={1}>Simple, transparent pricing</Title>
@@ -48,21 +48,6 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
                 position: 'relative',
               }}
             >
-              {!plan.isFree && (
-                <Badge
-                  variant="gradient"
-                  gradient={{ from: 'yellow', to: 'orange' }}
-                  size="lg"
-                  style={{
-                    position: 'absolute',
-                    top: -15,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                  }}
-                >
-                  Most Popular
-                </Badge>
-              )}
               <Stack justify="space-between" style={{ height: '100%' }}>
                 <Box ta="center">
                   <Title order={2}>{plan.name}</Title>
