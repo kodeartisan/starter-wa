@@ -36,6 +36,7 @@
     "lodash": "^4.17.21",
     "mantine-datatable": "^8.2.0",
     "plasmo": "0.90.5",
+    "qrcode.react": "^4.2.0",
     "react": "18.2.0",
     "react-dom": "18.2.0",
     "react-if": "^4.1.6",
