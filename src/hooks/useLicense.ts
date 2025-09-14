@@ -8,7 +8,7 @@ import { getStoreId } from '@/utils/util'
 import { sendToBackground } from '@plasmohq/messaging'
 import { isPast } from 'date-fns'
 
-// English: Define a type for the cached license object, including a timestamp for expiration.
+// English: Define a type for the cache entry, including the data and a timestamp.
 interface CachedLicense {
   data: License
   timestamp: number
@@ -25,25 +25,24 @@ const useLicense = () => {
   }
 
   const init = async () => {
-    // First, check for a cached, valid license to avoid unnecessary API calls.
-    const cachedLicense = await storage.get<CachedLicense | null>(
+    // Check for a cached license entry.
+    const cachedEntry = await storage.get<CachedLicense | null>(
       Setting.LICENSE_DATA_CACHE,
     )
 
-    if (cachedLicense) {
-      const twoDaysInMillis = 2 * 24 * 60 * 60 * 1000
-      const isCacheValid =
-        Date.now() - cachedLicense.timestamp < twoDaysInMillis
+    if (cachedEntry) {
+      const twoDaysInMs = 2 * 24 * 60 * 60 * 1000
+      const isCacheStale = Date.now() - cachedEntry.timestamp > twoDaysInMs
 
-      if (isCacheValid && cachedLicense.data.license_key.status === 'active') {
-        setLicense(cachedLicense.data)
+      // Use the cache only if it's not stale and the license is active.
+      if (!isCacheStale && cachedEntry.data.license_key.status === 'active') {
+        setLicense(cachedEntry.data)
         return
       }
     }
 
     // If no valid cache, proceed with the standard validation flow.
     const licenseKey = await storage.get<string | null>(Setting.LICENSE_KEY)
-
     if (!licenseKey) {
       setLicense(null)
       await storage.remove(Setting.LICENSE_DATA_CACHE)
@@ -82,11 +81,12 @@ const useLicense = () => {
     // Validation successful, update app state and cache the license data if active.
     setLicense(response.data)
     if (response.data.license_key.status === 'active') {
-      const cachePayload: CachedLicense = {
+      // Store the license data along with the current timestamp.
+      const cacheEntry: CachedLicense = {
         data: response.data,
         timestamp: Date.now(),
       }
-      await storage.set(Setting.LICENSE_DATA_CACHE, cachePayload)
+      await storage.set(Setting.LICENSE_DATA_CACHE, cacheEntry)
     }
 
     if (
@@ -116,8 +116,6 @@ const useLicense = () => {
   }
 
   const isExpired = () => {
-    // For lifetime licenses, 'expires_at' might be null.
-    // The most reliable check is the status. If no expiration date exists, it's not expired.
     if (!license || !license.license_key.expires_at) {
       return false
     }
@@ -137,13 +135,13 @@ const useLicense = () => {
       await storage.set(Setting.LICENSE_KEY, licenseKey)
       await storage.set(Setting.LICENSE_INSTANCE_ID, response.data.instance.id)
 
-      // Cache the license data immediately on successful activation.
+      //  Cache the license data with the timestamp on successful activation.
       if (response.data.license_key.status === 'active') {
-        const cachePayload: CachedLicense = {
+        const cacheEntry: CachedLicense = {
           data: response.data,
           timestamp: Date.now(),
         }
-        await storage.set(Setting.LICENSE_DATA_CACHE, cachePayload)
+        await storage.set(Setting.LICENSE_DATA_CACHE, cacheEntry)
       }
     }
     return response
