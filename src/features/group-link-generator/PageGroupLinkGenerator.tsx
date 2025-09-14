@@ -1,6 +1,7 @@
 // src/features/group-link-generator/PageGroupLinkGenerator.tsx
 import InputSelectGroup from '@/components/Input/InputSelectGroup'
 import LayoutPage from '@/components/Layout/LayoutPage'
+import ModalQRCode from '@/components/Modal/ModalQRCode' // ++ ADDED: Import the new QR Code modal
 import useLicense from '@/hooks/useLicense'
 import db, { type GroupLinkHistory } from '@/libs/db'
 import wa from '@/libs/wa'
@@ -23,6 +24,7 @@ import {
   Title,
   Tooltip,
 } from '@mantine/core'
+import { useDisclosure } from '@mantine/hooks' // ++ ADDED: Import useDisclosure for modal state
 import dayjs from 'dayjs'
 import { useLiveQuery } from 'dexie-react-hooks'
 import FileSaver from 'file-saver'
@@ -40,12 +42,11 @@ interface GeneratedLink {
 /**
  * @description A reusable component for copying group links with options.
  */
-const CopyActionMenu: React.FC<{
-  link: string
-  customMessage: string
-}> = ({ link, customMessage }) => {
+const CopyActionMenu: React.FC<{ link: string; customMessage: string }> = ({
+  link,
+  customMessage,
+}) => {
   const formattedMessage = customMessage.replace('{link}', link)
-
   return (
     <Menu shadow="md" withArrow position="bottom-end">
       <Menu.Target>
@@ -119,6 +120,23 @@ const PageGroupLinkGenerator: React.FC = () => {
     'Please join our group: {link}',
   )
 
+  // ++ START: MODIFIED - Added state and handlers for QR Code modal
+  const [isQrModalOpen, qrModalHandlers] = useDisclosure(false)
+  const [qrCodeData, setQrCodeData] = useState({ link: '', name: '' })
+
+  const handleOpenQrModal = (item: { link: string; name: string }) => {
+    if (license.isFree()) {
+      showModalUpgrade(
+        'QR Code Generation',
+        'Upgrade to Pro to generate and download QR codes for your group invite links, making it easier to share.',
+      )
+      return
+    }
+    setQrCodeData(item)
+    qrModalHandlers.open()
+  }
+  // ++ END: MODIFIED
+
   // Fetch link history from the database
   const linkHistory = useLiveQuery(
     () => db.groupLinkHistories.orderBy('createdAt').reverse().toArray(),
@@ -151,7 +169,6 @@ const PageGroupLinkGenerator: React.FC = () => {
         wa.group.getInviteLink(id),
       )
       const resolvedLinks = await Promise.all(linkPromises)
-
       const linksWithData = selectedGroupIds
         .map((id, index) => {
           const group = groups.find((g) => g.id === id)
@@ -162,9 +179,7 @@ const PageGroupLinkGenerator: React.FC = () => {
           }
         })
         .filter((item) => item.link) // Filter out any groups where link generation failed
-
       setGeneratedLinks(linksWithData)
-
       // Save to history
       for (const item of linksWithData) {
         await db.groupLinkHistories.add({
@@ -174,7 +189,6 @@ const PageGroupLinkGenerator: React.FC = () => {
           createdAt: new Date(),
         })
       }
-
       if (linksWithData.length > 0) {
         toast.success('Invite links generated successfully!')
       }
@@ -191,8 +205,6 @@ const PageGroupLinkGenerator: React.FC = () => {
     }
   }
 
-  // --- START: MODIFIED ---
-  // Added a check to ensure only Pro users can use the export functionality.
   const handleExport = (format: 'CSV' | 'EXCEL') => {
     if (license.isFree()) {
       showModalUpgrade(
@@ -246,7 +258,6 @@ const PageGroupLinkGenerator: React.FC = () => {
       )
     }
   }
-  // --- END: MODIFIED ---
 
   const renderGeneratedLinks = () => (
     <Stack>
@@ -256,148 +267,189 @@ const PageGroupLinkGenerator: React.FC = () => {
           label={item.name}
           readOnly
           value={item.link}
+          // ++ START: MODIFIED - Added QR code button next to copy button
           rightSection={
-            <CopyActionMenu link={item.link} customMessage={customMessage} />
+            <Group gap="xs" wrap="nowrap">
+              <CopyActionMenu link={item.link} customMessage={customMessage} />
+              <Tooltip label="Generate QR Code" position="top">
+                <ActionIcon
+                  variant="subtle"
+                  onClick={() =>
+                    handleOpenQrModal({ link: item.link, name: item.name })
+                  }
+                >
+                  <Icon icon="tabler:qrcode" fontSize={18} />
+                </ActionIcon>
+              </Tooltip>
+            </Group>
           }
+          // ++ END: MODIFIED
         />
       ))}
     </Stack>
   )
 
   return (
-    <LayoutPage>
-      <Stack>
-        <Stack align="center" gap={4} mb="xl">
-          <Icon icon="tabler:ticket" fontSize={48} />
-          <Title order={3} ta="center">
-            {' '}
-            Group Invite Link Generator{' '}
-          </Title>
-          <Text c="dimmed" size="sm" ta="center">
-            {' '}
-            Quickly get invite links for any of your WhatsApp groups.{' '}
-          </Text>
-        </Stack>
-
-        <Paper withBorder p="lg" radius="md" shadow="none">
-          <Stack>
-            <InputSelectGroup
-              value={selectedGroupIds}
-              onChange={handleGroupSelectionChange}
-              disabled={isLoading}
-              filter={(group) => group.isAdmin}
-            />
-            <Textarea
-              label="Custom Message Template"
-              description="Use {link} as a placeholder for the generated invite link."
-              value={customMessage}
-              onChange={(event) => setCustomMessage(event.currentTarget.value)}
-              minRows={2}
-              autosize
-            />
-            <Group justify="flex-end" mt="md">
-              <Button
-                onClick={handleGenerateLink}
-                loading={isLoading}
-                disabled={selectedGroupIds.length === 0}
-                leftSection={<Icon icon="tabler:refresh-dot" fontSize={20} />}
-              >
-                {' '}
-                Generate Link(s){' '}
-              </Button>
-            </Group>
+    <>
+      <LayoutPage>
+        <Stack>
+          <Stack align="center" gap={4} mb="xl">
+            <Icon icon="tabler:ticket" fontSize={48} />
+            <Title order={3} ta="center">
+              {' '}
+              Group Invite Link Generator{' '}
+            </Title>
+            <Text c="dimmed" size="sm" ta="center">
+              {' '}
+              Quickly get invite links for any of your WhatsApp groups.{' '}
+            </Text>
           </Stack>
-        </Paper>
-
-        <When condition={generatedLinks.length > 0}>
-          <Card withBorder p="lg" radius="md" mt="lg">
+          <Paper withBorder p="lg" radius="md" shadow="none">
             <Stack>
-              <Group justify="space-between">
-                <Title order={4}>Your Invite Links are Ready!</Title>
-                <Group>
-                  <Button
-                    variant="light"
-                    size="xs"
-                    leftSection={<Icon icon="tabler:file-type-csv" />}
-                    onClick={() => handleExport('CSV')}
-                  >
-                    {' '}
-                    Export as CSV{' '}
-                  </Button>
-                  <Button
-                    variant="light"
-                    size="xs"
-                    leftSection={<Icon icon="tabler:file-type-xls" />}
-                    onClick={() => handleExport('EXCEL')}
-                  >
-                    {' '}
-                    Export as Excel{' '}
-                  </Button>
-                </Group>
-              </Group>
-              {renderGeneratedLinks()}
-            </Stack>
-          </Card>
-        </When>
-
-        <When condition={linkHistory && linkHistory.length > 0}>
-          <Card withBorder p="lg" radius="md" mt="lg">
-            <Stack>
-              <Group justify="space-between">
-                <Title order={4}>Link History</Title>
-              </Group>
-              <DataTable
-                minHeight={150}
-                records={linkHistory}
-                columns={[
-                  { accessor: 'groupName', title: 'Group Name' },
-                  {
-                    accessor: 'link',
-                    title: 'Invite Link',
-                    render: (item) => (
-                      <Text size="sm" truncate>
-                        {item.link}
-                      </Text>
-                    ),
-                  },
-                  {
-                    accessor: 'createdAt',
-                    title: 'Generated At',
-                    render: (item) => (
-                      <Text size="sm">
-                        {dayjs(item.createdAt).format('YYYY-MM-DD HH:mm')}
-                      </Text>
-                    ),
-                  },
-                  {
-                    accessor: 'actions',
-                    title: 'Actions',
-                    textAlign: 'right',
-                    render: (item) => (
-                      <Group gap="xs" justify="right" wrap="nowrap">
-                        <CopyActionMenu
-                          link={item.link}
-                          customMessage={customMessage}
-                        />
-                        <Tooltip label="Revoke & Delete" position="top">
-                          <ActionIcon
-                            color="red"
-                            variant="subtle"
-                            onClick={() => handleRevokeAndDelete(item)}
-                          >
-                            <Icon icon="tabler:trash" fontSize={18} />
-                          </ActionIcon>
-                        </Tooltip>
-                      </Group>
-                    ),
-                  },
-                ]}
+              <InputSelectGroup
+                value={selectedGroupIds}
+                onChange={handleGroupSelectionChange}
+                disabled={isLoading}
+                filter={(group) => group.isAdmin}
               />
+              <Textarea
+                label="Custom Message Template"
+                description="Use {link} as a placeholder for the generated invite link."
+                value={customMessage}
+                onChange={(event) =>
+                  setCustomMessage(event.currentTarget.value)
+                }
+                minRows={2}
+                autosize
+              />
+              <Group justify="flex-end" mt="md">
+                <Button
+                  onClick={handleGenerateLink}
+                  loading={isLoading}
+                  disabled={selectedGroupIds.length === 0}
+                  leftSection={<Icon icon="tabler:refresh-dot" fontSize={20} />}
+                >
+                  {' '}
+                  Generate Link(s){' '}
+                </Button>
+              </Group>
             </Stack>
-          </Card>
-        </When>
-      </Stack>
-    </LayoutPage>
+          </Paper>
+
+          <When condition={generatedLinks.length > 0}>
+            <Card withBorder p="lg" radius="md" mt="lg">
+              <Stack>
+                <Group justify="space-between">
+                  <Title order={4}>Your Invite Links are Ready!</Title>
+                  <Group>
+                    <Button
+                      variant="light"
+                      size="xs"
+                      leftSection={<Icon icon="tabler:file-type-csv" />}
+                      onClick={() => handleExport('CSV')}
+                    >
+                      {' '}
+                      Export as CSV{' '}
+                    </Button>
+                    <Button
+                      variant="light"
+                      size="xs"
+                      leftSection={<Icon icon="tabler:file-type-xls" />}
+                      onClick={() => handleExport('EXCEL')}
+                    >
+                      {' '}
+                      Export as Excel{' '}
+                    </Button>
+                  </Group>
+                </Group>
+                {renderGeneratedLinks()}
+              </Stack>
+            </Card>
+          </When>
+
+          <When condition={linkHistory && linkHistory.length > 0}>
+            <Card withBorder p="lg" radius="md" mt="lg">
+              <Stack>
+                <Group justify="space-between">
+                  <Title order={4}>Link History</Title>
+                </Group>
+                <DataTable
+                  minHeight={150}
+                  records={linkHistory}
+                  columns={[
+                    { accessor: 'groupName', title: 'Group Name' },
+                    {
+                      accessor: 'link',
+                      title: 'Invite Link',
+                      render: (item) => (
+                        <Text size="sm" truncate>
+                          {item.link}
+                        </Text>
+                      ),
+                    },
+                    {
+                      accessor: 'createdAt',
+                      title: 'Generated At',
+                      render: (item) => (
+                        <Text size="sm">
+                          {dayjs(item.createdAt).format('YYYY-MM-DD HH:mm')}
+                        </Text>
+                      ),
+                    },
+                    {
+                      accessor: 'actions',
+                      title: 'Actions',
+                      textAlign: 'right',
+                      // ++ START: MODIFIED - Added QR code button to history table actions
+                      render: (item) => (
+                        <Group gap="xs" justify="right" wrap="nowrap">
+                          <CopyActionMenu
+                            link={item.link}
+                            customMessage={customMessage}
+                          />
+                          <Tooltip label="Generate QR Code" position="top">
+                            <ActionIcon
+                              variant="subtle"
+                              color="gray"
+                              onClick={() =>
+                                handleOpenQrModal({
+                                  link: item.link,
+                                  name: item.groupName,
+                                })
+                              }
+                            >
+                              <Icon icon="tabler:qrcode" fontSize={18} />
+                            </ActionIcon>
+                          </Tooltip>
+                          <Tooltip label="Revoke & Delete" position="top">
+                            <ActionIcon
+                              color="red"
+                              variant="subtle"
+                              onClick={() => handleRevokeAndDelete(item)}
+                            >
+                              <Icon icon="tabler:trash" fontSize={18} />
+                            </ActionIcon>
+                          </Tooltip>
+                        </Group>
+                      ),
+                      // ++ END: MODIFIED
+                    },
+                  ]}
+                />
+              </Stack>
+            </Card>
+          </When>
+        </Stack>
+      </LayoutPage>
+
+      {/* ++ ADDED: QR Code Modal is rendered here */}
+      <ModalQRCode
+        opened={isQrModalOpen}
+        onClose={qrModalHandlers.close}
+        link={qrCodeData.link}
+        groupName={qrCodeData.name}
+      />
+    </>
   )
 }
 
