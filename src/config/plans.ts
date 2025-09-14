@@ -57,11 +57,27 @@ const plans = [
     ],
   },
   {
+    name: 'Per Day',
+    isFree: false,
+    description: 'Ideal for testing.',
+    placeholderPrice: null,
+    price: '$5',
+    priceSuffix: '/Day',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/8bc7e7e5-045b-4d65-8180-7056e96cb186?logo=0',
+    features: [
+      'Schedule Unlimited Statuses',
+      'Post Text, Images & Videos',
+      'Fully Automated Posting',
+      'Full Management Dashboard',
+      'Priority Customer Support',
+    ],
+  },
+  {
     name: 'Lifetime',
     isFree: false,
     description: 'Pay once, access all features forever.',
     placeholderPrice: '$89',
-    price: '$29',
+    price: '$27',
     priceSuffix: 'one-time',
     link: 'https://extdotninja.lemonsqueezy.com/buy/07900b2b-ed92-4714-b111-51f07d221c0c?logo=0',
     features: [
