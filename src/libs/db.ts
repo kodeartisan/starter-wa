@@ -79,6 +79,15 @@ export interface QuickReply {
   createdAt?: Date
 }
 
+// ++ ADDED: Interface for the new Group Link History feature
+export interface GroupLinkHistory {
+  id?: number
+  groupId: string
+  groupName: string
+  link: string
+  createdAt: Date
+}
+
 const db = new Dexie(packageJson.name) as Dexie & {
   media: EntityTable<Media, 'id'>
   broadcasts: EntityTable<Broadcast, 'id'>
@@ -88,6 +97,7 @@ const db = new Dexie(packageJson.name) as Dexie & {
   labels: EntityTable<Label, 'id'>
   directChatTemplates: EntityTable<DirectChatTemplate, 'id'>
   quickReplies: EntityTable<QuickReply, 'id'>
+  groupLinkHistories: EntityTable<GroupLinkHistory, 'id'>
 }
 
 // NOTE: Dexie cannot index boolean values. Fields intended for use in `where()` clauses
@@ -103,6 +113,7 @@ db.version(1).stores({
   labels: '++id, label, value, show, custom, color, group, isPinned, *numbers',
   directChatTemplates: '++id, name',
   quickReplies: '++id, name, type, isPinned, createdAt',
+  groupLinkHistories: '++id, groupId, groupName, link, createdAt',
 })
 
 export default db
