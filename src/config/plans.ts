@@ -56,13 +56,28 @@ const plans = [
       'Adjustable delay settings',
     ],
   },
-
+  {
+    name: 'Per Day',
+    isFree: false,
+    description: 'Ideal for testing.',
+    placeholderPrice: null,
+    price: '$5',
+    priceSuffix: '/Day',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/7aebd670-e4f7-40c9-8767-fd30390226ae?logo=0',
+    features: [
+      'Validate Unlimited Numbers',
+      'Import from Excel & CSV Files',
+      'Export Results to Excel & CSV',
+      'Safe Batch Processing',
+      'Priority Customer Support',
+    ],
+  },
   {
     name: 'Lifetime',
     isFree: false,
     description: 'Pay once, access all features forever.',
     placeholderPrice: '$89',
-    price: '$29',
+    price: '$27',
     priceSuffix: 'one-time',
     link: 'https://extdotninja.lemonsqueezy.com/buy/c2a57d45-f96b-42ab-b73d-73847a845fe5?logo=0',
     features: [
@@ -71,7 +86,6 @@ const plans = [
       'Export Results to Excel & CSV',
       'Safe Batch Processing',
       'Priority Customer Support',
-      'All Future Updates Included',
     ],
   },
 ]

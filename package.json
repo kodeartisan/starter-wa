@@ -1,8 +1,8 @@
 {
   "name": "whats-validator",
   "shortName": "WhatsValidator",
-  "displayName": "WhatsValidator - Check & Verify WA Numbers for WhatsApp",
-  "version": "1.3.0",
+  "displayName": "WA Check & Verify Numbers for WhatsApp",
+  "version": "1.4.0",
   "description": "Safely validate of WhatsApp numbers in bulk and export",
   "author": "Extninja",
   "scripts": {
