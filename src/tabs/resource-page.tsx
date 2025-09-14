@@ -5,12 +5,11 @@ import ScreenshotWrapper from '@/components/Promo/ScreenshotWrapper'
 import theme from '@/libs/theme'
 import { Icon } from '@iconify/react'
 import {
-  Avatar,
+  ActionIcon,
   Badge,
   Button,
   Card,
   Center,
-  Checkbox,
   Code,
   Container,
   CopyButton,
@@ -18,13 +17,11 @@ import {
   Group,
   List,
   MantineProvider,
+  MultiSelect,
   Paper,
-  Radio,
-  Select,
   Stack,
-  Switch,
+  Table,
   Tabs,
-  TagsInput,
   Text,
   Textarea,
   TextInput,
@@ -32,170 +29,170 @@ import {
   Title,
 } from '@mantine/core'
 import '@mantine/core/styles.css'
-import { DatePickerInput, DateTimePicker } from '@mantine/dates'
-import '@mantine/dates/styles.css'
 import FileSaver from 'file-saver'
 import html2canvas from 'html2canvas'
+import { DataTable } from 'mantine-datatable'
 import React, { useRef } from 'react'
 
 // English: Using a darker gradient that matches the landing page's teal-to-lime theme with darker shades for a more prominent look.
 const PROMO_GRADIENT_BACKGROUND =
   'linear-gradient(135deg, var(--mantine-color-teal-8), var(--mantine-color-lime-8))'
 
-// English: Overriding the primary icon to better represent the Direct Chat feature.
-const DIRECT_CHAT_ICON = 'tabler:message-circle-plus'
+// English: Overriding the primary icon to better represent the Group Link Generator feature.
+const GROUP_LINK_ICON = 'tabler:ticket'
 
-// --- START: New Mockups for Direct Chat Feature ---
+// --- START: New Mockups for Group Link Generator Feature ---
 
-// Mockup of the simple, free-to-use direct chat interface.
-const MockupDirectChatSimple = () => (
+// Mockup of the simple, free-to-use group link generator interface.
+const MockupGroupLinkSimple = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
-      <Title order={4}>Send a Message in Seconds</Title>
+      <Title order={4}>Generate a Link in Seconds</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        No more saving contacts for a one-time chat.{' '}
+        Stop digging through settings. Just select a group and get the invite
+        link instantly.{' '}
       </Text>
-      <TextInput
-        label="1. Enter WhatsApp Number"
-        placeholder="e.g., 6281234567890 (with country code)"
-        disabled
-      />
-      <Textarea
-        label="2. Write Your Message"
-        placeholder="Hello, I'm interested in the item you listed..."
-        minRows={4}
+      <MultiSelect
+        label="1. Select Your Group"
+        placeholder="Choose a group you admin"
+        data={['Project Alpha Team']}
+        value={['Project Alpha Team']}
         disabled
       />
       <Button
         mt="md"
         size="md"
-        leftSection={<Icon icon="tabler:brand-whatsapp" />}
+        leftSection={<Icon icon="tabler:refresh-dot" />}
       >
         {' '}
-        Send Message{' '}
+        Generate Link{' '}
       </Button>
-    </Stack>
-  </Card>
-)
-
-// Mockup showing the Pro feature of sending media attachments.
-const MockupDirectChatWithMedia = () => (
-  <Card withBorder radius="md" p="xl" w={620}>
-    <Stack>
-      <Title order={4}>Send More Than Just Text</Title>
-      <TextInput label="WhatsApp Number" value="6281234567890" disabled />
-      <Tabs defaultValue="image" variant="pills" mt="xs">
-        <Tabs.List grow>
-          <Tabs.Tab value="text">Text</Tabs.Tab>
-          <Tabs.Tab value="image" color="teal">
-            {' '}
-            Image{' '}
-          </Tabs.Tab>
-          <Tabs.Tab value="video">Video</Tabs.Tab>
-          <Tabs.Tab value="file">File</Tabs.Tab>
-        </Tabs.List>
-        <Tabs.Panel value="image" pt="md">
-          <Center
-            p="xl"
-            style={{
-              border: '2px dashed var(--mantine-color-gray-3)',
-              borderRadius: 'var(--mantine-radius-md)',
-            }}
-          >
-            <Stack align="center">
-              <Icon
-                icon="tabler:photo"
-                fontSize={48}
-                color="var(--mantine-color-gray-5)"
-              />
-              <Text c="dimmed">Image_Preview.jpg</Text>
-            </Stack>
-          </Center>
-        </Tabs.Panel>
-      </Tabs>
-    </Stack>
-  </Card>
-)
-
-// ++ START: MODIFIED - Added a mockup for the templates feature.
-// Mockup showing the Pro feature of using message templates.
-const MockupDirectChatTemplates = () => (
-  <Card withBorder radius="md" p="xl" w={620}>
-    <Stack>
-      <Title order={4}>Save Time with Templates</Title>
-      <Text c="dimmed" size="sm">
-        Create, save, and reuse messages for common replies or greetings.
-      </Text>
-      <Textarea
-        label="Your Message"
-        placeholder="Thank you for your inquiry. Our business hours are..."
-        minRows={3}
+      <TextInput
+        label="Your Generated Link"
+        value="https://chat.whatsapp.com/Abc123Def456"
         disabled
-        value="Thank you for your inquiry. Our business hours are Monday to Friday, 9 AM to 5 PM."
       />
-      <Group justify="flex-end">
-        <Button
-          variant="light"
-          leftSection={<Icon icon="tabler:template" />}
-          disabled
-        >
-          Use Template
+    </Stack>
+  </Card>
+)
+
+// Mockup showing the Pro feature of generating links for multiple groups.
+const MockupGroupLinkMultiSelect = () => (
+  <Card withBorder radius="md" p="xl" w={620}>
+    <Stack>
+      <Title order={4}>Manage All Your Groups at Once (Pro)</Title>
+      <MultiSelect
+        label="Select Multiple Groups"
+        placeholder="Choose groups"
+        data={['Marketing Team', 'Event Volunteers', 'Q4 Sales Drive']}
+        value={['Marketing Team', 'Event Volunteers', 'Q4 Sales Drive']}
+        disabled
+      />
+      <Textarea
+        label="Custom Message Template"
+        value="Please join our group: {link}"
+        disabled
+        minRows={2}
+      />
+      <Group justify="flex-end" mt="md">
+        <Button size="md" leftSection={<Icon icon="tabler:refresh-dot" />}>
+          {' '}
+          Generate 3 Links{' '}
         </Button>
       </Group>
     </Stack>
   </Card>
 )
-// ++ END: MODIFIED
 
-// Mockup for the Privacy/Security feature slide, which is still relevant.
-const FeatureMockupPrivacy = () => (
+// Mockup showing the Pro sharing features like QR codes and exporting.
+const MockupGroupLinkSharing = () => (
   <Card withBorder radius="md" p="xl" w={620}>
-    <Stack align="center">
-      <ThemeIcon size={60} radius="xl" variant="light" color="teal">
-        <Icon icon="tabler:shield-lock" fontSize={32} />
-      </ThemeIcon>
-      <Title order={4} mt="md">
+    <Stack>
+      <Title order={4}>Share Links Your Way (Pro)</Title>
+      <Text c="dimmed" size="sm">
         {' '}
-        100% Private & Secure{' '}
-      </Title>
-      <Text c="dimmed" size="sm" ta="center">
-        {' '}
-        Your messages are sent directly through WhatsApp Web. We never see or
-        store your data.{' '}
+        Easily share your links with QR codes or export them for your records.{' '}
       </Text>
-      <List
-        mt="lg"
-        spacing="sm"
-        size="sm"
-        center
-        icon={
-          <ThemeIcon color="teal" size={24} radius="xl">
-            <Icon icon="tabler:check" fontSize={14} />
-          </ThemeIcon>
+      <TextInput
+        label="Marketing Team Link"
+        value="https://chat.whatsapp.com/Ghi789Jkl012"
+        disabled
+        rightSection={
+          <Group gap="xs" wrap="nowrap">
+            <ActionIcon variant="subtle" disabled>
+              <Icon icon="tabler:copy" />
+            </ActionIcon>
+            <ActionIcon variant="subtle" disabled>
+              <Icon icon="tabler:qrcode" />
+            </ActionIcon>
+          </Group>
         }
-      >
-        <List.Item>
+      />
+      <Group mt="lg">
+        <Button
+          variant="light"
+          size="sm"
+          leftSection={<Icon icon="tabler:file-type-csv" />}
+        >
           {' '}
-          <b>Direct Sending:</b> Uses the official WhatsApp Web interface.{' '}
-        </List.Item>
-        <List.Item>
+          Export as CSV{' '}
+        </Button>
+        <Button
+          variant="light"
+          size="sm"
+          leftSection={<Icon icon="tabler:file-type-xls" />}
+        >
           {' '}
-          <b>No Data Storage:</b> Your conversations are never saved by us.{' '}
-        </List.Item>
-        <List.Item>
-          {' '}
-          <b>You Are in Control:</b> All actions happen on your own computer.{' '}
-        </List.Item>
-      </List>
+          Export as Excel{' '}
+        </Button>
+      </Group>
     </Stack>
   </Card>
 )
 
-// --- END: New Mockups for Direct Chat Feature ---
+// Mockup for the link history feature.
+const MockupGroupLinkHistory = () => (
+  <Card withBorder radius="md" p="xl" w={620}>
+    <Stack>
+      <Title order={4}>Keep Track with Link History</Title>
+      <Text c="dimmed" size="sm">
+        {' '}
+        View all previously generated links and revoke them when they are no
+        longer needed.{' '}
+      </Text>
+      <DataTable
+        minHeight={150}
+        records={[
+          {
+            groupName: 'Event Volunteers',
+            link: 'https://chat.whatsapp.com/Mno345Pqr678',
+            date: '2025-09-14 10:30',
+          },
+        ]}
+        columns={[
+          { accessor: 'groupName', title: 'Group' },
+          { accessor: 'link', title: 'Link' },
+          {
+            accessor: 'actions',
+            title: 'Actions',
+            render: () => (
+              <Group gap="xs" justify="right">
+                <ActionIcon variant="subtle" color="red">
+                  <Icon icon="tabler:trash" />
+                </ActionIcon>
+              </Group>
+            ),
+          },
+        ]}
+      />
+    </Stack>
+  </Card>
+)
+
+// --- END: New Mockups ---
 
 // --- Marquee Promo Tiles (1280x800px) ---
-// ++ START: MODIFIED - Added "Templates" feature to the showcase tile.
 const MarqueeTileFeatureShowcase = () => (
   <Paper
     w={1280}
@@ -217,15 +214,15 @@ const MarqueeTileFeatureShowcase = () => (
               variant="gradient"
               gradient={{ from: 'teal', to: 'lime' }}
             >
-              <Icon icon={DIRECT_CHAT_ICON} fontSize={70} />
+              <Icon icon={GROUP_LINK_ICON} fontSize={70} />
             </ThemeIcon>
             <Title fz={48} lh={1.2} c="white">
               {' '}
-              The Fastest Way to Start a Chat{' '}
+              The Fastest Way to Get Group Invites{' '}
             </Title>
             <Title order={1} c="white" fw={500} mt="md">
               {' '}
-              Message any number without saving it to your contacts.
+              Generate invite links for multiple WhatsApp groups at once.{' '}
             </Title>
           </Stack>
         </Grid.Col>
@@ -239,15 +236,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={44}
                 >
-                  <Icon icon="tabler:device-mobile-message" fontSize={30} />
+                  <Icon icon="tabler:users-group" fontSize={30} />
                 </ThemeIcon>
                 <Title order={2} fw={700}>
                   {' '}
-                  Instant Messaging{' '}
+                  Bulk Generation{' '}
                 </Title>
               </Group>
               <Text size="xl" c="gray.7" fw={500} mt="xs">
-                Chat without saving the contact.
+                {' '}
+                Get links for all groups in one click.{' '}
               </Text>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -258,18 +256,18 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={44}
                 >
-                  <Icon icon="tabler:paperclip" fontSize={30} />
+                  <Icon icon="tabler:qrcode" fontSize={30} />
                 </ThemeIcon>
                 <Title order={2} fw={700}>
-                  Send Media
+                  {' '}
+                  QR Codes & Export{' '}
                 </Title>
               </Group>
               <Text size="xl" c="gray.7" fw={500} mt="xs">
                 {' '}
-                Send images, videos, documents.{' '}
+                Share links easily anywhere.{' '}
               </Text>
             </Card>
-            {/* English: Added a new feature card for templates. */}
             <Card withBorder shadow="lg" p="lg">
               <Group>
                 <ThemeIcon
@@ -278,16 +276,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={44}
                 >
-                  <Icon icon="tabler:template" fontSize={30} />
+                  <Icon icon="tabler:history" fontSize={30} />
                 </ThemeIcon>
                 <Title order={2} fw={700}>
                   {' '}
-                  Templates{' '}
+                  Link History{' '}
                 </Title>
               </Group>
               <Text size="xl" c="gray.7" fw={500} mt="xs">
                 {' '}
-                Save and reuse messages.{' '}
+                Track and revoke old links.{' '}
               </Text>
             </Card>
           </Stack>
@@ -296,7 +294,6 @@ const MarqueeTileFeatureShowcase = () => (
     </Stack>
   </Paper>
 )
-// ++ END: MODIFIED
 
 interface MarqueeTileFeatureDetailProps {
   icon: string
@@ -304,6 +301,7 @@ interface MarqueeTileFeatureDetailProps {
   description: string
   featureComponent: React.ReactNode
 }
+
 const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
   icon,
   title,
@@ -345,7 +343,6 @@ const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
   </Paper>
 )
 
-// ++ START: MODIFIED - Added a new screenshot entry for the templates feature.
 const ScreenshotGallery: React.FC = () => {
   const screenshotData = [
     {
@@ -354,51 +351,50 @@ const ScreenshotGallery: React.FC = () => {
       component: <MarqueeTileFeatureShowcase />,
     },
     {
-      title: 'Feature Screenshot: Simple Interface (1280x800)',
-      filename: 'feature_simple_interface.png',
+      title: 'Feature Screenshot: Simple Link Generation (1280x800)',
+      filename: 'feature_simple_link_generation.png',
       component: (
         <MarqueeTileFeatureDetail
           icon="tabler:mouse"
           title="Clean & Intuitive Interface"
-          description="Just enter a number, type your message, and send. It's that simple to start a conversation without cluttering your contacts."
-          featureComponent={<MockupDirectChatSimple />}
+          description="Just select a group you admin, click a button, and your invite link is ready. It's that simple."
+          featureComponent={<MockupGroupLinkSimple />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: Send Rich Media (1280x800)',
-      filename: 'feature_send_media.png',
+      title: 'Feature Screenshot: Bulk Generation (Pro) (1280x800)',
+      filename: 'feature_bulk_generation.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:photo-video"
-          title="Go Beyond Text"
-          description="Send images, videos, documents, and more. Perfect for sharing quotes, portfolios, or product photos."
-          featureComponent={<MockupDirectChatWithMedia />}
-        />
-      ),
-    },
-    // English: Added a new screenshot definition for message templates.
-    {
-      title: 'Feature Screenshot: Message Templates (1280x800)',
-      filename: 'feature_message_templates.png',
-      component: (
-        <MarqueeTileFeatureDetail
-          icon="tabler:template"
-          title="Save Time with Templates"
-          description="Create and reuse message templates for common replies, greetings, or important information. A huge time-saver for business and personal use."
-          featureComponent={<MockupDirectChatTemplates />}
+          icon="tabler:users-group"
+          title="Generate Links in Bulk"
+          description="A massive time-saver for community managers. Select all the groups you need and generate every invite link at once."
+          featureComponent={<MockupGroupLinkMultiSelect />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: Privacy First (1280x800)',
-      filename: 'feature_privacy_secure.png',
+      title: 'Feature Screenshot: Advanced Sharing (Pro) (1280x800)',
+      filename: 'feature_advanced_sharing.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:shield-lock"
-          title="Your Privacy is Our Priority"
-          description="This extension operates 100% locally on your computer. Your messages and media are never uploaded to any server, ensuring complete privacy."
-          featureComponent={<FeatureMockupPrivacy />}
+          icon="tabler:share"
+          title="Share and Export with Ease"
+          description="Instantly generate QR codes for posters and flyers, or export your link list to CSV and Excel for your records and marketing campaigns."
+          featureComponent={<MockupGroupLinkSharing />}
+        />
+      ),
+    },
+    {
+      title: 'Feature Screenshot: Link History & Revoke (1280x800)',
+      filename: 'feature_link_history.png',
+      component: (
+        <MarqueeTileFeatureDetail
+          icon="tabler:history"
+          title="Total Control Over Your Links"
+          description="All generated links are saved in a convenient history tab. If a link is no longer needed, you can revoke it with a single click to protect your group's privacy."
+          featureComponent={<MockupGroupLinkHistory />}
         />
       ),
     },
@@ -424,76 +420,70 @@ const ScreenshotGallery: React.FC = () => {
     </Stack>
   )
 }
-// ++ END: MODIFIED
 
 const ResourcePage = () => {
   const iconRef = useRef<HTMLDivElement>(null)
   const icons = [
     {
-      component: <PromoIcon size={128} icon={DIRECT_CHAT_ICON} />,
+      component: <PromoIcon size={128} icon={GROUP_LINK_ICON} />,
       ref: iconRef,
       name: 'promotional_icon.png',
     },
   ]
-
   const storeListingText = {
     titles: [
-      'Direct Message for WhatsApp',
-      'Start Chat without Saving Contact',
-      'Quick Message for WhatsApp Web',
+      'Group Link Generator for WhatsApp',
+      'Bulk Invite Links for WhatsApp Web',
+      'Manage Group Invites Instantly',
     ],
     shortDescriptions: [
-      'Instantly send WhatsApp messages to any number without adding them to your contacts. Fast, simple, and private.',
-      'Type a number, write your message, and hit send. The easiest way to start a WhatsApp chat without saving the contact first.',
-      'The ultimate time-saver for WhatsApp Web. Send messages to unsaved numbers, attach files, and schedule them for later.',
+      'Quickly generate, manage, and share invite links for all your WhatsApp groups. Select multiple groups and get all links at once.',
+      'The ultimate time-saver for community managers. Generate invite links in bulk, create QR codes, and export your list right from WhatsApp Web.',
+      'Stop digging through settings. Get invite links for one or many WhatsApp groups instantly. Includes link history and revoke options.',
     ],
-    longDescription: `📱 Stop Cluttering Your Contacts!
-
-Tired of saving a number just to send one WhatsApp message? WhatsDirect - WA Direct Chats for WhatsApp is the ultimate tool for starting conversations quickly and efficiently, right from your computer.
+    longDescription: `Tired of manually opening every single group just to get an invite link? Group Link Generator for WhatsApp is the ultimate tool for community managers, event organizers, and anyone who manages multiple groups.
 
 ✨ Key Features
-- 🚀 Instant Chat: Enter any phone number and start chatting immediately. No need to save the contact first!
-- 📎 Send Anything: Go beyond text. Send images, videos, documents, and location pins
-- 📝 Message Templates : Save and reuse frequently sent messages to save even more time.
-- 🔒 100% Private & Secure: The extension uses the official WhatsApp Web interface to send messages. Your data never leaves your computer, and we never see or store it.
+- 🚀 Bulk Link Generation (Pro): Select multiple groups and generate all their invite links with a single click. A massive time-saver!
+- 🔗 Single Link Generation: Quickly get an invite link for any group you administer.
+- 📱 QR Code Generation (Pro): Instantly create and download a QR code for your invite link, perfect for posters, presentations, and social media.
+- 📋 Export Links (Pro): Export your list of generated links and group names to CSV or Excel for easy record-keeping and sharing.
+- 📜 Link History: Keep track of every link you've generated.
+- 🗑️ Revoke Links: Easily revoke old invite links directly from your history to maintain group privacy and control.
+- 🔒 100% Private & Secure: The extension operates locally on your computer using the official WhatsApp Web interface. Your group data is never seen or stored by us.
 
 🤔 Who Is This For?
-- 💼 Business & Sales Professionals: Quickly message new leads, send quotes, and provide customer support without bloating your contact list.
-- 🛒 Online Shoppers & Sellers: Easily communicate with buyers or sellers on marketplaces without exchanging contact details permanently.
-- 🗓️ Event Organizers: Send details or reminders to attendees without saving dozens of numbers.
-- 🙋‍♀️ Anyone who values their time and privacy: The perfect tool for any one-time conversation.
+- 💼 Community Managers: Onboard new members to dozens of groups in seconds.
+- 🗓️ Event Organizers: Share group links for workshops, parties, or meetings effortlessly.
+- 📈 Marketing Professionals: Easily gather and share links for promotional campaigns.
+- 🙋‍♀️ Anyone who manages more than one group and values their time.
 
-🚀 Get started in seconds and change the way you use WhatsApp Web forever!
+🚀 Install now and revolutionize the way you manage your WhatsApp groups!
 
 WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other countries. This extension has no relationship to WhatsApp or WhatsApp Inc.`,
   }
 
   const justificationTexts = {
-    singlePurpose: `The core purpose of this extension is to allow users to initiate a WhatsApp conversation with any phone number directly from WhatsApp Web, without first needing to save that number to their device's contact list. All features, such as the number input field, message composer, and media attachment options, are directly related to this single purpose of streamlining one-time or infrequent communication on WhatsApp.`,
-    storage: `The 'storage' permission is used to store essential user settings and license information locally on the user's device. This includes:
-- The user's license key to unlock Pro features.
-- An instance ID for license activation management.
-- User preferences, such as saved message templates.
-This data is stored only on the user's computer and is crucial for providing a persistent and personalized experience without requiring a remote server or user accounts.`,
-    scripting: `Content scripts are essential for the extension's functionality. They are used exclusively on web.whatsapp.com to:
-1. Inject the user interface (the main modal for sending messages) onto the page, allowing users to interact with the extension directly within the WhatsApp Web environment.
-2. Communicate with the WhatsApp Web application's JavaScript context to securely initiate the sending of messages. This process is handled locally and is necessary to fulfill the extension's core purpose.`,
-    hostWhatsapp: `The permission for "https://web.whatsapp.com/*" is required to allow the extension's content scripts to run on WhatsApp Web. The extension needs to access the DOM and interact with the page to inject its UI and send messages on the user's behalf. The extension's functionality is entirely dependent on its ability to operate on this specific domain.`,
-    hostLemonSqueezy: `The permission for "https://api.lemonsqueezy.com/*" is used to securely communicate with the Lemon Squeezy API for license validation and management. When a user activates a Pro license, the extension sends a request to this domain to verify, activate, or deactivate the license key. This is a standard and secure method for handling software licensing and does not transmit any personal chat data.`,
+    singlePurpose: `The core purpose of this extension is to allow users to generate and manage WhatsApp group invite links directly from WhatsApp Web, without needing to manually navigate into each group's settings. All features, such as group selection, link generation, QR code creation, and link history, are directly related to this single purpose of streamlining group management.`,
+    storage: `The 'storage' permission is used to store essential user settings and license information locally on the user's device. This includes: - The user's license key to unlock Pro features. - An instance ID for license activation management. - A history of previously generated group links for user reference and management. This data is stored only on the user's computer and is crucial for providing a persistent and personalized experience without requiring a remote server or user accounts.`,
+    scripting: `Content scripts are essential for the extension's functionality. They are used exclusively on web.whatsapp.com to: 1. Inject the user interface (the main modal for generating links) onto the page, allowing users to interact with the extension directly within the WhatsApp Web environment. 2. Communicate with the WhatsApp Web application's JavaScript context to securely fetch the user's groups and generate invite links. This process is handled locally and is necessary to fulfill the extension's core purpose.`,
+    hostWhatsapp: `The permission for "https://web.whatsapp.com/*" is required to allow the extension's content scripts to run on WhatsApp Web. The extension needs to access the DOM and interact with the page to inject its UI and fetch group data on the user's behalf. The extension's functionality is entirely dependent on its ability to operate on this specific domain.`,
+    hostLemonSqueezy: `The permission for "https://api.lemonsqueezy.com/*" is used to securely communicate with the Lemon Squeezy API for license validation and management. When a user activates a Pro license, the extension sends a request to this domain to verify, activate, or deactivate the license key. This is a standard and secure method for handling software licensing and does not transmit any personal chat or group data.`,
   }
 
   const keywords = [
-    'whatsapp direct',
-    'start chat',
-    'unsaved number',
-    'whatsapp without saving contact',
-    'quick message',
-    'direct message',
-    'send whatsapp',
-    'whatsapp web',
-    'wa direct',
-    'message unsaved number',
-    'no contact whatsapp',
+    'whatsapp group link',
+    'invite link generator',
+    'bulk invite links',
+    'whatsapp group manager',
+    'community manager tools',
+    'whatsapp qr code',
+    'export whatsapp group links',
+    'revoke invite link',
+    'WA group invite',
+    'whatsapp link',
+    'group invite',
+    'whatsapp community',
   ]
   const keywordsString = keywords.join(', ')
 
@@ -560,6 +550,7 @@ This data is stored only on the user's computer and is crucial for providing a p
                 Privacy Justifications{' '}
               </Tabs.Tab>
             </Tabs.List>
+
             <Tabs.Panel value="text" pt="lg">
               <Stack gap="xl">
                 <Stack>
@@ -658,6 +649,7 @@ This data is stored only on the user's computer and is crucial for providing a p
                 </Card>
               </Stack>
             </Tabs.Panel>
+
             <Tabs.Panel value="icons" pt="lg">
               <Center>
                 <Card withBorder radius="md" p="xl" w={300}>

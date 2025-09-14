@@ -3,7 +3,7 @@
   "shortName": "WAGroupLinks",
   "displayName": "WA Group Link Generator for WhatsApp",
   "version": "1.0.0",
-  "description": "Start WhatsApp Chats Without Saving Numbers with Media and Templates",
+  "description": "Generate invite links in bulk, create QR codes, and export your list right from WhatsApp Web.",
   "author": "Extninja",
   "scripts": {
     "dev": "plasmo dev --no-cs-reload",
