@@ -1,3 +1,4 @@
+// src/tabs/landing-page.tsx
 import { PRIMARY_ICON } from '@/constants'
 import theme from '@/libs/theme'
 import { Icon } from '@iconify/react'
@@ -29,8 +30,7 @@ import '@mantine/core/styles.css'
 import { useWindowScroll } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
 
-// --- Start: Updated Config for Direct Chat Focus ---
-
+// --- Start: Updated Config for Group Link Generator Focus ---
 // Define a structured feature type for the comparison table
 export interface PlanFeature {
   feature: string
@@ -40,30 +40,15 @@ export interface PlanFeature {
 
 // Centralized list of features for easy management and comparison
 const comparisonFeatures: PlanFeature[] = [
+  { feature: 'Generate Invite Links for Groups', free: true, pro: true },
+  { feature: 'Select a Single Group', free: true, pro: true },
+  { feature: 'Revoke Links from History', free: true, pro: true },
+  { feature: 'Select Multiple Groups at Once', free: false, pro: true },
+  { feature: 'Generate & Download QR Codes for Links', free: false, pro: true },
+  { feature: 'Export Links to CSV/Excel', free: false, pro: true },
   {
-    feature: 'Start Chats Without Saving Numbers',
-    free: true,
-    pro: true,
-  },
-  {
-    feature: 'Send Text Messages',
-    free: true,
-    pro: true,
-  },
-  {
-    feature: 'Send Media (Images, Videos, Docs)',
-    free: false,
-    pro: true,
-  },
-  {
-    feature: 'Share Location Pins',
-    free: false,
-    pro: true,
-  },
-
-  {
-    feature: 'Save Unlimited Message Templates',
-    free: '1 Template',
+    feature: 'Link Generation History',
+    free: 'Last 5 Links',
     pro: 'Unlimited',
   },
   {
@@ -78,28 +63,29 @@ const plans = [
   {
     name: 'Free',
     isFree: true,
-    description: 'For basic direct messaging needs.',
+    description: 'For basic group link management.',
     price: '$0',
     placeholderPrice: null,
     link: '#',
     features: [
-      'Start unlimited chats',
-      'No need to save contacts',
-      'Send text messages only',
+      'Generate unlimited links (one by one)',
+      'Revoke links anytime',
+      'View recent link history (last 5)',
       'Standard support',
     ],
   },
   {
     name: 'Pro Lifetime',
     isFree: false,
-    description: 'Pay once, unlock powerful messaging features forever.',
+    description: 'Pay once, unlock powerful tools to manage all your groups.',
     placeholderPrice: '$89',
-    price: '$39',
+    price: '$29',
     link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?media=0&logo=0&desc=0&discount=0',
     features: [
-      'Send All Media Types (Images, Videos, Files)',
-      'Share Locations',
-      'Save Unlimited Message Templates',
+      'Generate Links for Multiple Groups at Once',
+      'Generate & Download QR Codes',
+      'Export Links to CSV & Excel',
+      'Unlimited Link History',
       'Priority Customer Support',
       'All Future Updates Included',
     ],
@@ -168,6 +154,7 @@ const CountdownTimer: React.FC<{ offerEndDate: Date; isMini?: boolean }> = ({
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(
     calculateTimeLeft(offerEndDate),
   )
+
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft(offerEndDate))
@@ -205,7 +192,6 @@ const CountdownTimer: React.FC<{ offerEndDate: Date; isMini?: boolean }> = ({
     </Group>
   )
 }
-
 // --- End Countdown Timer Logic ---
 
 // --- Section Components ---
@@ -218,17 +204,17 @@ const HeroSection = () => (
         variant="gradient"
         gradient={{ from: 'teal', to: 'lime' }}
       >
-        <Icon icon="tabler:message-circle-plus" fontSize={48} />
+        <Icon icon="tabler:ticket" fontSize={48} />
       </ThemeIcon>
       <Title order={1} fz={{ base: 36, sm: 48 }}>
         {' '}
-        Instantly Start WhatsApp Chats Without Saving Numbers.{' '}
+        Instantly Get Invite Links for All Your WhatsApp Groups.{' '}
       </Title>
       <Text c="dimmed" fz="lg">
         {' '}
-        The fastest way to send messages, images, videos, and files to any
-        WhatsApp number. No more cluttering your contact list for one-time
-        conversations.{' '}
+        The fastest way to generate, share, and manage invite links for multiple
+        groups at once. Stop wasting time digging through settings—get all your
+        links in seconds.{' '}
       </Text>
       <Stack align="center">
         <Button
@@ -242,7 +228,7 @@ const HeroSection = () => (
           radius="md"
         >
           {' '}
-          Get Lifetime Access Now{' '}
+          Get Lifetime Access to Pro Features{' '}
         </Button>
         <Text size="xs" c="dimmed">
           {' '}
@@ -256,46 +242,45 @@ const HeroSection = () => (
 const FeaturesSection = () => {
   const featuresData = [
     {
-      icon: 'tabler:address-book-off',
-      title: 'No More "Ghost" Contacts',
+      icon: 'tabler:ticket',
+      title: 'Bulk Link Generation',
       description:
-        'Message any number without saving it. Perfect for business inquiries, customer support, or one-time contacts.',
+        'Select multiple groups you admin and generate all their invite links with a single click. Perfect for community managers and event organizers.',
     },
     {
-      icon: 'tabler:paperclip',
-      title: 'Send Anything, Instantly',
+      icon: 'tabler:share',
+      title: 'Easy Sharing Options',
       description:
-        'Go beyond text. The Pro version lets you send images, videos, documents.',
+        'Copy links with a custom message, generate a downloadable QR code for easy sharing, or export your entire list to CSV/Excel for your records (Pro Features).',
     },
     {
       icon: 'tabler:shield-lock',
       title: 'Private & Secure',
       description:
-        'Your messages are sent directly via WhatsApp Web. We never see, store, or have access to your conversations.',
+        'Your group information and links are managed directly via WhatsApp Web. We never see, store, or have access to your groups or conversations.',
     },
-
     {
-      icon: 'tabler:template',
-      title: 'Save Time with Templates',
+      icon: 'tabler:history',
+      title: 'Manage Link History',
       description:
-        'Create and reuse message templates for common replies, greetings, or information. (Pro Feature)',
+        'Keep track of every link you generate. See when it was created and easily revoke old links directly from the history panel when you no longer need them.',
     },
     {
       icon: 'tabler:rocket',
       title: 'Simple & Fast',
       description:
-        'A clean, intuitive interface designed to get your message sent in seconds, right from WhatsApp Web.',
+        'A clean, intuitive interface integrated into WhatsApp Web, designed to get your group links in seconds, not minutes.',
     },
   ]
   return (
     <Box mt={80}>
       <Center>
         <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>A Smarter Way to Chat</Title>
+          <Title order={2}>A Smarter Way to Manage Groups</Title>
           <Text c="dimmed">
             {' '}
-            Unlock powerful features that make direct messaging faster and more
-            efficient.{' '}
+            Unlock powerful features that make managing group invites faster and
+            more efficient.{' '}
           </Text>
         </Stack>
       </Center>
@@ -328,10 +313,11 @@ const UserPersonaSection = () => (
   <Box mt={80}>
     <Center>
       <Stack align="center" ta="center" maw={600}>
-        <Title order={2}>Built For Everyone</Title>
+        <Title order={2}>Built For Community Builders</Title>
         <Text c="dimmed">
           {' '}
-          Whether for work or personal convenience, we've got you covered.{' '}
+          Whether you're managing a business community or a personal group,
+          we've got you covered.{' '}
         </Text>
       </Stack>
     </Center>
@@ -343,12 +329,13 @@ const UserPersonaSection = () => (
               <ThemeIcon variant="light" size={40} radius="md">
                 <Icon icon="tabler:briefcase" fontSize={22} />
               </ThemeIcon>
-              <Title order={3}>For Professionals & Business</Title>
+              <Title order={3}>For Community & Marketing Managers</Title>
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Quickly follow up with leads, send quotes, or provide support
-              without adding every number to your business phone.{' '}
+              Effortlessly onboard new members to multiple communities, share
+              links in marketing campaigns, or provide support staff with easy
+              access to all group invites.{' '}
             </Text>
             <List
               spacing="xs"
@@ -362,12 +349,17 @@ const UserPersonaSection = () => (
             >
               <List.Item>
                 {' '}
-                Send promotional images or PDF invoices directly.{' '}
+                Generate links for all your regional or product-specific groups
+                at once.{' '}
               </List.Item>
-
               <List.Item>
                 {' '}
-                Keep your professional contacts list clean and organized.{' '}
+                Export a list of links for use in email newsletters or social
+                media posts.{' '}
+              </List.Item>
+              <List.Item>
+                {' '}
+                Generate QR codes for posters and event flyers.{' '}
               </List.Item>
             </List>
             <Button
@@ -388,14 +380,15 @@ const UserPersonaSection = () => (
           <Stack style={{ height: '100%' }}>
             <Group>
               <ThemeIcon variant="light" size={40} radius="md">
-                <Icon icon="tabler:heart" fontSize={22} />
+                <Icon icon="tabler:users" fontSize={22} />
               </ThemeIcon>
-              <Title order={3}>For Personal Use</Title>
+              <Title order={3}>For Event & Group Organizers</Title>
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Contact a seller on a marketplace, RSVP to an event, or message a
-              new acquaintance without filling your address book.{' '}
+              Quickly get invite links for your hobby groups, family events, or
+              study circles. Share links easily with friends and new members
+              without the hassle.{' '}
             </Text>
             <List
               spacing="xs"
@@ -409,15 +402,15 @@ const UserPersonaSection = () => (
             >
               <List.Item>
                 {' '}
-                Quickly message someone from a classifieds ad.{' '}
+                Get a link for your new book club or sports team.{' '}
               </List.Item>
               <List.Item>
                 {' '}
-                Send your location to a friend you're meeting.{' '}
+                Generate a QR code to let friends join a party group.{' '}
               </List.Item>
               <List.Item>
                 {' '}
-                Keep your personal contacts for people you actually know.{' '}
+                Revoke old links after an event is over to maintain privacy.{' '}
               </List.Item>
             </List>
             <Button
@@ -440,28 +433,25 @@ const UserPersonaSection = () => (
 const CaseStudySection = () => {
   const caseStudies = [
     {
-      icon: 'tabler:building-store',
-      title: 'Contacting a Marketplace Seller',
+      icon: 'tabler:building-community',
+      title: 'Onboarding New Team Members',
       description:
-        "A user wants to ask about an item on an online marketplace. Instead of saving the seller's number, they use the extension to instantly send a message and a picture of the item.",
-      features: ['No Contact Saving', 'Send Images'],
-      persona: 'For Online Shoppers',
+        'A company manager needs to add new hires to five different project and social groups. Instead of opening each group manually, they use the extension to generate all five links at once and share them in a single welcome email.',
+      features: ['Bulk Generation', 'Time-Saving'],
     },
     {
-      icon: 'tabler:users',
-      title: 'Following Up with a Lead',
+      icon: 'tabler:podium',
+      title: 'Promoting a Workshop',
       description:
-        'A sales professional meets a new lead and needs to send them a company brochure. She quickly sends the PDF  without cluttering her personal contacts.',
-      features: ['Send Documents'],
-      persona: 'For Sales & Business',
+        'An event organizer wants to let attendees join a pre-event WhatsApp group. They generate an invite link and a QR code, which they add to their presentation slides and promotional flyers for easy access.',
+      features: ['QR Code Generation', 'Easy Sharing'],
     },
     {
-      icon: 'tabler:tools-kitchen-2',
-      title: 'Coordinating with a Technician',
+      icon: 'tabler:user-off',
+      title: 'Securing a Private Group',
       description:
-        'A homeowner needs to send their address to a repairman. They use the extension to share a location pin directly, ensuring the technician finds their house without any hassle.',
-      features: ['Send Location', 'Quick Messaging'],
-      persona: 'For Everyday Tasks',
+        "After a project concludes, a team leader needs to prevent new members from joining a temporary group. They find the link in their history and instantly revoke it, securing the group's privacy without needing to find the original link.",
+      features: ['Link History', 'Revoke Links'],
     },
   ]
   return (
@@ -549,7 +539,6 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 {plan.description}{' '}
               </Text>
             </Box>
-
             <Box my="lg" ta="center">
               {!plan.isFree && (
                 <Stack mb="lg">
@@ -584,9 +573,7 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 </Group>
               </Box>
             </Box>
-
             <Divider label="Key Features" labelPosition="center" my="sm" />
-
             <Stack gap="sm" mb="lg">
               {plan.features.map((feature, idx) => (
                 <Group key={idx} gap="sm" wrap="nowrap" align="flex-start">
@@ -606,7 +593,6 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 </Group>
               ))}
             </Stack>
-
             <Box mt="auto">
               {plan.isFree ? (
                 <Button size="md" variant="default" fullWidth disabled>
@@ -661,7 +647,6 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
     </Group>
   </Box>
 )
-
 const NoSubscriptionSection = () => (
   <Box mt={80}>
     <Center>
@@ -715,7 +700,6 @@ const NoSubscriptionSection = () => (
     </Center>
   </Box>
 )
-
 const FeatureComparisonTable = () => (
   <Box mt={80}>
     <Center>
@@ -781,7 +765,6 @@ const FeatureComparisonTable = () => (
     </Card>
   </Box>
 )
-
 const SecuritySection = () => (
   <Box mt={80}>
     <Card withBorder p="xl" radius="lg" bg="gray.0">
@@ -810,13 +793,13 @@ const SecuritySection = () => (
           >
             <List.Item>
               {' '}
-              <b>Direct Sending:</b> Your messages are sent directly through the
-              official WhatsApp Web interface.{' '}
+              <b>Direct Actions:</b> Your links are generated directly through
+              the official WhatsApp Web interface.{' '}
             </List.Item>
             <List.Item>
               {' '}
               <b>No Data Storage:</b> We never see, save, or have access to your
-              conversations, contacts, or files.{' '}
+              groups, contacts, or conversations.{' '}
             </List.Item>
             <List.Item>
               {' '}
@@ -829,24 +812,15 @@ const SecuritySection = () => (
     </Card>
   </Box>
 )
-
 const TestimonialsSection = () => {
   const testimonialsData = [
     {
       avatar:
-        'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-8.png',
-      name: 'Sarah L.',
-      role: 'Small Business Owner',
+        'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-5.png',
+      name: 'David G.',
+      role: 'Community Manager',
       quote:
-        'This has been a lifesaver for my business. I contact dozens of new people a day, and <b>not having to save every single number is a huge time-saver</b>. The ability to send a PDF quote directly with the Pro version is a game-changer.',
-    },
-    {
-      avatar:
-        'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png',
-      name: 'Mike P.',
-      role: 'Online Seller',
-      quote:
-        "I use this all the time for marketplace listings and one-off inquiries. <b>So simple and fast</b>. It's how WhatsApp should have worked from the beginning! The Pro upgrade was a no-brainer to send product videos.",
+        'Managing over 20 WhatsApp groups was a nightmare. This tool lets me get all my invite links in a single click. The <b>ability to export to Excel and generate QR codes</b> has streamlined my entire workflow. An absolute must-have for any community manager.',
     },
     {
       avatar:
@@ -854,15 +828,23 @@ const TestimonialsSection = () => {
       name: 'Alisha C.',
       role: 'Event Coordinator',
       quote:
-        "Coordinating with vendors and clients means contacting lots of new numbers. This tool keeps my phone's address book from becoming a mess. <b>Scheduling reminders with the Pro version</b> is also an incredible feature.",
+        "For my events, I create temporary groups. This extension not only lets me generate the link quickly but also <b>lets me revoke it from the history</b> once the event is over. It's brilliant for maintaining control and privacy.",
     },
     {
       avatar:
-        'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-5.png',
-      name: 'David G.',
-      role: 'Community Manager',
+        'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-8.png',
+      name: 'Sarah L.',
+      role: 'Small Business Owner',
       quote:
-        'I need to message new members without saving all their numbers. This extension makes it effortless. The <b>ability to use message templates</b> saves me so much time every day. Worth every penny for the lifetime license.',
+        'I run several local business groups. Being able to <b>generate multiple links at once</b> saves me so much time when I cross-promote them. The Pro upgrade was an immediate purchase for me.',
+    },
+    {
+      avatar:
+        'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png',
+      name: 'Mike P.',
+      role: 'Hobby Group Admin',
+      quote:
+        'Just needed a quick way to get an invite link without all the clicking. This does exactly that. Simple, fast, and works perfectly. The <b>link history is a nice touch</b>!',
     },
   ]
   return (
@@ -907,7 +889,6 @@ const TestimonialsSection = () => {
     </Box>
   )
 }
-
 const GuaranteeSection = () => (
   <Paper
     bg="teal.0"
@@ -932,14 +913,13 @@ const GuaranteeSection = () => (
     </Group>
   </Paper>
 )
-
 const FaqSection = () => {
   const faqData = [
     {
       icon: 'tabler:rocket',
       question: 'What are the main benefits of upgrading to Pro?',
       answer:
-        'Pro unlocks powerful messaging features. You can <b>send files like images, videos, and documents</b> and locations, and <b>schedule messages</b> to be sent later. It turns a simple convenience into a powerful communication tool.',
+        'Pro turns the tool into a powerful management suite. You can <b>generate links for multiple groups at once</b>, which is a huge time-saver. You also unlock <b>QR code generation</b> for easy sharing and the ability to <b>export your links to CSV or Excel</b> for record-keeping.',
     },
     {
       icon: 'tabler:key',
@@ -949,15 +929,15 @@ const FaqSection = () => {
     },
     {
       icon: 'tabler:alert-circle',
-      question: 'Do I need to save the number in my contacts first?',
+      question: "Can I generate a link for a group I'm not an admin of?",
       answer:
-        "No! That's the main feature of the extension. You can type in any valid WhatsApp number and start a chat immediately without adding it to your address book.",
+        'No. For security reasons, WhatsApp only allows group administrators to generate invite links. The extension will automatically show you a list of only the groups where you have admin privileges.',
     },
     {
       icon: 'tabler:shield-check',
       question: 'Is it safe to use?',
       answer:
-        'Absolutely. The extension uses the official WhatsApp Web interface to send messages. It operates <b>locally on your computer</b>, and we do not store your messages or have access to your account.',
+        'Absolutely. The extension uses the official WhatsApp Web interface to generate and manage links. It operates <b>locally on your computer</b>, and we do not store your group data or have access to your account.',
     },
   ]
   return (
@@ -996,7 +976,6 @@ const FaqSection = () => {
     </Box>
   )
 }
-
 const ValueStackSection = () => (
   <Box mt={80}>
     <Card withBorder radius="lg" p="xl">
@@ -1005,8 +984,8 @@ const ValueStackSection = () => (
           <Title order={2}>Here's Everything You Get</Title>
           <Text c="dimmed">
             {' '}
-            Your Pro Lifetime License is a complete package for powerful, direct
-            communication.{' '}
+            Your Pro Lifetime License is a complete package for powerful group
+            management.{' '}
           </Text>
         </Stack>
       </Center>
@@ -1022,8 +1001,9 @@ const ValueStackSection = () => (
               </ThemeIcon>
             }
           >
-            <List.Item>Start Chats Without Saving Numbers</List.Item>
-            <List.Item>Send All Media Types (Images, Videos, etc.)</List.Item>
+            <List.Item>Bulk Invite Link Generation</List.Item>
+            <List.Item>QR Code Generation & Download</List.Item>
+            <List.Item>Export Links to CSV & Excel</List.Item>
           </List>
         </Grid.Col>
         <Grid.Col span={{ base: 12, sm: 6 }}>
@@ -1037,7 +1017,7 @@ const ValueStackSection = () => (
               </ThemeIcon>
             }
           >
-            <List.Item>Schedule Messages for Later</List.Item>
+            <List.Item>Unlimited Link History</List.Item>
             <List.Item>Priority Customer Support</List.Item>
             <List.Item>30-Day Money-Back Guarantee</List.Item>
           </List>
@@ -1046,7 +1026,6 @@ const ValueStackSection = () => (
     </Card>
   </Box>
 )
-
 const ContactUsSection = () => (
   <Box mt={80}>
     <Card withBorder p="xl" shadow="sm" radius="lg">
@@ -1074,7 +1053,6 @@ const ContactUsSection = () => (
     </Card>
   </Box>
 )
-
 const Footer = () => (
   <Box mt={80} py="xl">
     <Divider />
@@ -1091,9 +1069,9 @@ const Footer = () => (
     </Stack>
   </Box>
 )
-
 const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
   const [scroll] = useWindowScroll()
+
   return (
     <Transition
       mounted={scroll.y > 200}
@@ -1129,7 +1107,7 @@ const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
                 gradient={{ from: 'teal', to: 'lime' }}
               >
                 {' '}
-                Get Lifetime Access for Just $39!{' '}
+                Get Lifetime Access for Just $29!{' '}
               </Button>
             </Group>
           </Container>
@@ -1163,9 +1141,7 @@ const LandingPage = () => {
       { city: 'Shaqra', country: 'Saudi Arabia' },
       { city: 'Miami', country: 'United States' },
     ]
-
     let timeoutId: NodeJS.Timeout
-
     const scheduleNextNotification = () => {
       clearTimeout(timeoutId)
       const randomDelay = Math.floor(Math.random() * (15000 - 8000 + 1)) + 8000 // 8-15 seconds
@@ -1179,12 +1155,10 @@ const LandingPage = () => {
         }, 4000) // Show for 4 seconds
       }, randomDelay)
     }
-
     timeoutId = setTimeout(scheduleNextNotification, 5000) // First one after 5 seconds
 
     return () => clearTimeout(timeoutId)
   }, [])
-
   return (
     <MantineProvider theme={theme}>
       <StickyHeader offerEndDate={offerEndDate} />
@@ -1205,7 +1179,9 @@ const LandingPage = () => {
           <ContactUsSection />
           <Center mt={40}>
             <Stack align="center" gap="lg">
-              <Title order={2}>Ready to Supercharge Your Messaging?</Title>
+              <Title order={2}>
+                Ready to Supercharge Your Group Management?
+              </Title>
               <Text c="dimmed" size="lg">
                 {' '}
                 Get all Pro features for a one-time payment.{' '}
@@ -1222,7 +1198,7 @@ const LandingPage = () => {
                   radius="md"
                 >
                   {' '}
-                  Get Lifetime Access Now for Just $39{' '}
+                  Get Lifetime Access Now for Just $29{' '}
                 </Button>
                 <Text size="xs" c="dimmed">
                   {' '}
@@ -1275,5 +1251,4 @@ const LandingPage = () => {
     </MantineProvider>
   )
 }
-
 export default LandingPage

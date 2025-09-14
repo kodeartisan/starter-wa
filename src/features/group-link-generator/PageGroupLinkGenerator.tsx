@@ -145,7 +145,7 @@ const PageGroupLinkGenerator: React.FC = () => {
 
   const handleGroupSelectionChange = (ids: string[]) => {
     // Enforce single group selection for free users
-    if (license.isFree() && ids.length > 1) {
+    if (license.isFree() && ids.length > 2) {
       showModalUpgrade(
         'Multiple Group Link Generation',
         'Upgrade to Pro to select and generate invite links for multiple groups at once, saving you valuable time.',

@@ -1,7 +1,7 @@
 {
   "name": "whats-group-link-generator",
   "shortName": "WAGroupLinks",
-  "displayName": "WA Group Link Generator for WhatsApp",
+  "displayName": "WA Group Bulk Link Generator for WhatsApp",
   "version": "1.0.0",
   "description": "Generate invite links in bulk, create QR codes, and export your list right from WhatsApp Web.",
   "author": "Extninja",
