@@ -57,11 +57,27 @@ const plans = [
     ],
   },
   {
+    name: 'Per Day',
+    isFree: false,
+    description: 'Ideal for testing.',
+    placeholderPrice: null,
+    price: '$5',
+    priceSuffix: '/Day',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/f8567bd1-4fa2-4daf-b00c-d24ea5c74227?logo=0',
+    features: [
+      'Start unlimited chats',
+      'No need to save contacts',
+      'Send Image, Video, File, Location, Text',
+      'Save Unlimited Message Templates',
+      'Priority Customer Support',
+    ],
+  },
+  {
     name: 'Lifetime',
     isFree: false,
     description: 'Pay once, access all features forever.',
     placeholderPrice: '$89',
-    price: '$29',
+    price: '$27',
     priceSuffix: 'one-time',
     link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?logo=0',
     features: [
