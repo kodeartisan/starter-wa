@@ -6,10 +6,12 @@ import theme from '@/libs/theme'
 import { Icon } from '@iconify/react'
 import {
   ActionIcon,
+  Avatar,
   Badge,
   Button,
   Card,
   Center,
+  Checkbox,
   Code,
   Container,
   CopyButton,
@@ -18,6 +20,8 @@ import {
   List,
   MantineProvider,
   Paper,
+  Popover,
+  SegmentedControl,
   Stack,
   Table,
   Tabs,
@@ -26,15 +30,12 @@ import {
   TextInput,
   ThemeIcon,
   Title,
-  Tooltip,
 } from '@mantine/core'
 import '@mantine/core/styles.css'
 import { DataTable } from 'mantine-datatable'
 import 'mantine-datatable/styles.layer.css'
-import { PRIMARY_ICON } from '@/constants'
 import FileSaver from 'file-saver'
 import html2canvas from 'html2canvas'
-import { QRCodeCanvas } from 'qrcode.react'
 import React, { useRef } from 'react'
 
 // English: Using a darker gradient that matches the landing page's teal-to-lime theme with darker shades for a more prominent look.
@@ -42,7 +43,6 @@ const PROMO_GRADIENT_BACKGROUND =
   'linear-gradient(135deg, var(--mantine-color-teal-8), var(--mantine-color-lime-8))'
 
 // --- Marquee Promo Tiles (1280x800px) --- //
-
 const MarqueeTileFeatureShowcase = () => (
   <Paper
     w={1280}
@@ -64,16 +64,16 @@ const MarqueeTileFeatureShowcase = () => (
               variant="gradient"
               gradient={{ from: 'teal', to: 'lime' }}
             >
-              <Icon icon="tabler:ticket" fontSize={70} />
+              <Icon icon="tabler:file-export" fontSize={70} />
             </ThemeIcon>
             <Title fz={48} lh={1.2} c="white">
               {' '}
-              Bulk Group Invite Link Generator{' '}
+              Bulk Group Member Exporter{' '}
             </Title>
             <Title order={2} c="white" fw={500} mt="md">
               {' '}
-              Generate invite links, create QR codes, and export your list right
-              from WhatsApp Web.{' '}
+              Export member lists from your WhatsApp groups to Excel, CSV, PDF,
+              and more.{' '}
             </Title>
           </Stack>
         </Grid.Col>
@@ -87,11 +87,11 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={60}
                 >
-                  <Icon icon="tabler:list-details" fontSize={45} />
+                  <Icon icon="tabler:table-export" fontSize={45} />
                 </ThemeIcon>
                 <Title order={1} fw={700}>
                   {' '}
-                  Bulk Generate Links{' '}
+                  Export Member Lists{' '}
                 </Title>
               </Group>
               <Title size={26} c="gray.7" fw={500} mt="md">
@@ -107,16 +107,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={60}
                 >
-                  <Icon icon="tabler:qrcode" fontSize={45} />
+                  <Icon icon="tabler:filter" fontSize={45} />
                 </ThemeIcon>
                 <Title order={1} fw={700}>
                   {' '}
-                  Create QR Codes{' '}
+                  Advanced Filtering{' '}
                 </Title>
               </Group>
               <Title size={26} c="gray.7" fw={500} mt="md">
                 {' '}
-                Easily share your group invites.{' '}
+                Filter by admin or contact status.{' '}
               </Title>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -127,16 +127,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={60}
                 >
-                  <Icon icon="tabler:file-export" fontSize={45} />
+                  <Icon icon="tabler:file-type-xls" fontSize={45} />
                 </ThemeIcon>
                 <Title order={1} fw={700}>
                   {' '}
-                  Export to Excel/CSV{' '}
+                  Multiple Formats{' '}
                 </Title>
               </Group>
               <Title size={26} c="gray.7" fw={500} mt="md">
                 {' '}
-                Save your generated link lists.{' '}
+                Supports Excel, CSV, PDF, JSON & more.{' '}
               </Title>
             </Card>
           </Stack>
@@ -147,19 +147,20 @@ const MarqueeTileFeatureShowcase = () => (
 )
 
 // --- Feature Mockups for Screenshots --- //
-const FeatureMockupSelectGroups = () => (
+const FeatureMockupSelectAndFilter = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
-      <Title order={4}>Generate Invite Links in Bulk</Title>
+      <Title order={4}>Export Group Members in Bulk</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        Save time by selecting multiple groups at once.{' '}
+        Save time by selecting multiple groups and applying powerful filters.{' '}
       </Text>
       <Paper p="lg" withBorder radius="md" mt="md">
         <Stack>
           {/* This is a simplified mockup of the MultiSelect component */}
           <Text size="sm" fw={500}>
-            Select Group(s)
+            {' '}
+            Select Group(s){' '}
           </Text>
           <Paper withBorder radius="sm" p="xs">
             <Group gap="xs">
@@ -211,162 +212,95 @@ const FeatureMockupSelectGroups = () => (
             </Group>
           </Paper>
 
-          <Textarea
-            label="Custom Message Template"
-            description="Use {link} as a placeholder for the invite link."
-            value={'Please join our group: {link}'}
-            readOnly
+          <TextInput
+            label="Search Members"
+            placeholder="Search by name or number..."
+            leftSection={<Icon icon="tabler:search" fontSize={16} />}
           />
-
-          <Button mt="sm" leftSection={<Icon icon="tabler:refresh-dot" />}>
-            Generate 3 Link(s)
-          </Button>
+          <Group grow>
+            <SegmentedControl
+              data={[
+                { label: 'All Roles', value: 'ALL' },
+                { label: 'Admins', value: 'ADMIN' },
+              ]}
+            />
+            <SegmentedControl
+              data={[
+                { label: 'All Contacts', value: 'ALL' },
+                { label: 'Saved', value: 'SAVED' },
+              ]}
+            />
+          </Group>
         </Stack>
       </Paper>
     </Stack>
   </Card>
 )
 
-const FeatureMockupGeneratedLinks = () => (
+const FeatureMockupDataTable = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
-      <Title order={4}>Your Invite Links are Ready!</Title>
+      <Title order={4}>Preview Your Filtered List</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        Easily copy links or generate a QR code for each group.{' '}
-      </Text>
-      <Stack mt="md" gap="lg">
-        <TextInput
-          label="Project Alpha"
-          readOnly
-          value="https://chat.whatsapp.com/AbC123DeF456"
-          rightSection={
-            <Group gap="xs" wrap="nowrap">
-              <Tooltip label="Copy Options">
-                <ActionIcon variant="subtle">
-                  <Icon icon="tabler:copy" />
-                </ActionIcon>
-              </Tooltip>
-              <Tooltip label="Generate QR Code">
-                <ActionIcon variant="subtle">
-                  <Icon icon="tabler:qrcode" />
-                </ActionIcon>
-              </Tooltip>
-            </Group>
-          }
-        />
-        <TextInput
-          label="Marketing Team"
-          readOnly
-          value="https://chat.whatsapp.com/GhI789JkL101"
-          rightSection={
-            <Group gap="xs" wrap="nowrap">
-              <Tooltip label="Copy Options">
-                <ActionIcon variant="subtle">
-                  <Icon icon="tabler:copy" />
-                </ActionIcon>
-              </Tooltip>
-              <Tooltip label="Generate QR Code">
-                <ActionIcon variant="subtle">
-                  <Icon icon="tabler:qrcode" />
-                </ActionIcon>
-              </Tooltip>
-            </Group>
-          }
-        />
-      </Stack>
-    </Stack>
-  </Card>
-)
-
-const FeatureMockupQRCode = () => (
-  <Card withBorder radius="md" p="xl" w={400}>
-    <Stack align="center" p="md">
-      <Title order={4} ta="center">
-        {' '}
-        QR Code for "Marketing Team"{' '}
-      </Title>
-      <Paper p="md" mt="md" withBorder radius="md">
-        <QRCodeCanvas
-          value="https://chat.whatsapp.com/GhI789JkL101"
-          size={200}
-          level="H"
-        />
-      </Paper>
-      <Button mt="lg" leftSection={<Icon icon="tabler:download" />}>
-        {' '}
-        Download Image{' '}
-      </Button>
-    </Stack>
-  </Card>
-)
-
-const FeatureMockupHistoryAndExport = () => (
-  <Card withBorder radius="md" p="xl" w={620}>
-    <Stack>
-      <Group justify="space-between">
-        <Title order={4}>Link History & Export</Title>
-        <Group>
-          <Button
-            variant="light"
-            size="xs"
-            leftSection={<Icon icon="tabler:file-type-csv" />}
-          >
-            Export as CSV
-          </Button>
-          <Button
-            variant="light"
-            size="xs"
-            leftSection={<Icon icon="tabler:file-type-xls" />}
-          >
-            Export as Excel
-          </Button>
-        </Group>
-      </Group>
-      <Text c="dimmed" size="sm">
-        {' '}
-        Review your generated link history, export it, or revoke links as
-        needed.{' '}
+        Review the member data in a clean table before exporting.{' '}
       </Text>
       <DataTable
-        minHeight={150}
+        minHeight={200}
         records={[
           {
-            groupName: 'Project Alpha',
-            link: 'https://chat.whatsapp.com/AbC123...',
-            createdAt: '2025-09-14 10:30',
+            name: 'Alice Johnson',
+            number: '+12025550181',
+            role: 'Admin',
+            status: 'Saved',
+            group: 'Marketing Team',
           },
           {
-            groupName: 'Marketing Team',
-            link: 'https://chat.whatsapp.com/GhI789...',
-            createdAt: '2025-09-14 10:30',
+            name: 'Bob Williams',
+            number: '+442079460992',
+            role: 'Member',
+            status: 'Saved',
+            group: 'Project Alpha',
           },
           {
-            groupName: 'Community Event',
-            link: 'https://chat.whatsapp.com/Klm112...',
-            createdAt: '2025-09-13 15:00',
+            name: 'Charlie Brown',
+            number: '+13105550134',
+            role: 'Member',
+            status: 'Unsaved',
+            group: 'Community Event',
           },
         ]}
         columns={[
-          { accessor: 'groupName', title: 'Group Name' },
-          { accessor: 'link', title: 'Invite Link' },
-          { accessor: 'createdAt', title: 'Generated At' },
           {
-            accessor: 'actions',
-            title: 'Actions',
-            textAlign: 'right',
-            render: () => (
-              <Group gap="xs" justify="right" wrap="nowrap">
-                <ActionIcon color="blue" variant="subtle">
-                  <Icon icon="tabler:copy" />
-                </ActionIcon>
-                <ActionIcon color="teal" variant="subtle">
-                  <Icon icon="tabler:qrcode" />
-                </ActionIcon>
-                <ActionIcon color="red" variant="subtle">
-                  <Icon icon="tabler:trash" />
-                </ActionIcon>
+            accessor: 'name',
+            title: 'Name',
+            render: ({ name }) => (
+              <Group gap="sm">
+                <Avatar size={30} radius="xl" />
+                <Text fz="sm" fw={500}>
+                  {name}
+                </Text>
               </Group>
+            ),
+          },
+          { accessor: 'number', title: 'Phone Number' },
+          {
+            accessor: 'role',
+            title: 'Role',
+            render: ({ role }) => (
+              <Badge color={role === 'Admin' ? 'teal' : 'gray'}>{role}</Badge>
+            ),
+          },
+          {
+            accessor: 'status',
+            title: 'Status',
+            render: ({ status }) => (
+              <Badge
+                variant="light"
+                color={status === 'Saved' ? 'blue' : 'gray'}
+              >
+                {status}
+              </Badge>
             ),
           },
         ]}
@@ -375,6 +309,126 @@ const FeatureMockupHistoryAndExport = () => (
   </Card>
 )
 
+const FeatureMockupExportOptions = () => (
+  <Card withBorder radius="md" p="xl" w={450}>
+    <Stack align="center" p="md">
+      <Title order={4} ta="center">
+        {' '}
+        Customize & Export Data{' '}
+      </Title>
+      <Text c="dimmed" size="sm" ta="center">
+        {' '}
+        Choose your desired format and select which columns to include.{' '}
+      </Text>
+      <Group mt="lg">
+        <Button size="sm" leftSection={<Icon icon="tabler:download" />}>
+          Export Data
+        </Button>
+        <Popover width={200} position="bottom-end" withArrow shadow="md" opened>
+          <Popover.Target>
+            <Button
+              variant="outline"
+              size="sm"
+              leftSection={<Icon icon="tabler:columns" />}
+            >
+              Customize Columns
+            </Button>
+          </Popover.Target>
+          <Popover.Dropdown>
+            <Checkbox.Group
+              label="Select columns to export"
+              defaultValue={['name', 'number', 'role']}
+            >
+              <Stack mt="xs" gap="xs">
+                <Checkbox value="name" label="Name" />
+                <Checkbox value="number" label="Phone Number" />
+                <Checkbox value="role" label="Is Admin" />
+                <Checkbox value="status" label="Is My Contact" />
+                <Checkbox value="group" label="Group Name" />
+              </Stack>
+            </Checkbox.Group>
+          </Popover.Dropdown>
+        </Popover>
+      </Group>
+
+      <Paper withBorder radius="md" p="lg" mt="lg">
+        <Stack>
+          <Text fw={500}>Export Formats</Text>
+          <List spacing="sm" size="sm" icon={<span />}>
+            <List.Item icon={<Icon icon="tabler:file-type-csv" />}>
+              Export as CSV
+            </List.Item>
+            <List.Item icon={<Icon icon="tabler:file-type-xls" />}>
+              Export as Excel
+            </List.Item>
+            <List.Item icon={<Icon icon="tabler:file-type-pdf" />}>
+              Export as PDF
+            </List.Item>
+            <List.Item icon={<Icon icon="tabler:id" />}>
+              Export as vCard (.vcf)
+            </List.Item>
+          </List>
+        </Stack>
+      </Paper>
+    </Stack>
+  </Card>
+)
+
+const FeatureMockupOutputFile = () => (
+  <Card withBorder radius="md" p="xl" w={620}>
+    <Stack>
+      <Group justify="space-between">
+        <Title order={4}>Clean & Organized Output</Title>
+        <Badge
+          color="teal"
+          size="lg"
+          leftSection={<Icon icon="tabler:file-type-xls" />}
+        >
+          Excel File
+        </Badge>
+      </Group>
+      <Text c="dimmed" size="sm">
+        {' '}
+        Get a perfectly formatted file, ready for your marketing campaigns, data
+        analysis, or contact management.{' '}
+      </Text>
+      <Table striped highlightOnHover withTableBorder mt="md">
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>savedName</Table.Th>
+            <Table.Th>phoneNumber</Table.Th>
+            <Table.Th>isAdmin</Table.Th>
+            <Table.Th>isMyContact</Table.Th>
+            <Table.Th>groupName</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          <Table.Tr>
+            <Table.Td>Alice Johnson</Table.Td>
+            <Table.Td>12025550181</Table.Td>
+            <Table.Td>TRUE</Table.Td>
+            <Table.Td>TRUE</Table.Td>
+            <Table.Td>Marketing Team</Table.Td>
+          </Table.Tr>
+          <Table.Tr>
+            <Table.Td>Bob Williams</Table.Td>
+            <Table.Td>442079460992</Table.Td>
+            <Table.Td>FALSE</Table.Td>
+            <Table.Td>TRUE</Table.Td>
+            <Table.Td>Project Alpha</Table.Td>
+          </Table.Tr>
+          <Table.Tr>
+            <Table.Td>Charlie Brown</Table.Td>
+            <Table.Td>13105550134</Table.Td>
+            <Table.Td>FALSE</Table.Td>
+            <Table.Td>FALSE</Table.Td>
+            <Table.Td>Community Event</Table.Td>
+          </Table.Tr>
+        </Table.Tbody>
+      </Table>
+    </Stack>
+  </Card>
+)
 // --- New Reusable Marquee Tile for Feature Details ---
 interface MarqueeTileFeatureDetailProps {
   icon: string
@@ -382,6 +436,7 @@ interface MarqueeTileFeatureDetailProps {
   description: string
   featureComponent: React.ReactNode
 }
+
 const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
   icon,
   title,
@@ -431,50 +486,50 @@ const ScreenshotGallery: React.FC = () => {
       component: <MarqueeTileFeatureShowcase />,
     },
     {
-      title: 'Feature Screenshot: Select Multiple Groups (1280x800)',
-      filename: 'feature_select_groups.png',
+      title: 'Feature Screenshot: Select Groups & Filter (1280x800)',
+      filename: 'feature_select_and_filter.png',
       component: (
         <MarqueeTileFeatureDetail
           icon="tabler:list-details"
-          title="Bulk Link Generation"
-          description="Select as many groups as you need and generate all their invite links in a single click."
-          featureComponent={<FeatureMockupSelectGroups />}
+          title="Select & Filter"
+          description="Choose one or more groups, then narrow down your list with powerful search and filtering options."
+          featureComponent={<FeatureMockupSelectAndFilter />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: View Generated Links (1280x800)',
-      filename: 'feature_generated_links.png',
+      title: 'Feature Screenshot: Preview Data Table (1280x800)',
+      filename: 'feature_data_table.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:link"
-          title="Instant Link Access"
-          description="Your generated links appear instantly. Copy them with a custom message or move on to creating a QR code."
-          featureComponent={<FeatureMockupGeneratedLinks />}
+          icon="tabler:table"
+          title="Preview Your Data"
+          description="Instantly see a clean, organized table with the members that match your criteria before you export."
+          featureComponent={<FeatureMockupDataTable />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: QR Code Generation (1280x800)',
-      filename: 'feature_qr_code.png',
+      title: 'Feature Screenshot: Export Options (1280x800)',
+      filename: 'feature_export_options.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:qrcode"
-          title="One-Click QR Codes"
-          description="Generate and download a high-resolution QR code for any group invite, perfect for flyers and digital sharing."
-          featureComponent={<FeatureMockupQRCode />}
+          icon="tabler:settings-cog"
+          title="Customize Your Export"
+          description="Choose from multiple file formats and select exactly which data columns you want to include in your final report."
+          featureComponent={<FeatureMockupExportOptions />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: History and Export (1280x800)',
-      filename: 'feature_history_export.png',
+      title: 'Feature Screenshot: Final Exported File (1280x800)',
+      filename: 'feature_output_file.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:file-export"
-          title="History & Export"
-          description="Keep track of all generated links in your history. Export your list to CSV or Excel for record-keeping."
-          featureComponent={<FeatureMockupHistoryAndExport />}
+          icon="tabler:file-check"
+          title="Clean & Ready-to-Use"
+          description="Your exported file is perfectly formatted and ready for data analysis, marketing campaigns, or contact management."
+          featureComponent={<FeatureMockupOutputFile />}
         />
       ),
     },
@@ -500,14 +555,13 @@ const ScreenshotGallery: React.FC = () => {
     </Stack>
   )
 }
-
 // --- End of Embedded Screenshot Components ---
 
 const ResourcePage = () => {
   const iconRef = useRef<HTMLDivElement>(null)
   const icons = [
     {
-      component: <PromoIcon size={128} icon={'tabler:ticket'} />,
+      component: <PromoIcon size={128} icon={'tabler:file-export'} />,
       ref: iconRef,
       name: 'promotional_icon.png',
     },
@@ -515,60 +569,57 @@ const ResourcePage = () => {
 
   const storeListingText = {
     titles: [
-      'Group Link Generator for WhatsApp',
-      'Bulk WhatsApp Group Link Maker',
-      'WA Group Invite Link Generator',
+      'Group Member Exporter for WA',
+      'Bulk WA Group Contact Exporter',
+      'Export WhatsApp Group to Excel',
     ],
     shortDescriptions: [
-      'Generate WhatsApp group invite links in bulk, create QR codes, and export your list right from WhatsApp Web.',
-      'The easiest way to get invite links for multiple WhatsApp groups at once. Includes QR code and export features.',
-      'Save time managing your WhatsApp groups. Quickly generate invite links for one or many groups simultaneously.',
+      'Export WhatsApp group members to Excel, CSV, PDF & vCard. Select multiple groups and filter contacts in one click.',
+      'The easiest way to extract and download contact lists from your WhatsApp groups. Supports multiple formats.',
+      'Save time managing your WhatsApp communities. Quickly export member lists from one or many groups simultaneously.',
     ],
-    longDescription: `⚙️ The Ultimate Tool for WhatsApp Group Admins
+    longDescription: `⚙️ The Ultimate Tool for WhatsApp Community Managers
 
-Tired of manually generating invite links for your WhatsApp groups one by one? The Group Link Generator for WhatsApp streamlines your workflow, allowing you to generate, manage, and share group invites with ease and efficiency, right from WhatsApp Web.
+Tired of manually copying and pasting member lists from your WhatsApp groups? The Group Member Exporter streamlines your workflow, allowing you to extract, filter, and download group contacts with unparalleled ease and efficiency, right from WhatsApp Web.
 
 ✨ Key Features
-- **Bulk Link Generation**: Select multiple groups at once and generate all their invite links in a single click. (Pro)
-- **QR Code Creation**: Instantly create and download a high-resolution QR code for any group invite, perfect for sharing online or on printed materials. (Pro)
-- **Export to CSV/Excel**: Keep a record of your generated links by exporting them to a CSV or Excel file for easy management. (Pro)
-- **Link History**: View a history of all the links you've created.
-- **Revoke Links**: Easily revoke an old invite link directly from the history, ensuring your groups remain secure.
-- **Custom Copy Message**: Create a custom message template to go along with your invite link when you copy it.
-
-🔐 Safe & Secure
-Your privacy is important. This extension operates locally in your browser and does not collect, store, or transmit any of your personal data or chat information.
+- **Bulk Group Selection**: Select multiple groups at once and export all their members into a single, clean file. (Pro)
+- **Multiple Export Formats**: Download your member lists as CSV, Excel (XLSX), PDF, JSON, or even vCard (.vcf) files to import directly to your contacts. (Pro)
+- **Advanced Filtering**: Easily filter members by their admin status (Admins only or Non-Admins) or by their contact status (Saved vs. Unsaved numbers). (Pro)
+- **Customizable Columns**: Choose exactly which data you want to export. Keep it simple with just names and numbers, or include admin status, group name, and more.
+- **Search Functionality**: Quickly find specific members within large groups by searching for a name or phone number.
+- **Privacy-Focused**: Your data is your own. The extension operates locally in your browser and does not collect, store, or transmit any of your personal data or chat information.
 
 🤔 Who Is This For?
-- **Community Managers**: Effortlessly create and share links for multiple community groups.
-- **Event Organizers**: Quickly generate invite links for event-specific WhatsApp groups.
-- **Business Owners**: Onboard new team members or clients to different groups efficiently.
-- **Anyone managing multiple WhatsApp groups**: Stop wasting time with repetitive tasks and manage your group invites like a pro.
+- **Community Managers**: Get a complete overview of your members across all groups and create master contact lists.
+- **Marketers & Sales Teams**: Extract contacts from interest groups to build targeted lead lists for campaigns.
+- **Event Organizers**: Quickly download a list of all event attendees from the WhatsApp group.
+- **Anyone needing a backup**: Securely save your valuable group contacts outside of WhatsApp.
 
-🚀 Boost your productivity and take control of your WhatsApp group management today!
+🚀 Boost your productivity and turn your group data into an actionable asset. Stop wasting time with manual work and manage your group members like a pro!
 
 WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other countries. This extension is an independent project and has no relationship to WhatsApp or WhatsApp Inc.`,
   }
 
   const justificationTexts = {
-    singlePurpose: `The extension's single purpose is to allow users to generate and manage WhatsApp group invite links. All features—including selecting groups, generating links, creating QR codes, exporting lists, and viewing history—are directly tied to this core function of group invite link management within the WhatsApp Web interface.`,
-    storage: `The 'storage' permission is used to locally store user settings and license information. This includes: the user's license key for Pro features, an instance ID for license management, and saved preferences like custom message templates. This data is kept on the user's device to ensure a consistent experience without needing a remote server.`,
-    scripting: `Content scripts are essential to inject the extension's user interface (the link generator modal) onto the web.whatsapp.com page. They also communicate with the WhatsApp Web application's context to securely fetch the user's group list and to call the functions necessary for generating and revoking invite links, fulfilling the extension's core purpose.`,
-    hostWhatsapp: `Permission for "https://web.whatsapp.com/*" is required for the extension to function. It allows the content scripts to run on WhatsApp Web, enabling the injection of its UI and interaction with the page to retrieve group data and generate invite links for the user.`,
+    singlePurpose: `The extension's single purpose is to allow users to export and manage member data from their WhatsApp groups. All features—including selecting groups, filtering members, customizing columns, and exporting to various file formats—are directly tied to this core function of member data extraction within the WhatsApp Web interface.`,
+    storage: `The 'storage' permission is used to locally store user settings and license information. This includes: the user's license key for Pro features and an instance ID for license management. This data is kept on the user's device to ensure a consistent experience without needing a remote server.`,
+    scripting: `Content scripts are essential to inject the extension's user interface (the exporter modal) onto the web.whatsapp.com page. They also communicate with the WhatsApp Web application's context to securely fetch the user's group and member lists, which is necessary to fulfill the extension's core purpose.`,
+    hostWhatsapp: `Permission for "https://web.whatsapp.com/*" is required for the extension to function. It allows the content scripts to run on WhatsApp Web, enabling the injection of its UI and interaction with the page to retrieve group and member data for the user to export.`,
     hostLemonSqueezy: `Permission for "https://api.lemonsqueezy.com/*" is used for secure license management. When a user activates a Pro license, the extension communicates with this API to verify, activate, or deactivate the license key. This is a standard and secure method for handling software licensing and does not involve any personal chat data.`,
   }
 
   const keywords = [
-    'whatsapp group',
-    'invite link',
-    'whatsapp tool',
-    'bulk generate',
-    'qr code',
-    'export whatsapp',
-    'group admin',
-    'whatsapp automation',
-    'link generator',
+    'whatsapp group export',
+    'export whatsapp contacts',
+    'whatsapp to excel',
+    'group member list',
+    'whatsapp data extractor',
+    'whatsapp scraper',
+    'download whatsapp group contacts',
     'whatsapp marketing',
+    'contact management',
+    'whatsapp bulk',
   ]
   const keywordsString = keywords.join(', ')
 
@@ -597,6 +648,7 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
             {' '}
             Use these assets and text to create your store listing page.{' '}
           </Text>
+
           <Tabs defaultValue="screenshots">
             <Tabs.List grow>
               <Tabs.Tab
@@ -635,6 +687,7 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
                 Privacy Justifications{' '}
               </Tabs.Tab>
             </Tabs.List>
+
             <Tabs.Panel value="text" pt="lg">
               <Stack gap="xl">
                 <Stack>
@@ -733,6 +786,7 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
                 </Card>
               </Stack>
             </Tabs.Panel>
+
             <Tabs.Panel value="icons" pt="lg">
               <Center>
                 <Card withBorder radius="md" p="xl" w={300}>
@@ -754,9 +808,11 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
                 </Card>
               </Center>
             </Tabs.Panel>
+
             <Tabs.Panel value="screenshots" pt="lg">
               <ScreenshotGallery />
             </Tabs.Panel>
+
             <Tabs.Panel value="keywords" pt="lg">
               <Card withBorder radius="md">
                 <Group justify="space-between">
@@ -797,6 +853,7 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
                 </Paper>
               </Card>
             </Tabs.Panel>
+
             <Tabs.Panel value="privacy" pt="lg">
               <Stack gap="xl">
                 <Card withBorder radius="md">

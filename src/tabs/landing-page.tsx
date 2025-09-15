@@ -30,7 +30,7 @@ import '@mantine/core/styles.css'
 import { useWindowScroll } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
 
-// --- Start: Updated Config for Group Link Generator Focus ---
+// --- Start: Updated Config for Group Member Exporter Focus ---
 // Define a structured feature type for the comparison table
 export interface PlanFeature {
   feature: string
@@ -40,17 +40,18 @@ export interface PlanFeature {
 
 // Centralized list of features for easy management and comparison
 const comparisonFeatures: PlanFeature[] = [
-  { feature: 'Generate Invite Links for Groups', free: true, pro: true },
   { feature: 'Select a Single Group', free: true, pro: true },
-  { feature: 'Revoke Links from History', free: true, pro: true },
+  { feature: 'Export Members', free: 'Up to 10 members', pro: 'Unlimited' },
+  { feature: 'Export to CSV & Excel', free: false, pro: true },
+  { feature: 'Export to PDF & JSON', free: false, pro: true },
+  { feature: 'Export as vCard (.vcf)', free: false, pro: true },
   { feature: 'Select Multiple Groups at Once', free: false, pro: true },
-  { feature: 'Generate & Download QR Codes for Links', free: false, pro: true },
-  { feature: 'Export Links to CSV/Excel', free: false, pro: true },
   {
-    feature: 'Link Generation History',
-    free: 'Last 5 Links',
-    pro: 'Unlimited',
+    feature: 'Advanced Filtering (by Admin/Contact Status)',
+    free: false,
+    pro: true,
   },
+  { feature: 'Customize Export Columns', free: false, pro: true },
   {
     feature: 'Customer Support',
     free: 'Standard Support',
@@ -63,34 +64,36 @@ const plans = [
   {
     name: 'Free',
     isFree: true,
-    description: 'For basic group link management.',
+    description: 'For basic group member exports.',
     price: '$0',
     placeholderPrice: null,
     link: '#',
     features: [
-      'Generate unlimited links (one by one)',
-      'Revoke links anytime',
-      'View recent link history (last 5)',
+      'Select one group at a time',
+      'Preview all members',
+      'Export up to 10 members per group',
       'Standard support',
     ],
   },
   {
     name: 'Pro Lifetime',
     isFree: false,
-    description: 'Pay once, unlock powerful tools to manage all your groups.',
+    description:
+      'Pay once, unlock powerful tools to manage and analyze your group data.',
     placeholderPrice: '$89',
     price: '$29',
     link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?media=0&logo=0&desc=0&discount=0',
     features: [
-      'Generate Links for Multiple Groups at Once',
-      'Generate & Download QR Codes',
-      'Export Links to CSV & Excel',
-      'Unlimited Link History',
+      'Export from Multiple Groups at Once',
+      'Unlimited Member Exports',
+      'Export to CSV, Excel, PDF, JSON & vCard',
+      'Advanced Filtering & Search',
       'Priority Customer Support',
       'All Future Updates Included',
     ],
   },
 ]
+
 // --- End: Updated Config ---
 
 const CheckIcon = () => (
@@ -101,6 +104,7 @@ const CheckIcon = () => (
     color="var(--mantine-color-teal-6)"
   />
 )
+
 const CrossIcon = () => (
   <Icon
     icon="tabler:x"
@@ -204,17 +208,16 @@ const HeroSection = () => (
         variant="gradient"
         gradient={{ from: 'teal', to: 'lime' }}
       >
-        <Icon icon="tabler:ticket" fontSize={48} />
+        <Icon icon="tabler:file-export" fontSize={48} />
       </ThemeIcon>
       <Title order={1} fz={{ base: 36, sm: 48 }}>
         {' '}
-        Instantly Get Invite Links for All Your WhatsApp Groups.{' '}
+        Export WhatsApp Group Members to Excel in Seconds.{' '}
       </Title>
       <Text c="dimmed" fz="lg">
         {' '}
-        The fastest way to generate, share, and manage invite links for multiple
-        groups at once. Stop wasting time digging through settings—get all your
-        links in seconds.{' '}
+        Stop manually copying names and numbers. Select one or more groups and
+        instantly export member data to CSV, Excel, PDF, and vCard formats.{' '}
       </Text>
       <Stack align="center">
         <Button
@@ -242,45 +245,44 @@ const HeroSection = () => (
 const FeaturesSection = () => {
   const featuresData = [
     {
-      icon: 'tabler:ticket',
-      title: 'Bulk Link Generation',
+      icon: 'tabler:table-export',
+      title: 'Advanced Data Export',
       description:
-        'Select multiple groups you admin and generate all their invite links with a single click. Perfect for community managers and event organizers.',
+        'Select multiple groups and export a clean list of all members. Choose from CSV, Excel, PDF, JSON, or even vCard to import directly into your contacts. (Pro Feature)',
     },
     {
-      icon: 'tabler:share',
-      title: 'Easy Sharing Options',
+      icon: 'tabler:filter',
+      title: 'Powerful Filtering',
       description:
-        'Copy links with a custom message, generate a downloadable QR code for easy sharing, or export your entire list to CSV/Excel for your records (Pro Features).',
+        'Easily filter members by admin status (admins vs. non-admins) or contact status (saved vs. unsaved) to get the exact data you need for your campaigns. (Pro Feature)',
     },
     {
       icon: 'tabler:shield-lock',
       title: 'Private & Secure',
       description:
-        'Your group information and links are managed directly via WhatsApp Web. We never see, store, or have access to your groups or conversations.',
+        'Your group member data is processed directly on your computer via WhatsApp Web. We never see, store, or have access to your contacts or conversations.',
     },
     {
-      icon: 'tabler:history',
-      title: 'Manage Link History',
+      icon: 'tabler:columns',
+      title: 'Customizable Exports',
       description:
-        'Keep track of every link you generate. See when it was created and easily revoke old links directly from the history panel when you no longer need them.',
+        'Choose exactly which data columns you need. Export a clean, focused list with only Name, Phone Number, or Admin Status to suit your specific requirements.',
     },
     {
       icon: 'tabler:rocket',
       title: 'Simple & Fast',
       description:
-        'A clean, intuitive interface integrated into WhatsApp Web, designed to get your group links in seconds, not minutes.',
+        'A clean, intuitive interface integrated directly into WhatsApp Web, designed to export thousands of contacts in seconds, not hours.',
     },
   ]
   return (
     <Box mt={80}>
       <Center>
         <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>A Smarter Way to Manage Groups</Title>
+          <Title order={2}>A Smarter Way to Manage Group Data</Title>
           <Text c="dimmed">
             {' '}
-            Unlock powerful features that make managing group invites faster and
-            more efficient.{' '}
+            Turn chaotic group lists into structured, actionable data.{' '}
           </Text>
         </Stack>
       </Center>
@@ -313,11 +315,11 @@ const UserPersonaSection = () => (
   <Box mt={80}>
     <Center>
       <Stack align="center" ta="center" maw={600}>
-        <Title order={2}>Built For Community Builders</Title>
+        <Title order={2}>Built For Community Builders & Marketers</Title>
         <Text c="dimmed">
           {' '}
-          Whether you're managing a business community or a personal group,
-          we've got you covered.{' '}
+          Whether you're running a business or a community, we've got you
+          covered.{' '}
         </Text>
       </Stack>
     </Center>
@@ -329,13 +331,13 @@ const UserPersonaSection = () => (
               <ThemeIcon variant="light" size={40} radius="md">
                 <Icon icon="tabler:briefcase" fontSize={22} />
               </ThemeIcon>
-              <Title order={3}>For Community & Marketing Managers</Title>
+              <Title order={3}>For Marketing & Sales Teams</Title>
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Effortlessly onboard new members to multiple communities, share
-              links in marketing campaigns, or provide support staff with easy
-              access to all group invites.{' '}
+              Quickly extract contact information from product interest groups
+              or event attendees to build targeted marketing lists and follow-up
+              campaigns.{' '}
             </Text>
             <List
               spacing="xs"
@@ -349,17 +351,15 @@ const UserPersonaSection = () => (
             >
               <List.Item>
                 {' '}
-                Generate links for all your regional or product-specific groups
-                at once.{' '}
+                Export unsaved numbers to identify new leads.{' '}
               </List.Item>
               <List.Item>
                 {' '}
-                Export a list of links for use in email newsletters or social
-                media posts.{' '}
+                Create contact lists for SMS or broadcast campaigns.{' '}
               </List.Item>
               <List.Item>
                 {' '}
-                Generate QR codes for posters and event flyers.{' '}
+                Analyze member lists from competitor or community groups.{' '}
               </List.Item>
             </List>
             <Button
@@ -382,13 +382,12 @@ const UserPersonaSection = () => (
               <ThemeIcon variant="light" size={40} radius="md">
                 <Icon icon="tabler:users" fontSize={22} />
               </ThemeIcon>
-              <Title order={3}>For Event & Group Organizers</Title>
+              <Title order={3}>For Community & Group Admins</Title>
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Quickly get invite links for your hobby groups, family events, or
-              study circles. Share links easily with friends and new members
-              without the hassle.{' '}
+              Get a clear overview of your members, create backups of your
+              contact lists, or coordinate with other admins more effectively.{' '}
             </Text>
             <List
               spacing="xs"
@@ -400,17 +399,14 @@ const UserPersonaSection = () => (
                 </ThemeIcon>
               }
             >
+              <List.Item> Backup your member list for safety. </List.Item>
               <List.Item>
                 {' '}
-                Get a link for your new book club or sports team.{' '}
+                Export a list of just the admins for coordination.{' '}
               </List.Item>
               <List.Item>
                 {' '}
-                Generate a QR code to let friends join a party group.{' '}
-              </List.Item>
-              <List.Item>
-                {' '}
-                Revoke old links after an event is over to maintain privacy.{' '}
+                Easily import all group members into your phone contacts.{' '}
               </List.Item>
             </List>
             <Button
@@ -421,7 +417,7 @@ const UserPersonaSection = () => (
               color="teal"
             >
               {' '}
-              Get More Convenience{' '}
+              Manage Your Community Better{' '}
             </Button>
           </Stack>
         </Card>
@@ -434,24 +430,24 @@ const CaseStudySection = () => {
   const caseStudies = [
     {
       icon: 'tabler:building-community',
-      title: 'Onboarding New Team Members',
+      title: 'Creating a Marketing List',
       description:
-        'A company manager needs to add new hires to five different project and social groups. Instead of opening each group manually, they use the extension to generate all five links at once and share them in a single welcome email.',
-      features: ['Bulk Generation', 'Time-Saving'],
+        'A marketing manager exports unsaved numbers from five different product interest groups. They use the exported CSV file to launch a targeted broadcast campaign for a new product, reaching hundreds of warm leads.',
+      features: ['Multi-Group Export', 'Filtering'],
     },
     {
-      icon: 'tabler:podium',
-      title: 'Promoting a Workshop',
+      icon: 'tabler:users-group',
+      title: 'Coordinating a Large Community',
       description:
-        'An event organizer wants to let attendees join a pre-event WhatsApp group. They generate an invite link and a QR code, which they add to their presentation slides and promotional flyers for easy access.',
-      features: ['QR Code Generation', 'Easy Sharing'],
+        "An admin for a network of 20 neighborhood groups needs to contact all other admins. They select all groups, filter by 'Admins only', and export the list to quickly create a private admin coordination group.",
+      features: ['Admin Filtering', 'Time-Saving'],
     },
     {
-      icon: 'tabler:user-off',
-      title: 'Securing a Private Group',
+      icon: 'tabler:device-floppy',
+      title: 'Backing Up Group Contacts',
       description:
-        "After a project concludes, a team leader needs to prevent new members from joining a temporary group. They find the link in their history and instantly revoke it, securing the group's privacy without needing to find the original link.",
-      features: ['Link History', 'Revoke Links'],
+        'A user wants a personal backup of all members in their important hobby group. They export the full member list to both Excel and as a vCard file, securing their contacts outside of WhatsApp.',
+      features: ['Data Backup', 'vCard Export'],
     },
   ]
   return (
@@ -647,6 +643,7 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
     </Group>
   </Box>
 )
+
 const NoSubscriptionSection = () => (
   <Box mt={80}>
     <Center>
@@ -700,6 +697,7 @@ const NoSubscriptionSection = () => (
     </Center>
   </Box>
 )
+
 const FeatureComparisonTable = () => (
   <Box mt={80}>
     <Center>
@@ -765,6 +763,7 @@ const FeatureComparisonTable = () => (
     </Card>
   </Box>
 )
+
 const SecuritySection = () => (
   <Box mt={80}>
     <Card withBorder p="xl" radius="lg" bg="gray.0">
@@ -793,8 +792,8 @@ const SecuritySection = () => (
           >
             <List.Item>
               {' '}
-              <b>Direct Actions:</b> Your links are generated directly through
-              the official WhatsApp Web interface.{' '}
+              <b>Direct Actions:</b> Your data is exported directly through the
+              official WhatsApp Web interface.{' '}
             </List.Item>
             <List.Item>
               {' '}
@@ -812,6 +811,7 @@ const SecuritySection = () => (
     </Card>
   </Box>
 )
+
 const TestimonialsSection = () => {
   const testimonialsData = [
     {
@@ -820,7 +820,7 @@ const TestimonialsSection = () => {
       name: 'David G.',
       role: 'Community Manager',
       quote:
-        'Managing over 20 WhatsApp groups was a nightmare. This tool lets me get all my invite links in a single click. The <b>ability to export to Excel and generate QR codes</b> has streamlined my entire workflow. An absolute must-have for any community manager.',
+        'Managing member lists for over 20 WhatsApp groups was a nightmare. This tool lets me export everything into a single Excel file. The <b>ability to filter by admins or saved contacts</b> has streamlined my entire workflow. An absolute must-have!',
     },
     {
       avatar:
@@ -828,7 +828,7 @@ const TestimonialsSection = () => {
       name: 'Alisha C.',
       role: 'Event Coordinator',
       quote:
-        "For my events, I create temporary groups. This extension not only lets me generate the link quickly but also <b>lets me revoke it from the history</b> once the event is over. It's brilliant for maintaining control and privacy.",
+        "For my events, I need a quick way to get a list of all attendees from the group chat. This extension not only exports to CSV in seconds but the <b>vCard export feature is brilliant</b> for adding everyone to my phone's contacts.",
     },
     {
       avatar:
@@ -836,7 +836,7 @@ const TestimonialsSection = () => {
       name: 'Sarah L.',
       role: 'Small Business Owner',
       quote:
-        'I run several local business groups. Being able to <b>generate multiple links at once</b> saves me so much time when I cross-promote them. The Pro upgrade was an immediate purchase for me.',
+        'I run several local business groups and needed to extract unsaved numbers for a lead list. Being able to <b>export from multiple groups at once</b> saved me hours of manual work. The Pro upgrade was an immediate purchase for me.',
     },
     {
       avatar:
@@ -844,7 +844,7 @@ const TestimonialsSection = () => {
       name: 'Mike P.',
       role: 'Hobby Group Admin',
       quote:
-        'Just needed a quick way to get an invite link without all the clicking. This does exactly that. Simple, fast, and works perfectly. The <b>link history is a nice touch</b>!',
+        'Just needed a simple way to back up my group members. This does exactly that. Simple, fast, and works perfectly. The <b>PDF export is a nice touch</b> for keeping clean records!',
     },
   ]
   return (
@@ -889,6 +889,7 @@ const TestimonialsSection = () => {
     </Box>
   )
 }
+
 const GuaranteeSection = () => (
   <Paper
     bg="teal.0"
@@ -913,13 +914,14 @@ const GuaranteeSection = () => (
     </Group>
   </Paper>
 )
+
 const FaqSection = () => {
   const faqData = [
     {
       icon: 'tabler:rocket',
       question: 'What are the main benefits of upgrading to Pro?',
       answer:
-        'Pro turns the tool into a powerful management suite. You can <b>generate links for multiple groups at once</b>, which is a huge time-saver. You also unlock <b>QR code generation</b> for easy sharing and the ability to <b>export your links to CSV or Excel</b> for record-keeping.',
+        'Pro turns the tool into a powerful data suite. You can <b>export from multiple groups at once</b>, which is a huge time-saver. You also unlock <b>all export formats (Excel, PDF, vCard)</b> and powerful <b>filtering capabilities</b> to get the exact data you need.',
     },
     {
       icon: 'tabler:key',
@@ -929,15 +931,15 @@ const FaqSection = () => {
     },
     {
       icon: 'tabler:alert-circle',
-      question: "Can I generate a link for a group I'm not an admin of?",
+      question: "Can I export members from a group I'm not in?",
       answer:
-        'No. For security reasons, WhatsApp only allows group administrators to generate invite links. The extension will automatically show you a list of only the groups where you have admin privileges.',
+        'No. For security and privacy, you can only export member lists from groups that you are currently a member of. The extension will automatically show you a list of your groups.',
     },
     {
       icon: 'tabler:shield-check',
       question: 'Is it safe to use?',
       answer:
-        'Absolutely. The extension uses the official WhatsApp Web interface to generate and manage links. It operates <b>locally on your computer</b>, and we do not store your group data or have access to your account.',
+        'Absolutely. The extension uses the official WhatsApp Web interface to access group data. It operates <b>locally on your computer</b>, and we do not store your group data, contacts, or have access to your account.',
     },
   ]
   return (
@@ -976,6 +978,7 @@ const FaqSection = () => {
     </Box>
   )
 }
+
 const ValueStackSection = () => (
   <Box mt={80}>
     <Card withBorder radius="lg" p="xl">
@@ -985,7 +988,7 @@ const ValueStackSection = () => (
           <Text c="dimmed">
             {' '}
             Your Pro Lifetime License is a complete package for powerful group
-            management.{' '}
+            data management.{' '}
           </Text>
         </Stack>
       </Center>
@@ -1001,9 +1004,9 @@ const ValueStackSection = () => (
               </ThemeIcon>
             }
           >
-            <List.Item>Bulk Invite Link Generation</List.Item>
-            <List.Item>QR Code Generation & Download</List.Item>
-            <List.Item>Export Links to CSV & Excel</List.Item>
+            <List.Item>Export from Multiple Groups</List.Item>
+            <List.Item>Unlimited Member Exports</List.Item>
+            <List.Item>Export to CSV, Excel, PDF & JSON</List.Item>
           </List>
         </Grid.Col>
         <Grid.Col span={{ base: 12, sm: 6 }}>
@@ -1017,7 +1020,8 @@ const ValueStackSection = () => (
               </ThemeIcon>
             }
           >
-            <List.Item>Unlimited Link History</List.Item>
+            <List.Item>Export to vCard (for Contacts app)</List.Item>
+            <List.Item>Advanced Filtering & Search</List.Item>
             <List.Item>Priority Customer Support</List.Item>
             <List.Item>30-Day Money-Back Guarantee</List.Item>
           </List>
@@ -1026,6 +1030,7 @@ const ValueStackSection = () => (
     </Card>
   </Box>
 )
+
 const ContactUsSection = () => (
   <Box mt={80}>
     <Card withBorder p="xl" shadow="sm" radius="lg">
@@ -1053,6 +1058,7 @@ const ContactUsSection = () => (
     </Card>
   </Box>
 )
+
 const Footer = () => (
   <Box mt={80} py="xl">
     <Divider />
@@ -1069,6 +1075,7 @@ const Footer = () => (
     </Stack>
   </Box>
 )
+
 const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
   const [scroll] = useWindowScroll()
 
@@ -1155,10 +1162,12 @@ const LandingPage = () => {
         }, 4000) // Show for 4 seconds
       }, randomDelay)
     }
+
     timeoutId = setTimeout(scheduleNextNotification, 5000) // First one after 5 seconds
 
     return () => clearTimeout(timeoutId)
   }, [])
+
   return (
     <MantineProvider theme={theme}>
       <StickyHeader offerEndDate={offerEndDate} />
@@ -1177,6 +1186,7 @@ const LandingPage = () => {
           <FaqSection />
           <ValueStackSection />
           <ContactUsSection />
+
           <Center mt={40}>
             <Stack align="center" gap="lg">
               <Title order={2}>
@@ -1207,6 +1217,7 @@ const LandingPage = () => {
               </Stack>
             </Stack>
           </Center>
+
           <Footer />
         </Stack>
       </Container>
@@ -1251,4 +1262,5 @@ const LandingPage = () => {
     </MantineProvider>
   )
 }
+
 export default LandingPage

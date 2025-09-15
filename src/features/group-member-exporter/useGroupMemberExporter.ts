@@ -1,9 +1,10 @@
 // src/features/group-member-exporter/useGroupMemberExporter.ts
 import { SaveAs } from '@/constants'
-import useLicense from '@/hooks/useLicense'
+import useLicense from '@/hooks/useLicense' // MODIFIED: Import useLicense
 import { useAppStore } from '@/stores/app'
 import toast from '@/utils/toast'
-import { getContactName } from '@/utils/util'
+// MODIFIED: Import showModalUpgrade utility
+import { getContactName, showModalUpgrade } from '@/utils/util'
 import FileSaver from 'file-saver'
 import jsPDF from 'jspdf'
 import _ from 'lodash'
@@ -40,7 +41,7 @@ export const RECORDS_PER_PAGE = 50
 
 export const useGroupMemberExporter = () => {
   const { groups } = useAppStore()
-  const license = useLicense() // License hook for feature checks
+  const license = useLicense() // MODIFIED: Instantiate license hook
   const [isLoading, setIsLoading] = useState(false)
   const [members, setMembers] = useState<Member[]>([])
   const [adminFilter, setAdminFilter] = useState<FilterStatus>('ALL')
@@ -145,10 +146,12 @@ export const useGroupMemberExporter = () => {
       const fontSize = 10
       const cellPadding = 5
       let y = margin + 30
+
       doc.setFontSize(18)
       doc.text('WhatsApp Group Members Export', pageWidth / 2, margin, {
         align: 'center',
       })
+
       doc.setFontSize(fontSize)
       const drawHeaders = () => {
         const colWidth = (pageWidth - margin * 2) / headers.length
@@ -224,6 +227,7 @@ export const useGroupMemberExporter = () => {
         break
     }
   }
+
   // --- END: File Saving Logic ---
 
   useEffect(() => {
@@ -244,6 +248,7 @@ export const useGroupMemberExporter = () => {
         groupSource: group.id,
       }))
     })
+
     const allMembers = _.chain(results).flatten().uniqBy('id').value()
     setMembers(allMembers)
     setIsLoading(false)
@@ -258,17 +263,20 @@ export const useGroupMemberExporter = () => {
   // This memo now handles all filtering logic and returns the complete filtered list.
   const filteredData = useMemo(() => {
     let filtered = [...members]
+
     // Apply filters
     if (adminFilter !== 'ALL') {
       filtered = filtered.filter((m) =>
         adminFilter === 'ADMIN' ? m.isAdmin : !m.isAdmin,
       )
     }
+
     if (contactFilter !== 'ALL') {
       filtered = filtered.filter((m) =>
         contactFilter === 'SAVED' ? m.isMyContact : !m.isMyContact,
       )
     }
+
     // Apply search query
     if (searchQuery) {
       const lowercasedQuery = searchQuery.toLowerCase()
@@ -278,6 +286,7 @@ export const useGroupMemberExporter = () => {
           m.phoneNumber?.includes(lowercasedQuery),
       )
     }
+
     return filtered
   }, [members, adminFilter, contactFilter, searchQuery])
 
@@ -295,10 +304,31 @@ export const useGroupMemberExporter = () => {
 
   // MODIFIED: handleExport should also use the full filtered list.
   const handleExport = (format: string) => {
-    if (filteredData.length === 0) return
+    // MODIFIED: Check for pro features and license status
+    const proFormats = [
+      SaveAs.EXCEL,
+      SaveAs.PDF,
+      SaveAs.JSON,
+      SaveAs.VCARD,
+      SaveAs.TXT,
+    ]
+    if (license.isFree() && proFormats.includes(format)) {
+      showModalUpgrade(
+        'Advanced Export Formats',
+        'Upgrade to Pro to export to Excel, PDF, JSON, vCard and TXT formats.',
+      )
+      return
+    }
+
+    if (filteredData.length === 0) {
+      toast.error('There is no data to export.')
+      return
+    }
+
     const dataToExport = filteredData.map((member) =>
       _.pick(member, selectedColumns),
     )
+
     if (format === SaveAs.VCARD) {
       const vCardData = filteredData.map(({ savedName, phoneNumber }) => ({
         savedName,
