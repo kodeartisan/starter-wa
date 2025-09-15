@@ -1,7 +1,6 @@
 // src/components/AppMenu.tsx
 import { Action, Page, Setting } from '@/constants'
-import PageDirectChat from '@/features/direct-chat/PageDirectChat'
-import PageGroupLinkGenerator from '@/features/group-link-generator/PageGroupLinkGenerator'
+import PageGroupMemberExporter from '@/features/group-member-exporter/PageGroupMemberExporter'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
 import useWa from '@/hooks/useWa'
@@ -183,7 +182,7 @@ const AppMenu: React.FC = () => {
     return (
       <>
         <Tabs.Panel value={Page.HOME}>
-          <PageGroupLinkGenerator />
+          <PageGroupMemberExporter />
         </Tabs.Panel>
       </>
     )

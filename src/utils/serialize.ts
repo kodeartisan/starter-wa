@@ -36,7 +36,7 @@ const contact = (contact: ContactModel) => {
   return {
     id: contact.id._serialized,
     //@ts-ignore
-    phoneNumber: contact?.phoneNumber,
+    phoneNumber: contact?.phoneNumber?.user || contact.id?.user,
     avatar: contact.getProfilePicThumb().__x_eurl,
     name: contact.name,
     pushname: contact.pushname,
