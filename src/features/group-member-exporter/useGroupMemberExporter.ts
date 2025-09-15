@@ -1,0 +1,203 @@
+// src/features/group-member-exporter/useGroupMemberExporter.ts
+import { SaveAs } from '@/constants'
+import useLicense from '@/hooks/useLicense'
+import { useAppStore } from '@/stores/app'
+import { getContactName } from '@/utils/util'
+import FileSaver from 'file-saver'
+import _ from 'lodash'
+import { useEffect, useMemo, useState } from 'react'
+import * as XLSX from 'xlsx'
+
+// Define types for clarity
+export interface Member {
+  id: string
+  phoneNumber: string
+  savedName: string
+  isMyContact: boolean
+  isAdmin: boolean
+  isSuperAdmin: boolean
+  isBusiness: boolean
+  avatar: string | null | undefined
+  groupSource: string
+  groupName: string
+}
+
+export type FilterStatus = 'ALL' | 'ADMIN' | 'NON_ADMIN'
+export type ContactFilterStatus = 'ALL' | 'SAVED' | 'UNSAVED'
+
+// All available columns for export customization, exported for use in the component
+export const ALL_COLUMNS = [
+  { value: 'phoneNumber', label: 'Phone Number' },
+  { value: 'savedName', label: 'Name' },
+  { value: 'isAdmin', label: 'Is Admin' },
+  { value: 'isMyContact', label: 'Is My Contact' },
+  { value: 'isBusiness', label: 'Is Business' },
+  { value: 'groupName', label: 'Group Name' },
+]
+
+export const useGroupMemberExporter = () => {
+  const { groups } = useAppStore()
+  const license = useLicense() // License hook for feature checks
+  const [isLoading, setIsLoading] = useState(false)
+  const [members, setMembers] = useState<Member[]>([])
+  const [adminFilter, setAdminFilter] = useState<FilterStatus>('ALL')
+  const [contactFilter, setContactFilter] = useState<ContactFilterStatus>('ALL')
+  const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([])
+  const [selectedColumns, setSelectedColumns] = useState<string[]>(
+    ALL_COLUMNS.map((c) => c.value),
+  )
+
+  const serializeData = async (data: any[]) => {
+    let filteredData = [...data]
+    if (license.isFree() && filteredData.length > 10) {
+      filteredData = filteredData.map((item, index) =>
+        index >= 10 ? _.mapValues(item, () => '********') : item,
+      )
+    }
+    return filteredData
+  }
+
+  const defaultFilename = () => {
+    return `export_${new Date().toISOString().slice(0, 10)}`
+  }
+
+  const saveAsCSV = (data: any[], filename: string) => {
+    if (!data || data.length === 0) return
+    const worksheet = XLSX.utils.json_to_sheet(data)
+    const csvString = XLSX.utils.sheet_to_csv(worksheet)
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' })
+    FileSaver.saveAs(blob, `${filename}.csv`)
+  }
+
+  const saveAsExcel = (data: any[], filename: string) => {
+    if (!data || data.length === 0) return
+    const worksheet = XLSX.utils.json_to_sheet(data)
+    const workbook = XLSX.utils.book_new()
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet 1')
+    XLSX.writeFile(workbook, `${filename}.xlsx`)
+  }
+
+  const saveAsJson = (data: any[], filename: string) => {
+    const json = JSON.stringify(data, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    FileSaver.saveAs(blob, `${filename}.json`)
+  }
+
+  const saveAsVCard = (data: any[]) => {
+    const vcardContent = data
+      .map((contact) => {
+        const name = contact.savedName || 'Unknown'
+        const phone = contact.phoneNumber ? `+${contact.phoneNumber}` : ''
+        return `BEGIN:VCARD\nVERSION:3.0\nFN:${name}\nTEL;TYPE=CELL:${phone}\nEND:VCARD`
+      })
+      .join('\n')
+    const blob = new Blob([vcardContent], { type: 'text/vcard' })
+    FileSaver.saveAs(blob, `${defaultFilename()}.vcf`)
+  }
+
+  const saveAs = async (fileType: string, data: any[], filename?: string) => {
+    const processedData = await serializeData(data)
+    const finalFilename = filename || defaultFilename()
+    switch (fileType) {
+      case SaveAs.CSV:
+        saveAsCSV(processedData, finalFilename)
+        break
+      case SaveAs.EXCEL:
+        saveAsExcel(processedData, finalFilename)
+        break
+      case SaveAs.JSON:
+        saveAsJson(processedData, finalFilename)
+        break
+      case SaveAs.VCARD:
+        saveAsVCard(processedData)
+        break
+      default:
+        console.error(`Unsupported file type: ${fileType}`)
+        break
+    }
+  }
+
+  // --- END: File Saving Logic ---
+
+  useEffect(() => {
+    setIsLoading(true)
+    const filteredGroups = _.filter(groups, (group) =>
+      _.includes(selectedGroupIds, group.id),
+    )
+
+    const results = filteredGroups.map((group) => {
+      return group.participants.map((participant: any) => ({
+        groupName: group?.name || 'Unknown Group',
+        id: participant.contact.id,
+        phoneNumber: participant.contact.phoneNumber,
+        savedName: getContactName(participant.contact),
+        avatar: participant.contact.avatar,
+        isMyContact: participant.contact.isMyContact,
+        isAdmin: participant.isAdmin,
+        isSuperAdmin: participant.isSuperAdmin,
+        isBusiness: participant.contact.isBusiness,
+        groupSource: group.id,
+      }))
+    })
+
+    const allMembers = _.chain(results).flatten().uniqBy('id').value()
+    setMembers(allMembers)
+    setIsLoading(false)
+  }, [selectedGroupIds, groups])
+
+  const processedData = useMemo(() => {
+    let filtered = [...members]
+    if (adminFilter !== 'ALL') {
+      filtered = filtered.filter((m) =>
+        adminFilter === 'ADMIN' ? m.isAdmin : !m.isAdmin,
+      )
+    }
+
+    if (contactFilter !== 'ALL') {
+      filtered = filtered.filter((m) =>
+        contactFilter === 'SAVED' ? m.isMyContact : !m.isMyContact,
+      )
+    }
+
+    return filtered
+  }, [members, adminFilter, contactFilter])
+
+  const getSelectedNumbers = useMemo(() => {
+    return processedData.map((m) => m.phoneNumber).join('\n')
+  }, [processedData])
+
+  const handleExport = (format: string) => {
+    if (processedData.length === 0) return
+
+    const dataToExport = processedData.map((member) =>
+      _.pick(member, selectedColumns),
+    )
+
+    if (format === SaveAs.VCARD) {
+      const vCardData = processedData.map(({ savedName, phoneNumber }) => ({
+        savedName,
+        phoneNumber,
+      }))
+      saveAs(format, vCardData, 'whatsapp_group_contacts')
+      return
+    }
+
+    saveAs(format, dataToExport, 'whatsapp_group_members')
+  }
+
+  return {
+    isLoading,
+    members,
+    processedData,
+    adminFilter,
+    setAdminFilter,
+    contactFilter,
+    setContactFilter,
+    selectedGroupIds,
+    setSelectedGroupIds,
+    selectedColumns,
+    setSelectedColumns,
+    getSelectedNumbers,
+    handleExport,
+  }
+}
