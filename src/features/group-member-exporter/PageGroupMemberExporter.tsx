@@ -187,7 +187,6 @@ const PageGroupMemberExporter: React.FC = () => {
           records={processedData}
           fetching={isLoading}
           noRecordsText="No members to display. Select a group to get started."
-          // MODIFIED: Removed the 'Account Type' column
           columns={[
             {
               accessor: 'savedName',
@@ -208,7 +207,6 @@ const PageGroupMemberExporter: React.FC = () => {
             {
               accessor: 'isAdmin',
               title: 'Role',
-              sortable: true,
               textAlign: 'center',
               render: ({ isAdmin, isSuperAdmin }) => (
                 <Badge color={isSuperAdmin ? 'red' : isAdmin ? 'teal' : 'gray'}>
@@ -219,7 +217,6 @@ const PageGroupMemberExporter: React.FC = () => {
             {
               accessor: 'isMyContact',
               title: 'Contact Status',
-              sortable: true,
               textAlign: 'center',
               render: ({ isMyContact }) => (
                 <Badge variant="light" color={isMyContact ? 'blue' : 'gray'}>
