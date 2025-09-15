@@ -29,9 +29,9 @@ const PageGroupMemberExporter: React.FC = () => {
   const {
     isLoading,
     processedData,
-    totalRecords, // Get the total records for pagination
-    page, // Get the current page
-    setPage, // Get the function to change the page
+    totalRecords,
+    page,
+    setPage,
     adminFilter,
     setAdminFilter,
     contactFilter,
@@ -234,7 +234,6 @@ const PageGroupMemberExporter: React.FC = () => {
             },
             { accessor: 'groupName', title: 'Group' },
           ]}
-          // ADDED: Pass pagination props directly to the DataTable component
           totalRecords={totalRecords}
           recordsPerPage={RECORDS_PER_PAGE}
           page={page}
