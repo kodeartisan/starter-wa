@@ -15,6 +15,7 @@ import {
   SegmentedControl,
   Stack,
   Text,
+  TextInput, // ADDED: Import TextInput for the search bar
 } from '@mantine/core'
 import { DataTable } from 'mantine-datatable'
 import React from 'react'
@@ -35,6 +36,9 @@ const PageGroupMemberExporter: React.FC = () => {
     setSelectedColumns,
     getSelectedNumbers,
     handleExport,
+    // ADDED: Get search state and handler from the hook
+    searchQuery,
+    setSearchQuery,
   } = useGroupMemberExporter()
 
   return (
@@ -45,28 +49,40 @@ const PageGroupMemberExporter: React.FC = () => {
         disabled={isLoading}
       />
       <Stack>
-        <Group justify="flex-end">
-          <SegmentedControl
+        {/* MODIFIED: Added a search input field */}
+        <Group justify="space-between">
+          <TextInput
+            placeholder="Search by name or number..."
+            leftSection={<Icon icon="tabler:search" fontSize={16} />}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.currentTarget.value)}
             disabled={isLoading || members.length === 0}
-            value={adminFilter}
-            onChange={setAdminFilter as (value: string) => void}
-            data={[
-              { label: 'All Roles', value: 'ALL' },
-              { label: 'Admins', value: 'ADMIN' },
-              { label: 'Non-Admins', value: 'NON_ADMIN' },
-            ]}
+            style={{ flex: 1 }}
           />
-          <SegmentedControl
-            disabled={isLoading || members.length === 0}
-            value={contactFilter}
-            onChange={setContactFilter as (value: string) => void}
-            data={[
-              { label: 'All Contacts', value: 'ALL' },
-              { label: 'Saved', value: 'SAVED' },
-              { label: 'Unsaved', value: 'UNSAVED' },
-            ]}
-          />
+          <Group>
+            <SegmentedControl
+              disabled={isLoading || members.length === 0}
+              value={adminFilter}
+              onChange={setAdminFilter as (value: string) => void}
+              data={[
+                { label: 'All Roles', value: 'ALL' },
+                { label: 'Admins', value: 'ADMIN' },
+                { label: 'Non-Admins', value: 'NON_ADMIN' },
+              ]}
+            />
+            <SegmentedControl
+              disabled={isLoading || members.length === 0}
+              value={contactFilter}
+              onChange={setContactFilter as (value: string) => void}
+              data={[
+                { label: 'All Contacts', value: 'ALL' },
+                { label: 'Saved', value: 'SAVED' },
+                { label: 'Unsaved', value: 'UNSAVED' },
+              ]}
+            />
+          </Group>
         </Group>
+
         <Group justify="space-between">
           <Text fw={500}>{processedData.length} members found</Text>
           <Group>
@@ -109,7 +125,6 @@ const PageGroupMemberExporter: React.FC = () => {
                   Export Data
                 </Button>
               </Menu.Target>
-
               <Menu.Dropdown>
                 <Menu.Label>Export Formats</Menu.Label>
                 <Menu.Item
@@ -136,14 +151,12 @@ const PageGroupMemberExporter: React.FC = () => {
                 >
                   Export as JSON
                 </Menu.Item>
-                {/* ++ START: MODIFIED - Added TXT export option to the menu. */}
                 <Menu.Item
                   leftSection={<Icon icon="tabler:file-type-txt" />}
                   onClick={() => handleExport(SaveAs.TXT)}
                 >
                   Export as TXT
                 </Menu.Item>
-                {/* ++ END: MODIFIED */}
                 <Menu.Item
                   leftSection={<Icon icon="tabler:id" />}
                   onClick={() => handleExport(SaveAs.VCARD)}
@@ -165,7 +178,6 @@ const PageGroupMemberExporter: React.FC = () => {
             </Menu>
           </Group>
         </Group>
-
         <DataTable
           height={350}
           withTableBorder
@@ -175,6 +187,7 @@ const PageGroupMemberExporter: React.FC = () => {
           records={processedData}
           fetching={isLoading}
           noRecordsText="No members to display. Select a group to get started."
+          // MODIFIED: Removed the 'Account Type' column
           columns={[
             {
               accessor: 'savedName',
@@ -211,17 +224,6 @@ const PageGroupMemberExporter: React.FC = () => {
               render: ({ isMyContact }) => (
                 <Badge variant="light" color={isMyContact ? 'blue' : 'gray'}>
                   {isMyContact ? 'Saved' : 'Unsaved'}
-                </Badge>
-              ),
-            },
-            {
-              accessor: 'isBusiness',
-              title: 'Account Type',
-              sortable: true,
-              textAlign: 'center',
-              render: ({ isBusiness }) => (
-                <Badge variant="light" color={isBusiness ? 'cyan' : 'gray'}>
-                  {isBusiness ? 'Business' : 'Personal'}
                 </Badge>
               ),
             },
