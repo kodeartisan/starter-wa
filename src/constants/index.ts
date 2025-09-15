@@ -1,9 +1,7 @@
 // src/constants/index.ts
 export * as Action from './action'
 export * as Setting from './setting'
-
 export const PRIMARY_ICON = 'tabler:message-2-down'
-
 export const Status = {
   SUCCESS: 'SUCCESS',
   IDLE: 'IDLE',
@@ -16,7 +14,6 @@ export const Status = {
   DRAFT: 'DRAFT',
   POSTED: 'POSTED',
 }
-
 export const Page = {
   HOME: 'Page.HOME',
   DIRECT_CHAT: 'Page.DIRECT_CHAT',
@@ -27,12 +24,10 @@ export const Page = {
   ACTIVATE: 'Page.ACTIVATE',
   PROFILE: 'Page.PROFILE',
 }
-
 export const Account = {
   BUSINESS: 'BUSINESS',
   PERSONAL: 'PERSONAL',
 }
-
 export const Message = {
   TEXT: 'TEXT',
   MEDIA: 'MEDIA',
@@ -46,32 +41,27 @@ export const Message = {
   LIST: 'LIST',
   POLL: 'POLL',
 }
-
 export const Media = {
   BROADCAST: 'BROADCAST',
   BROADCAST_TEMPLATE: 'BROADCAST_TEMPLATE',
   STATUS_CONTENT: 'STATUS_CONTENT',
   QUICK_REPLY: 'QUICK_REPLY',
 }
-
 export const ContactType = {
   ALL: 'CONTACT_TYPE_ALL',
   SAVED_CONTACTS: 'CONTACT_TYPE_SAVED_CONTACTS',
   UNSAVED_CONTACTS: 'CONTACT_TYPE_UNSAVED_CONTACTS',
 }
-
 export const AccountType = {
   ALL: 'ACCOUNT_TYPE_ALL',
   PERSONAL: 'ACCOUNT_TYPE_PERSONAL',
   BUSINESS: 'ACCOUNT_TYPE_BUSINESS',
 }
-
 export const MessageType = {
   ALL: 'MESSAGE_TYPE_ALL',
   HAVE_UNREAD_MESSAGES: 'MESSAGE_TYPE_HAVE_UNREAD_MESSAGES',
   NO_UNREAD_MESSAGES: 'MESSAGE_TYPE_NO_UNREAD_MESSAGES',
 }
-
 export const SaveAs = {
   CSV: 'SAVE_AS_CSV',
   EXCEL: 'SAVE_AS_EXCEL',
@@ -80,4 +70,5 @@ export const SaveAs = {
   MARKDOWN: 'SAVE_AS_MARKDOWN',
   HTML: 'SAVE_AS_HTML',
   VCARD: 'SAVE_AS_VCARD',
+  TXT: 'SAVE_AS_TXT', // ++ ADDED: New constant for TXT export
 }

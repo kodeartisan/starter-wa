@@ -2,8 +2,10 @@
 import { SaveAs } from '@/constants'
 import useLicense from '@/hooks/useLicense'
 import { useAppStore } from '@/stores/app'
+import toast from '@/utils/toast'
 import { getContactName } from '@/utils/util'
 import FileSaver from 'file-saver'
+import jsPDF from 'jspdf'
 import _ from 'lodash'
 import { useEffect, useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
@@ -61,6 +63,8 @@ export const useGroupMemberExporter = () => {
     return `export_${new Date().toISOString().slice(0, 10)}`
   }
 
+  // --- START: File Saving Logic ---
+
   const saveAsCSV = (data: any[], filename: string) => {
     if (!data || data.length === 0) return
     const worksheet = XLSX.utils.json_to_sheet(data)
@@ -95,6 +99,127 @@ export const useGroupMemberExporter = () => {
     FileSaver.saveAs(blob, `${defaultFilename()}.vcf`)
   }
 
+  // ++ START: MODIFIED - Added function to save data as a TXT file.
+  /**
+   * @description Converts an array of objects to a formatted plain text string and saves it as a .txt file.
+   * @param data The array of data to be saved.
+   * @param filename The name of the file to save.
+   */
+  const saveAsTXT = (data: any[], filename: string) => {
+    if (!data || data.length === 0) return
+
+    // Define the headers based on the keys of the first object.
+    const headers = Object.keys(data[0])
+    let txtContent = headers.join('\t\t') + '\n' // Use tabs for spacing
+    txtContent += '-'.repeat(headers.length * 15) + '\n' // Separator line
+
+    // Convert each object into a tab-separated string.
+    data.forEach((row) => {
+      const rowValues = headers.map((header) => row[header])
+      txtContent += rowValues.join('\t\t') + '\n'
+    })
+
+    const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' })
+    FileSaver.saveAs(blob, `${filename}.txt`)
+  }
+  // ++ END: MODIFIED
+
+  const saveAsPDF = async (data: any[], filename: string) => {
+    if (!data || data.length === 0) return
+    try {
+      // Initialize jsPDF for landscape A4 page with pixels as units
+      const doc = new jsPDF({
+        orientation: 'landscape',
+        unit: 'px',
+        format: 'a4',
+      })
+
+      // Prepare headers and body content based on selected columns
+      const selectedColumnDetails = ALL_COLUMNS.filter((col) =>
+        selectedColumns.includes(col.value),
+      )
+      const headers = selectedColumnDetails.map((col) => col.label)
+      const body = data.map((row) =>
+        selectedColumnDetails.map((col) =>
+          typeof row[col.value] === 'boolean'
+            ? row[col.value]
+              ? 'Yes'
+              : 'No'
+            : String(row[col.value] ?? '-'),
+        ),
+      )
+
+      // Define document layout properties
+      const pageHeight = doc.internal.pageSize.getHeight()
+      const pageWidth = doc.internal.pageSize.getWidth()
+      const margin = 30
+      const rowHeight = 25
+      const fontSize = 10
+      const cellPadding = 5
+      let y = margin + 30 // Initial Y position for the first row
+
+      // Add Document Title
+      doc.setFontSize(18)
+      doc.text('WhatsApp Group Members Export', pageWidth / 2, margin, {
+        align: 'center',
+      })
+      doc.setFontSize(fontSize)
+
+      // Reusable function to draw table headers, useful for new pages
+      const drawHeaders = () => {
+        const colWidth = (pageWidth - margin * 2) / headers.length
+        doc.setFont('helvetica', 'bold')
+        headers.forEach((header, i) => {
+          doc.setFillColor(240, 240, 240) // Light grey background
+          doc.rect(margin + i * colWidth, y, colWidth, rowHeight, 'F')
+          doc.setDrawColor(150, 150, 150) // Border color
+          doc.rect(margin + i * colWidth, y, colWidth, rowHeight)
+          doc.text(
+            header,
+            margin + i * colWidth + cellPadding,
+            y + rowHeight / 2 + 4,
+          )
+        })
+        y += rowHeight
+      }
+
+      drawHeaders()
+
+      // Draw Table Body
+      const colWidth = (pageWidth - margin * 2) / headers.length
+      doc.setFont('helvetica', 'normal')
+      body.forEach((row) => {
+        // Check if a new page is needed
+        if (y + rowHeight > pageHeight - margin) {
+          doc.addPage()
+          y = margin
+          drawHeaders() // Draw headers on the new page
+        }
+        row.forEach((cell, cellIndex) => {
+          doc.setDrawColor(150, 150, 150) // Border color
+          doc.rect(margin + cellIndex * colWidth, y, colWidth, rowHeight)
+          // Use splitTextToSize for basic text wrapping
+          const textLines = doc.splitTextToSize(
+            cell,
+            colWidth - cellPadding * 2,
+          )
+          doc.text(
+            textLines,
+            margin + cellIndex * colWidth + cellPadding,
+            y + rowHeight / 2 + 4,
+          )
+        })
+        y += rowHeight
+      })
+
+      // Save the generated PDF
+      doc.save(`${filename}.pdf`)
+    } catch (error) {
+      console.error('Failed to generate PDF:', error)
+      toast.error('An unexpected error occurred while generating the PDF.')
+    }
+  }
+
   const saveAs = async (fileType: string, data: any[], filename?: string) => {
     const processedData = await serializeData(data)
     const finalFilename = filename || defaultFilename()
@@ -105,9 +230,17 @@ export const useGroupMemberExporter = () => {
       case SaveAs.EXCEL:
         saveAsExcel(processedData, finalFilename)
         break
+      case SaveAs.PDF:
+        await saveAsPDF(processedData, finalFilename)
+        break
       case SaveAs.JSON:
         saveAsJson(processedData, finalFilename)
         break
+      // ++ START: MODIFIED - Added a case for TXT export.
+      case SaveAs.TXT:
+        saveAsTXT(processedData, finalFilename)
+        break
+      // ++ END: MODIFIED
       case SaveAs.VCARD:
         saveAsVCard(processedData)
         break
@@ -152,13 +285,11 @@ export const useGroupMemberExporter = () => {
         adminFilter === 'ADMIN' ? m.isAdmin : !m.isAdmin,
       )
     }
-
     if (contactFilter !== 'ALL') {
       filtered = filtered.filter((m) =>
         contactFilter === 'SAVED' ? m.isMyContact : !m.isMyContact,
       )
     }
-
     return filtered
   }, [members, adminFilter, contactFilter])
 

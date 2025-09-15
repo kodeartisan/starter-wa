@@ -44,7 +44,6 @@ const PageGroupMemberExporter: React.FC = () => {
         onChange={setSelectedGroupIds}
         disabled={isLoading}
       />
-
       <Stack>
         <Group justify="flex-end">
           <SegmentedControl
@@ -126,11 +125,25 @@ const PageGroupMemberExporter: React.FC = () => {
                   Export as Excel
                 </Menu.Item>
                 <Menu.Item
-                  leftSection={<Icon icon="tabler:file-type-json" />}
+                  leftSection={<Icon icon="tabler:file-type-pdf" />}
+                  onClick={() => handleExport(SaveAs.PDF)}
+                >
+                  Export as PDF
+                </Menu.Item>
+                <Menu.Item
+                  leftSection={<Icon icon="tabler:json" />}
                   onClick={() => handleExport(SaveAs.JSON)}
                 >
                   Export as JSON
                 </Menu.Item>
+                {/* ++ START: MODIFIED - Added TXT export option to the menu. */}
+                <Menu.Item
+                  leftSection={<Icon icon="tabler:file-type-txt" />}
+                  onClick={() => handleExport(SaveAs.TXT)}
+                >
+                  Export as TXT
+                </Menu.Item>
+                {/* ++ END: MODIFIED */}
                 <Menu.Item
                   leftSection={<Icon icon="tabler:id" />}
                   onClick={() => handleExport(SaveAs.VCARD)}
