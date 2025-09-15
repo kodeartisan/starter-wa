@@ -2,6 +2,7 @@
 import InputSelectGroup from '@/components/Input/InputSelectGroup'
 import LayoutPage from '@/components/Layout/LayoutPage'
 import { SaveAs } from '@/constants'
+import useLicense from '@/hooks/useLicense'
 import { Icon } from '@iconify/react'
 import {
   Avatar,
@@ -16,12 +17,13 @@ import {
   Stack,
   Text,
   TextInput,
+  Tooltip,
 } from '@mantine/core'
 import { DataTable } from 'mantine-datatable'
 import React from 'react'
 import {
   ALL_COLUMNS,
-  RECORDS_PER_PAGE, // Import the page size constant
+  RECORDS_PER_PAGE,
   useGroupMemberExporter,
 } from './useGroupMemberExporter'
 
@@ -45,9 +47,29 @@ const PageGroupMemberExporter: React.FC = () => {
     searchQuery,
     setSearchQuery,
   } = useGroupMemberExporter()
+  const license = useLicense() // ADDED: Instantiate license hook
+
+  // ADDED: Create a dynamic label for the group selector to show PRO badge
+  const selectGroupLabel = (
+    <Group justify="space-between" w="100%">
+      <Text fw={500}>Select Group(s)</Text>
+      {license.isFree() && (
+        <Tooltip
+          multiline
+          w={220}
+          label="Upgrade to Pro to select and export from multiple groups at once."
+        >
+          <Badge size="sm" variant="light" color="teal">
+            MULTI-GROUP IS A PRO FEATURE
+          </Badge>
+        </Tooltip>
+      )}
+    </Group>
+  )
 
   return (
     <LayoutPage>
+      {/* MODIFIED: Updated InputSelectGroup with new props for free user limitations */}
       <InputSelectGroup
         value={selectedGroupIds}
         onChange={setSelectedGroupIds}
@@ -90,9 +112,7 @@ const PageGroupMemberExporter: React.FC = () => {
             />
           </Group>
         </Group>
-
         <Group justify="space-between">
-          {/* Use the new totalRecords state for an accurate count */}
           <Text fw={500}>{totalRecords} members found</Text>
           <Group>
             <Popover width={250} position="bottom-end" withArrow shadow="md">
@@ -124,7 +144,6 @@ const PageGroupMemberExporter: React.FC = () => {
                 </Checkbox.Group>
               </Popover.Dropdown>
             </Popover>
-
             <Menu
               shadow="md"
               width={200}
@@ -135,6 +154,7 @@ const PageGroupMemberExporter: React.FC = () => {
                   Export Data
                 </Button>
               </Menu.Target>
+              {/* MODIFIED: Export menu now checks license and shows PRO badges */}
               <Menu.Dropdown>
                 <Menu.Label>Export Formats</Menu.Label>
                 <Menu.Item
@@ -146,30 +166,65 @@ const PageGroupMemberExporter: React.FC = () => {
                 <Menu.Item
                   leftSection={<Icon icon="tabler:file-type-xls" />}
                   onClick={() => handleExport(SaveAs.EXCEL)}
+                  rightSection={
+                    license.isFree() ? (
+                      <Badge variant="light" color="teal" size="xs">
+                        PRO
+                      </Badge>
+                    ) : null
+                  }
                 >
                   Export as Excel
                 </Menu.Item>
                 <Menu.Item
                   leftSection={<Icon icon="tabler:file-type-pdf" />}
                   onClick={() => handleExport(SaveAs.PDF)}
+                  rightSection={
+                    license.isFree() ? (
+                      <Badge variant="light" color="teal" size="xs">
+                        PRO
+                      </Badge>
+                    ) : null
+                  }
                 >
                   Export as PDF
                 </Menu.Item>
                 <Menu.Item
                   leftSection={<Icon icon="tabler:json" />}
                   onClick={() => handleExport(SaveAs.JSON)}
+                  rightSection={
+                    license.isFree() ? (
+                      <Badge variant="light" color="teal" size="xs">
+                        PRO
+                      </Badge>
+                    ) : null
+                  }
                 >
                   Export as JSON
                 </Menu.Item>
                 <Menu.Item
                   leftSection={<Icon icon="tabler:file-type-txt" />}
                   onClick={() => handleExport(SaveAs.TXT)}
+                  rightSection={
+                    license.isFree() ? (
+                      <Badge variant="light" color="teal" size="xs">
+                        PRO
+                      </Badge>
+                    ) : null
+                  }
                 >
                   Export as TXT
                 </Menu.Item>
                 <Menu.Item
                   leftSection={<Icon icon="tabler:id" />}
                   onClick={() => handleExport(SaveAs.VCARD)}
+                  rightSection={
+                    license.isFree() ? (
+                      <Badge variant="light" color="teal" size="xs">
+                        PRO
+                      </Badge>
+                    ) : null
+                  }
                 >
                   Export as vCard (.vcf)
                 </Menu.Item>
@@ -188,7 +243,6 @@ const PageGroupMemberExporter: React.FC = () => {
             </Menu>
           </Group>
         </Group>
-
         <DataTable
           height={350}
           withTableBorder

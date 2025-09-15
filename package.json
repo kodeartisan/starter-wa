@@ -1,9 +1,8 @@
 {
-  "name": "whats-group-link-generator",
-  "shortName": "WAGroupLinks",
-  "displayName": "WA Group Bulk Link Generator for WhatsApp",
+  "name": "wa-group-member-exporter-downloader",
+  "displayName": "WA Group Members Exporter & Downloader for WhatsApp",
   "version": "1.0.0",
-  "description": "Generate invite links in bulk, create QR codes, and export your list right from WhatsApp Web.",
+  "description": "The easiest way to extract and download contact lists from your WhatsApp groups. Supports multiple formats.",
   "author": "Extninja",
   "scripts": {
     "dev": "plasmo dev --no-cs-reload",
