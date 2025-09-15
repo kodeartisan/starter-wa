@@ -15,17 +15,23 @@ import {
   SegmentedControl,
   Stack,
   Text,
-  TextInput, // ADDED: Import TextInput for the search bar
+  TextInput,
 } from '@mantine/core'
 import { DataTable } from 'mantine-datatable'
 import React from 'react'
-import { ALL_COLUMNS, useGroupMemberExporter } from './useGroupMemberExporter'
+import {
+  ALL_COLUMNS,
+  RECORDS_PER_PAGE, // Import the page size constant
+  useGroupMemberExporter,
+} from './useGroupMemberExporter'
 
 const PageGroupMemberExporter: React.FC = () => {
   const {
     isLoading,
-    members,
     processedData,
+    totalRecords, // Get the total records for pagination
+    page, // Get the current page
+    setPage, // Get the function to change the page
     adminFilter,
     setAdminFilter,
     contactFilter,
@@ -36,7 +42,6 @@ const PageGroupMemberExporter: React.FC = () => {
     setSelectedColumns,
     getSelectedNumbers,
     handleExport,
-    // ADDED: Get search state and handler from the hook
     searchQuery,
     setSearchQuery,
   } = useGroupMemberExporter()
@@ -49,19 +54,20 @@ const PageGroupMemberExporter: React.FC = () => {
         disabled={isLoading}
       />
       <Stack>
-        {/* MODIFIED: Added a search input field */}
         <Group justify="space-between">
           <TextInput
             placeholder="Search by name or number..."
             leftSection={<Icon icon="tabler:search" fontSize={16} />}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.currentTarget.value)}
-            disabled={isLoading || members.length === 0}
+            disabled={isLoading || (totalRecords === 0 && searchQuery === '')}
             style={{ flex: 1 }}
           />
           <Group>
             <SegmentedControl
-              disabled={isLoading || members.length === 0}
+              disabled={
+                isLoading || (totalRecords === 0 && adminFilter === 'ALL')
+              }
               value={adminFilter}
               onChange={setAdminFilter as (value: string) => void}
               data={[
@@ -71,7 +77,9 @@ const PageGroupMemberExporter: React.FC = () => {
               ]}
             />
             <SegmentedControl
-              disabled={isLoading || members.length === 0}
+              disabled={
+                isLoading || (totalRecords === 0 && contactFilter === 'ALL')
+              }
               value={contactFilter}
               onChange={setContactFilter as (value: string) => void}
               data={[
@@ -84,7 +92,8 @@ const PageGroupMemberExporter: React.FC = () => {
         </Group>
 
         <Group justify="space-between">
-          <Text fw={500}>{processedData.length} members found</Text>
+          {/* Use the new totalRecords state for an accurate count */}
+          <Text fw={500}>{totalRecords} members found</Text>
           <Group>
             <Popover width={250} position="bottom-end" withArrow shadow="md">
               <Popover.Target>
@@ -92,7 +101,7 @@ const PageGroupMemberExporter: React.FC = () => {
                   variant="outline"
                   size="xs"
                   leftSection={<Icon icon="tabler:columns" />}
-                  disabled={isLoading || members.length === 0}
+                  disabled={isLoading || totalRecords === 0}
                 >
                   Customize Columns
                 </Button>
@@ -115,10 +124,11 @@ const PageGroupMemberExporter: React.FC = () => {
                 </Checkbox.Group>
               </Popover.Dropdown>
             </Popover>
+
             <Menu
               shadow="md"
               width={200}
-              disabled={isLoading || processedData.length === 0}
+              disabled={isLoading || totalRecords === 0}
             >
               <Menu.Target>
                 <Button size="xs" leftSection={<Icon icon="tabler:download" />}>
@@ -178,6 +188,7 @@ const PageGroupMemberExporter: React.FC = () => {
             </Menu>
           </Group>
         </Group>
+
         <DataTable
           height={350}
           withTableBorder
@@ -200,10 +211,7 @@ const PageGroupMemberExporter: React.FC = () => {
                 </Group>
               ),
             },
-            {
-              accessor: 'phoneNumber',
-              title: 'Phone Number',
-            },
+            { accessor: 'phoneNumber', title: 'Phone Number' },
             {
               accessor: 'isAdmin',
               title: 'Role',
@@ -224,11 +232,13 @@ const PageGroupMemberExporter: React.FC = () => {
                 </Badge>
               ),
             },
-            {
-              accessor: 'groupName',
-              title: 'Group',
-            },
+            { accessor: 'groupName', title: 'Group' },
           ]}
+          // ADDED: Pass pagination props directly to the DataTable component
+          totalRecords={totalRecords}
+          recordsPerPage={RECORDS_PER_PAGE}
+          page={page}
+          onPageChange={setPage}
         />
       </Stack>
     </LayoutPage>

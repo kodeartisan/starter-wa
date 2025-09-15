@@ -26,7 +26,7 @@ export interface Member {
 export type FilterStatus = 'ALL' | 'ADMIN' | 'NON_ADMIN'
 export type ContactFilterStatus = 'ALL' | 'SAVED' | 'UNSAVED'
 
-// MODIFIED: All available columns for export customization, with 'isBusiness' removed.
+// All available columns for export customization
 export const ALL_COLUMNS = [
   { value: 'phoneNumber', label: 'Phone Number' },
   { value: 'savedName', label: 'Name' },
@@ -34,6 +34,9 @@ export const ALL_COLUMNS = [
   { value: 'isMyContact', label: 'Is My Contact' },
   { value: 'groupName', label: 'Group Name' },
 ]
+
+// ADDED: Define a constant for the number of records to show per page
+export const RECORDS_PER_PAGE = 50
 
 export const useGroupMemberExporter = () => {
   const { groups } = useAppStore()
@@ -46,8 +49,9 @@ export const useGroupMemberExporter = () => {
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
     ALL_COLUMNS.map((c) => c.value),
   )
-  // ADDED: State for handling the search query.
   const [searchQuery, setSearchQuery] = useState('')
+  // ADDED: State to manage the current page
+  const [page, setPage] = useState(1)
 
   const serializeData = async (data: any[]) => {
     let filteredData = [...data]
@@ -245,10 +249,15 @@ export const useGroupMemberExporter = () => {
     setIsLoading(false)
   }, [selectedGroupIds, groups])
 
-  // MODIFIED: Added search logic to the memoized data processing.
-  const processedData = useMemo(() => {
-    let filtered = [...members]
+  // ADDED: A new `useEffect` to reset the page number to 1 whenever filters are changed.
+  // This prevents viewing a non-existent page after filtering reduces the total number of records.
+  useEffect(() => {
+    setPage(1)
+  }, [adminFilter, contactFilter, searchQuery, selectedGroupIds])
 
+  // This memo now handles all filtering logic and returns the complete filtered list.
+  const filteredData = useMemo(() => {
+    let filtered = [...members]
     // Apply filters
     if (adminFilter !== 'ALL') {
       filtered = filtered.filter((m) =>
@@ -260,7 +269,6 @@ export const useGroupMemberExporter = () => {
         contactFilter === 'SAVED' ? m.isMyContact : !m.isMyContact,
       )
     }
-
     // Apply search query
     if (searchQuery) {
       const lowercasedQuery = searchQuery.toLowerCase()
@@ -270,36 +278,45 @@ export const useGroupMemberExporter = () => {
           m.phoneNumber?.includes(lowercasedQuery),
       )
     }
-
     return filtered
   }, [members, adminFilter, contactFilter, searchQuery])
 
-  const getSelectedNumbers = useMemo(() => {
-    return processedData.map((m) => m.phoneNumber).join('\n')
-  }, [processedData])
+  // `processedData` is now responsible only for slicing the filtered data for pagination.
+  const processedData = useMemo(() => {
+    const from = (page - 1) * RECORDS_PER_PAGE
+    const to = from + RECORDS_PER_PAGE
+    return filteredData.slice(from, to)
+  }, [filteredData, page])
 
+  // MODIFIED: getSelectedNumbers should operate on the full filtered list, not just the visible page.
+  const getSelectedNumbers = useMemo(() => {
+    return filteredData.map((m) => m.phoneNumber).join('\n')
+  }, [filteredData])
+
+  // MODIFIED: handleExport should also use the full filtered list.
   const handleExport = (format: string) => {
-    if (processedData.length === 0) return
-    const dataToExport = processedData.map((member) =>
+    if (filteredData.length === 0) return
+    const dataToExport = filteredData.map((member) =>
       _.pick(member, selectedColumns),
     )
-
     if (format === SaveAs.VCARD) {
-      const vCardData = processedData.map(({ savedName, phoneNumber }) => ({
+      const vCardData = filteredData.map(({ savedName, phoneNumber }) => ({
         savedName,
         phoneNumber,
       }))
       saveAs(format, vCardData, 'whatsapp_group_contacts')
       return
     }
-
     saveAs(format, dataToExport, 'whatsapp_group_members')
   }
 
   return {
     isLoading,
     members,
-    processedData,
+    processedData, // This is now the paginated data for the table
+    totalRecords: filteredData.length, // The total number of records after filtering
+    page,
+    setPage,
     adminFilter,
     setAdminFilter,
     contactFilter,
@@ -310,7 +327,6 @@ export const useGroupMemberExporter = () => {
     setSelectedColumns,
     getSelectedNumbers,
     handleExport,
-    // ADDED: Expose search state handlers to the component.
     searchQuery,
     setSearchQuery,
   }
