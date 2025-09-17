@@ -2,11 +2,9 @@
 import { SaveAs } from '@/constants'
 import useLicense from '@/hooks/useLicense' // MODIFIED: Import useLicense
 import { useAppStore } from '@/stores/app'
-import toast from '@/utils/toast'
-// MODIFIED: Import showModalUpgrade utility
+import toast from '@/utils/toast' // MODIFIED: Import showModalUpgrade utility
 import { getContactName, showModalUpgrade } from '@/utils/util'
 import FileSaver from 'file-saver'
-import jsPDF from 'jspdf'
 import _ from 'lodash'
 import { useEffect, useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
@@ -112,93 +110,11 @@ export const useGroupMemberExporter = () => {
       const rowValues = headers.map((header) => row[header])
       txtContent += rowValues.join('\t\t') + '\n'
     })
-    const blob = new Blob([txtContent], {
-      type: 'text/plain;charset=utf-8;',
-    })
+    const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8;' })
     FileSaver.saveAs(blob, `${filename}.txt`)
   }
 
-  const saveAsPDF = async (data: any[], filename: string) => {
-    if (!data || data.length === 0) return
-    try {
-      const doc = new jsPDF({
-        orientation: 'landscape',
-        unit: 'px',
-        format: 'a4',
-      })
-      const selectedColumnDetails = ALL_COLUMNS.filter((col) =>
-        selectedColumns.includes(col.value),
-      )
-      const headers = selectedColumnDetails.map((col) => col.label)
-      const body = data.map((row) =>
-        selectedColumnDetails.map((col) =>
-          typeof row[col.value] === 'boolean'
-            ? row[col.value]
-              ? 'Yes'
-              : 'No'
-            : String(row[col.value] ?? '-'),
-        ),
-      )
-      const pageHeight = doc.internal.pageSize.getHeight()
-      const pageWidth = doc.internal.pageSize.getWidth()
-      const margin = 30
-      const rowHeight = 25
-      const fontSize = 10
-      const cellPadding = 5
-      let y = margin + 30
-
-      doc.setFontSize(18)
-      doc.text('WhatsApp Group Members Export', pageWidth / 2, margin, {
-        align: 'center',
-      })
-
-      doc.setFontSize(fontSize)
-      const drawHeaders = () => {
-        const colWidth = (pageWidth - margin * 2) / headers.length
-        doc.setFont('helvetica', 'bold')
-        headers.forEach((header, i) => {
-          doc.setFillColor(240, 240, 240)
-          doc.rect(margin + i * colWidth, y, colWidth, rowHeight, 'F')
-          doc.setDrawColor(150, 150, 150)
-          doc.rect(margin + i * colWidth, y, colWidth, rowHeight)
-          doc.text(
-            header,
-            margin + i * colWidth + cellPadding,
-            y + rowHeight / 2 + 4,
-          )
-        })
-        y += rowHeight
-      }
-      drawHeaders()
-      const colWidth = (pageWidth - margin * 2) / headers.length
-      doc.setFont('helvetica', 'normal')
-      body.forEach((row) => {
-        if (y + rowHeight > pageHeight - margin) {
-          doc.addPage()
-          y = margin
-          drawHeaders()
-        }
-        row.forEach((cell, cellIndex) => {
-          doc.setDrawColor(150, 150, 150)
-          doc.rect(margin + cellIndex * colWidth, y, colWidth, rowHeight)
-          const textLines = doc.splitTextToSize(
-            cell,
-            colWidth - cellPadding * 2,
-          )
-          doc.text(
-            textLines,
-            margin + cellIndex * colWidth + cellPadding,
-            y + rowHeight / 2 + 4,
-          )
-        })
-        y += rowHeight
-      })
-      doc.save(`${filename}.pdf`)
-    } catch (error) {
-      console.error('Failed to generate PDF:', error)
-      toast.error('An unexpected error occurred while generating the PDF.')
-    }
-  }
+  // --- MODIFIED: REMOVED THE saveAsPDF function that used jsPDF ---
 
   const saveAs = async (fileType: string, data: any[], filename?: string) => {
     const processedData = await serializeData(data)
@@ -210,8 +126,9 @@ export const useGroupMemberExporter = () => {
       case SaveAs.EXCEL:
         saveAsExcel(processedData, finalFilename)
         break
+      // --- MODIFIED: The PDF case is now handled by @react-pdf/renderer in the UI component ---
       case SaveAs.PDF:
-        await saveAsPDF(processedData, finalFilename)
+        toast.error('PDF export is handled by the UI component.')
         break
       case SaveAs.JSON:
         saveAsJson(processedData, finalFilename)
@@ -248,7 +165,6 @@ export const useGroupMemberExporter = () => {
         groupSource: group.id,
       }))
     })
-
     const allMembers = _.chain(results).flatten().uniqBy('id').value()
     setMembers(allMembers)
     setIsLoading(false)
@@ -263,20 +179,17 @@ export const useGroupMemberExporter = () => {
   // This memo now handles all filtering logic and returns the complete filtered list.
   const filteredData = useMemo(() => {
     let filtered = [...members]
-
     // Apply filters
     if (adminFilter !== 'ALL') {
       filtered = filtered.filter((m) =>
         adminFilter === 'ADMIN' ? m.isAdmin : !m.isAdmin,
       )
     }
-
     if (contactFilter !== 'ALL') {
       filtered = filtered.filter((m) =>
         contactFilter === 'SAVED' ? m.isMyContact : !m.isMyContact,
       )
     }
-
     // Apply search query
     if (searchQuery) {
       const lowercasedQuery = searchQuery.toLowerCase()
@@ -286,7 +199,6 @@ export const useGroupMemberExporter = () => {
           m.phoneNumber?.includes(lowercasedQuery),
       )
     }
-
     return filtered
   }, [members, adminFilter, contactFilter, searchQuery])
 
@@ -312,6 +224,7 @@ export const useGroupMemberExporter = () => {
       SaveAs.VCARD,
       SaveAs.TXT,
     ]
+
     if (license.isFree() && proFormats.includes(format)) {
       showModalUpgrade(
         'Advanced Export Formats',
@@ -328,7 +241,6 @@ export const useGroupMemberExporter = () => {
     const dataToExport = filteredData.map((member) =>
       _.pick(member, selectedColumns),
     )
-
     if (format === SaveAs.VCARD) {
       const vCardData = filteredData.map(({ savedName, phoneNumber }) => ({
         savedName,
@@ -337,6 +249,7 @@ export const useGroupMemberExporter = () => {
       saveAs(format, vCardData, 'whatsapp_group_contacts')
       return
     }
+
     saveAs(format, dataToExport, 'whatsapp_group_members')
   }
 
@@ -344,6 +257,7 @@ export const useGroupMemberExporter = () => {
     isLoading,
     members,
     processedData, // This is now the paginated data for the table
+    filteredData, // MODIFIED: Expose the full filtered data for the PDF component
     totalRecords: filteredData.length, // The total number of records after filtering
     page,
     setPage,

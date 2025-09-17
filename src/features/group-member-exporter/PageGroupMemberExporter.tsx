@@ -19,8 +19,12 @@ import {
   TextInput,
   Tooltip,
 } from '@mantine/core'
+// ++ ADDED: Imports for @react-pdf/renderer and the new PdfDocument component
+import { PDFDownloadLink } from '@react-pdf/renderer'
+import _ from 'lodash'
 import { DataTable } from 'mantine-datatable'
-import React from 'react'
+import React, { useMemo } from 'react'
+import PdfDocument from './PdfDocument'
 import {
   ALL_COLUMNS,
   RECORDS_PER_PAGE,
@@ -31,6 +35,7 @@ const PageGroupMemberExporter: React.FC = () => {
   const {
     isLoading,
     processedData,
+    filteredData, // ++ ADDED: Get the full filtered data for PDF export
     totalRecords,
     page,
     setPage,
@@ -47,29 +52,20 @@ const PageGroupMemberExporter: React.FC = () => {
     searchQuery,
     setSearchQuery,
   } = useGroupMemberExporter()
-  const license = useLicense() // ADDED: Instantiate license hook
 
-  // ADDED: Create a dynamic label for the group selector to show PRO badge
-  const selectGroupLabel = (
-    <Group justify="space-between" w="100%">
-      <Text fw={500}>Select Group(s)</Text>
-      {license.isFree() && (
-        <Tooltip
-          multiline
-          w={220}
-          label="Upgrade to Pro to select and export from multiple groups at once."
-        >
-          <Badge size="sm" variant="light" color="teal">
-            MULTI-GROUP IS A PRO FEATURE
-          </Badge>
-        </Tooltip>
-      )}
-    </Group>
-  )
+  const license = useLicense()
+
+  // ++ ADDED: Memoize the data formatted for PDF export to prevent re-computation
+  const pdfExportData = useMemo(() => {
+    const columns = ALL_COLUMNS.filter((col) =>
+      selectedColumns.includes(col.value),
+    )
+    const data = filteredData.map((member) => _.pick(member, selectedColumns))
+    return { data, columns }
+  }, [filteredData, selectedColumns])
 
   return (
     <LayoutPage>
-      {/* MODIFIED: Updated InputSelectGroup with new props for free user limitations */}
       <InputSelectGroup
         value={selectedGroupIds}
         onChange={setSelectedGroupIds}
@@ -144,6 +140,7 @@ const PageGroupMemberExporter: React.FC = () => {
                 </Checkbox.Group>
               </Popover.Dropdown>
             </Popover>
+
             <Menu
               shadow="md"
               width={200}
@@ -154,7 +151,7 @@ const PageGroupMemberExporter: React.FC = () => {
                   Export Data
                 </Button>
               </Menu.Target>
-              {/* MODIFIED: Export menu now checks license and shows PRO badges */}
+
               <Menu.Dropdown>
                 <Menu.Label>Export Formats</Menu.Label>
                 <Menu.Item
@@ -176,19 +173,42 @@ const PageGroupMemberExporter: React.FC = () => {
                 >
                   Export as Excel
                 </Menu.Item>
-                <Menu.Item
-                  leftSection={<Icon icon="tabler:file-type-pdf" />}
-                  onClick={() => handleExport(SaveAs.PDF)}
-                  rightSection={
-                    license.isFree() ? (
+
+                {/* ++ MODIFIED: PDF Export Logic */}
+                {license.isFree() ? (
+                  <Menu.Item
+                    leftSection={<Icon icon="tabler:file-type-pdf" />}
+                    onClick={() => handleExport(SaveAs.PDF)} // This will trigger the upgrade modal
+                    rightSection={
                       <Badge variant="light" color="teal" size="xs">
                         PRO
                       </Badge>
-                    ) : null
-                  }
-                >
-                  Export as PDF
-                </Menu.Item>
+                    }
+                  >
+                    Export as PDF
+                  </Menu.Item>
+                ) : (
+                  <PDFDownloadLink
+                    document={
+                      <PdfDocument
+                        data={pdfExportData.data}
+                        columns={pdfExportData.columns}
+                      />
+                    }
+                    fileName="whatsapp_group_members.pdf"
+                    style={{ textDecoration: 'none' }}
+                  >
+                    {({ loading }) => (
+                      <Menu.Item
+                        leftSection={<Icon icon="tabler:file-type-pdf" />}
+                        disabled={loading}
+                      >
+                        {loading ? 'Generating PDF...' : 'Export as PDF'}
+                      </Menu.Item>
+                    )}
+                  </PDFDownloadLink>
+                )}
+
                 <Menu.Item
                   leftSection={<Icon icon="tabler:json" />}
                   onClick={() => handleExport(SaveAs.JSON)}
