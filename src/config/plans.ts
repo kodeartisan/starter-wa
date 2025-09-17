@@ -46,7 +46,7 @@ const plans = [
   {
     name: 'Free',
     isFree: true,
-    description: 'For basic chat backup needs.',
+    description: 'For basic needs.',
     price: '$0',
     priceSuffix: null, // <-- priceSuffix ditambahkan di sini
     link: '#',
