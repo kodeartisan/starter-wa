@@ -1,10 +1,13 @@
-// src/features/group-member-exporter/PageGroupMemberExporter.tsx
+// src/features/group-admin-finder/PageGroupAdminFinder.tsx
 import InputSelectGroup from '@/components/Input/InputSelectGroup'
 import LayoutPage from '@/components/Layout/LayoutPage'
-import { SaveAs } from '@/constants'
+import { Action, SaveAs } from '@/constants'
 import useLicense from '@/hooks/useLicense'
+import useWa from '@/hooks/useWa'
+import { postMessage } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
+  ActionIcon,
   Avatar,
   Badge,
   Button,
@@ -13,13 +16,10 @@ import {
   Group,
   Menu,
   Popover,
-  SegmentedControl,
   Stack,
   Text,
-  TextInput,
   Tooltip,
 } from '@mantine/core'
-// ++ ADDED: Imports for @react-pdf/renderer and the new PdfDocument component
 import { PDFDownloadLink } from '@react-pdf/renderer'
 import _ from 'lodash'
 import { DataTable } from 'mantine-datatable'
@@ -28,34 +28,31 @@ import PdfDocument from './PdfDocument'
 import {
   ALL_COLUMNS,
   RECORDS_PER_PAGE,
-  useGroupMemberExporter,
-} from './useGroupMemberExporter'
+  useGroupAdminFinder,
+} from './useGroupAdminFinder'
 
-const PageGroupMemberExporter: React.FC = () => {
+/**
+ * @component PageGroupAdminFinder
+ * @description A page component to find and display administrators from selected WhatsApp groups.
+ */
+const PageGroupAdminFinder: React.FC = () => {
   const {
     isLoading,
     processedData,
-    filteredData, // ++ ADDED: Get the full filtered data for PDF export
+    filteredData,
     totalRecords,
     page,
     setPage,
-    adminFilter,
-    setAdminFilter,
-    contactFilter,
-    setContactFilter,
     selectedGroupIds,
     setSelectedGroupIds,
     selectedColumns,
     setSelectedColumns,
     getSelectedNumbers,
     handleExport,
-    searchQuery,
-    setSearchQuery,
-  } = useGroupMemberExporter()
-
+  } = useGroupAdminFinder()
   const license = useLicense()
+  const wa = useWa()
 
-  // ++ ADDED: Memoize the data formatted for PDF export to prevent re-computation
   const pdfExportData = useMemo(() => {
     const columns = ALL_COLUMNS.filter((col) =>
       selectedColumns.includes(col.value),
@@ -64,8 +61,14 @@ const PageGroupMemberExporter: React.FC = () => {
     return { data, columns }
   }, [filteredData, selectedColumns])
 
+  // ++ ADDED: A handler to open the chat and then close the main modal.
+  const handleSendMessage = (chatId: string) => {
+    wa.chat.openChatBottom(chatId)
+    postMessage(Action.Window.CLOSE_PAGE)
+  }
+
   return (
-    <LayoutPage>
+    <LayoutPage title="Group Admin Finder">
       <InputSelectGroup
         value={selectedGroupIds}
         onChange={setSelectedGroupIds}
@@ -73,43 +76,7 @@ const PageGroupMemberExporter: React.FC = () => {
       />
       <Stack>
         <Group justify="space-between">
-          <TextInput
-            placeholder="Search by name or number..."
-            leftSection={<Icon icon="tabler:search" fontSize={16} />}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.currentTarget.value)}
-            disabled={isLoading || (totalRecords === 0 && searchQuery === '')}
-            style={{ flex: 1 }}
-          />
-          <Group>
-            <SegmentedControl
-              disabled={
-                isLoading || (totalRecords === 0 && adminFilter === 'ALL')
-              }
-              value={adminFilter}
-              onChange={setAdminFilter as (value: string) => void}
-              data={[
-                { label: 'All Roles', value: 'ALL' },
-                { label: 'Admins', value: 'ADMIN' },
-                { label: 'Non-Admins', value: 'NON_ADMIN' },
-              ]}
-            />
-            <SegmentedControl
-              disabled={
-                isLoading || (totalRecords === 0 && contactFilter === 'ALL')
-              }
-              value={contactFilter}
-              onChange={setContactFilter as (value: string) => void}
-              data={[
-                { label: 'All Contacts', value: 'ALL' },
-                { label: 'Saved', value: 'SAVED' },
-                { label: 'Unsaved', value: 'UNSAVED' },
-              ]}
-            />
-          </Group>
-        </Group>
-        <Group justify="space-between">
-          <Text fw={500}>{totalRecords} members found</Text>
+          <Text fw={500}>{totalRecords} admins found</Text>
           <Group>
             <Popover width={250} position="bottom-end" withArrow shadow="md">
               <Popover.Target>
@@ -140,7 +107,6 @@ const PageGroupMemberExporter: React.FC = () => {
                 </Checkbox.Group>
               </Popover.Dropdown>
             </Popover>
-
             <Menu
               shadow="md"
               width={200}
@@ -151,7 +117,6 @@ const PageGroupMemberExporter: React.FC = () => {
                   Export Data
                 </Button>
               </Menu.Target>
-
               <Menu.Dropdown>
                 <Menu.Label>Export Formats</Menu.Label>
                 <Menu.Item
@@ -173,12 +138,10 @@ const PageGroupMemberExporter: React.FC = () => {
                 >
                   Export as Excel
                 </Menu.Item>
-
-                {/* ++ MODIFIED: PDF Export Logic */}
                 {license.isFree() ? (
                   <Menu.Item
                     leftSection={<Icon icon="tabler:file-type-pdf" />}
-                    onClick={() => handleExport(SaveAs.PDF)} // This will trigger the upgrade modal
+                    onClick={() => handleExport(SaveAs.PDF)}
                     rightSection={
                       <Badge variant="light" color="teal" size="xs">
                         PRO
@@ -195,7 +158,7 @@ const PageGroupMemberExporter: React.FC = () => {
                         columns={pdfExportData.columns}
                       />
                     }
-                    fileName="whatsapp_group_members.pdf"
+                    fileName="whatsapp_group_admins.pdf"
                     style={{ textDecoration: 'none' }}
                   >
                     {({ loading }) => (
@@ -208,7 +171,6 @@ const PageGroupMemberExporter: React.FC = () => {
                     )}
                   </PDFDownloadLink>
                 )}
-
                 <Menu.Item
                   leftSection={<Icon icon="tabler:json" />}
                   onClick={() => handleExport(SaveAs.JSON)}
@@ -264,14 +226,14 @@ const PageGroupMemberExporter: React.FC = () => {
           </Group>
         </Group>
         <DataTable
-          height={350}
+          height={400}
           withTableBorder
           borderRadius="sm"
           striped
           highlightOnHover
           records={processedData}
           fetching={isLoading}
-          noRecordsText="No members to display. Select a group to get started."
+          noRecordsText="No admins to display. Select a group to get started."
           columns={[
             {
               accessor: 'savedName',
@@ -290,9 +252,9 @@ const PageGroupMemberExporter: React.FC = () => {
               accessor: 'isAdmin',
               title: 'Role',
               textAlign: 'center',
-              render: ({ isAdmin, isSuperAdmin }) => (
-                <Badge color={isSuperAdmin ? 'red' : isAdmin ? 'teal' : 'gray'}>
-                  {isSuperAdmin ? 'Super Admin' : isAdmin ? 'Admin' : 'Member'}
+              render: ({ isSuperAdmin }) => (
+                <Badge color={isSuperAdmin ? 'red' : 'teal'}>
+                  {isSuperAdmin ? 'Super Admin' : 'Admin'}
                 </Badge>
               ),
             },
@@ -307,6 +269,40 @@ const PageGroupMemberExporter: React.FC = () => {
               ),
             },
             { accessor: 'groupName', title: 'Group' },
+            {
+              accessor: 'actions',
+              title: 'Actions',
+              textAlign: 'right',
+              render: (admin) => (
+                <Group gap="xs" justify="right" wrap="nowrap">
+                  <Tooltip label="Send Message">
+                    <ActionIcon
+                      variant="subtle"
+                      // ++ MODIFIED: Use the new handler function.
+                      onClick={() => handleSendMessage(admin.id)}
+                    >
+                      <Icon icon="tabler:send" fontSize={16} />
+                    </ActionIcon>
+                  </Tooltip>
+                  <CopyButton value={admin.phoneNumber}>
+                    {({ copied, copy }) => (
+                      <Tooltip label={copied ? 'Copied!' : 'Copy Number'}>
+                        <ActionIcon
+                          variant="subtle"
+                          color={copied ? 'teal' : 'gray'}
+                          onClick={copy}
+                        >
+                          <Icon
+                            icon={copied ? 'tabler:check' : 'tabler:copy'}
+                            fontSize={16}
+                          />
+                        </ActionIcon>
+                      </Tooltip>
+                    )}
+                  </CopyButton>
+                </Group>
+              ),
+            },
           ]}
           totalRecords={totalRecords}
           recordsPerPage={RECORDS_PER_PAGE}
@@ -318,4 +314,4 @@ const PageGroupMemberExporter: React.FC = () => {
   )
 }
 
-export default PageGroupMemberExporter
+export default PageGroupAdminFinder

@@ -1,16 +1,16 @@
-// src/features/group-member-exporter/useGroupMemberExporter.ts
+// src/features/group-admin-finder/useGroupAdminFinder.ts
 import { SaveAs } from '@/constants'
-import useLicense from '@/hooks/useLicense' // MODIFIED: Import useLicense
+import useLicense from '@/hooks/useLicense'
 import { useAppStore } from '@/stores/app'
-import toast from '@/utils/toast' // MODIFIED: Import showModalUpgrade utility
+import toast from '@/utils/toast'
 import { getContactName, showModalUpgrade } from '@/utils/util'
 import FileSaver from 'file-saver'
 import _ from 'lodash'
 import { useEffect, useMemo, useState } from 'react'
 import * as XLSX from 'xlsx'
 
-// Define types for clarity
-export interface Member {
+// Type definition for an Admin
+export interface Admin {
   id: string
   phoneNumber: string
   savedName: string
@@ -22,9 +22,6 @@ export interface Member {
   groupName: string
 }
 
-export type FilterStatus = 'ALL' | 'ADMIN' | 'NON_ADMIN'
-export type ContactFilterStatus = 'ALL' | 'SAVED' | 'UNSAVED'
-
 // All available columns for export customization
 export const ALL_COLUMNS = [
   { value: 'phoneNumber', label: 'Phone Number' },
@@ -34,22 +31,17 @@ export const ALL_COLUMNS = [
   { value: 'groupName', label: 'Group Name' },
 ]
 
-// ADDED: Define a constant for the number of records to show per page
 export const RECORDS_PER_PAGE = 50
 
-export const useGroupMemberExporter = () => {
+export const useGroupAdminFinder = () => {
   const { groups } = useAppStore()
-  const license = useLicense() // MODIFIED: Instantiate license hook
+  const license = useLicense()
   const [isLoading, setIsLoading] = useState(false)
-  const [members, setMembers] = useState<Member[]>([])
-  const [adminFilter, setAdminFilter] = useState<FilterStatus>('ALL')
-  const [contactFilter, setContactFilter] = useState<ContactFilterStatus>('ALL')
+  const [admins, setAdmins] = useState<Admin[]>([])
   const [selectedGroupIds, setSelectedGroupIds] = useState<string[]>([])
   const [selectedColumns, setSelectedColumns] = useState<string[]>(
     ALL_COLUMNS.map((c) => c.value),
   )
-  const [searchQuery, setSearchQuery] = useState('')
-  // ADDED: State to manage the current page
   const [page, setPage] = useState(1)
 
   const serializeData = async (data: any[]) => {
@@ -66,7 +58,7 @@ export const useGroupMemberExporter = () => {
     return `export_${new Date().toISOString().slice(0, 10)}`
   }
 
-  // --- START: File Saving Logic ---
+  // --- File Saving Logic remains unchanged ---
   const saveAsCSV = (data: any[], filename: string) => {
     if (!data || data.length === 0) return
     const worksheet = XLSX.utils.json_to_sheet(data)
@@ -114,8 +106,6 @@ export const useGroupMemberExporter = () => {
     FileSaver.saveAs(blob, `${filename}.txt`)
   }
 
-  // --- MODIFIED: REMOVED THE saveAsPDF function that used jsPDF ---
-
   const saveAs = async (fileType: string, data: any[], filename?: string) => {
     const processedData = await serializeData(data)
     const finalFilename = filename || defaultFilename()
@@ -126,7 +116,6 @@ export const useGroupMemberExporter = () => {
       case SaveAs.EXCEL:
         saveAsExcel(processedData, finalFilename)
         break
-      // --- MODIFIED: The PDF case is now handled by @react-pdf/renderer in the UI component ---
       case SaveAs.PDF:
         toast.error('PDF export is handled by the UI component.')
         break
@@ -145,78 +134,55 @@ export const useGroupMemberExporter = () => {
     }
   }
 
-  // --- END: File Saving Logic ---
-
   useEffect(() => {
     setIsLoading(true)
-    const filteredGroups = _.filter(groups, (group) =>
+    const selectedGroups = _.filter(groups, (group) =>
       _.includes(selectedGroupIds, group.id),
     )
-    const results = filteredGroups.map((group) => {
-      return group.participants.map((participant: any) => ({
-        groupName: group?.name || 'Unknown Group',
-        id: participant.contact.id,
-        phoneNumber: participant.contact.phoneNumber,
-        savedName: getContactName(participant.contact),
-        avatar: participant.contact.avatar,
-        isMyContact: participant.contact.isMyContact,
-        isAdmin: participant.isAdmin,
-        isSuperAdmin: participant.isSuperAdmin,
-        groupSource: group.id,
-      }))
-    })
-    const allMembers = _.chain(results).flatten().uniqBy('id').value()
-    setMembers(allMembers)
+
+    const allAdmins = _.chain(selectedGroups)
+      .flatMap((group) =>
+        group.participants
+          .filter((p: any) => p.isAdmin || p.isSuperAdmin)
+          .map((participant: any) => ({
+            groupName: group?.name || 'Unknown Group',
+            id: participant.contact.id,
+            phoneNumber: participant.contact.phoneNumber,
+            savedName: getContactName(participant.contact),
+            avatar: participant.contact.avatar,
+            isMyContact: participant.contact.isMyContact,
+            isAdmin: participant.isAdmin,
+            isSuperAdmin: participant.isSuperAdmin,
+            groupSource: group.id,
+          })),
+      )
+      .uniqBy('id')
+      .value()
+
+    setAdmins(allAdmins)
     setIsLoading(false)
   }, [selectedGroupIds, groups])
 
-  // ADDED: A new `useEffect` to reset the page number to 1 whenever filters are changed.
-  // This prevents viewing a non-existent page after filtering reduces the total number of records.
+  // Reset page only when group selection changes.
   useEffect(() => {
     setPage(1)
-  }, [adminFilter, contactFilter, searchQuery, selectedGroupIds])
+  }, [selectedGroupIds])
 
-  // This memo now handles all filtering logic and returns the complete filtered list.
-  const filteredData = useMemo(() => {
-    let filtered = [...members]
-    // Apply filters
-    if (adminFilter !== 'ALL') {
-      filtered = filtered.filter((m) =>
-        adminFilter === 'ADMIN' ? m.isAdmin : !m.isAdmin,
-      )
-    }
-    if (contactFilter !== 'ALL') {
-      filtered = filtered.filter((m) =>
-        contactFilter === 'SAVED' ? m.isMyContact : !m.isMyContact,
-      )
-    }
-    // Apply search query
-    if (searchQuery) {
-      const lowercasedQuery = searchQuery.toLowerCase()
-      filtered = filtered.filter(
-        (m) =>
-          m.savedName?.toLowerCase().includes(lowercasedQuery) ||
-          m.phoneNumber?.includes(lowercasedQuery),
-      )
-    }
-    return filtered
-  }, [members, adminFilter, contactFilter, searchQuery])
+  // The list of admins is now the definitive filtered data.
+  const filteredData = admins
 
-  // `processedData` is now responsible only for slicing the filtered data for pagination.
+  // Memoized data for pagination.
   const processedData = useMemo(() => {
     const from = (page - 1) * RECORDS_PER_PAGE
     const to = from + RECORDS_PER_PAGE
     return filteredData.slice(from, to)
   }, [filteredData, page])
 
-  // MODIFIED: getSelectedNumbers should operate on the full filtered list, not just the visible page.
   const getSelectedNumbers = useMemo(() => {
     return filteredData.map((m) => m.phoneNumber).join('\n')
   }, [filteredData])
 
-  // MODIFIED: handleExport should also use the full filtered list.
   const handleExport = (format: string) => {
-    // MODIFIED: Check for pro features and license status
     const proFormats = [
       SaveAs.EXCEL,
       SaveAs.PDF,
@@ -224,7 +190,6 @@ export const useGroupMemberExporter = () => {
       SaveAs.VCARD,
       SaveAs.TXT,
     ]
-
     if (license.isFree() && proFormats.includes(format)) {
       showModalUpgrade(
         'Advanced Export Formats',
@@ -232,12 +197,10 @@ export const useGroupMemberExporter = () => {
       )
       return
     }
-
     if (filteredData.length === 0) {
       toast.error('There is no data to export.')
       return
     }
-
     const dataToExport = filteredData.map((member) =>
       _.pick(member, selectedColumns),
     )
@@ -246,32 +209,24 @@ export const useGroupMemberExporter = () => {
         savedName,
         phoneNumber,
       }))
-      saveAs(format, vCardData, 'whatsapp_group_contacts')
+      saveAs(format, vCardData, 'whatsapp_group_admins')
       return
     }
-
-    saveAs(format, dataToExport, 'whatsapp_group_members')
+    saveAs(format, dataToExport, 'whatsapp_group_admins')
   }
 
   return {
     isLoading,
-    members,
-    processedData, // This is now the paginated data for the table
-    filteredData, // MODIFIED: Expose the full filtered data for the PDF component
-    totalRecords: filteredData.length, // The total number of records after filtering
+    processedData,
+    filteredData,
+    totalRecords: filteredData.length,
     page,
     setPage,
-    adminFilter,
-    setAdminFilter,
-    contactFilter,
-    setContactFilter,
     selectedGroupIds,
     setSelectedGroupIds,
     selectedColumns,
     setSelectedColumns,
     getSelectedNumbers,
     handleExport,
-    searchQuery,
-    setSearchQuery,
   }
 }

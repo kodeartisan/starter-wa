@@ -1,6 +1,6 @@
 // src/components/AppMenu.tsx
 import { Action, Page, Setting } from '@/constants'
-import PageGroupMemberExporter from '@/features/group-member-exporter/PageGroupMemberExporter'
+import PageGroupAdminFinder from '@/features/group-admin-finder/PageGroupAdminFinder'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
 import useWa from '@/hooks/useWa'
@@ -47,6 +47,10 @@ const AppMenu: React.FC = () => {
         break
       case Action.Window.GO_TO_PAGE:
         setActiveTab(body)
+        break
+      // ++ ADDED: Add a case to handle the close action for the main modal.
+      case Action.Window.CLOSE_PAGE:
+        modalMain.close()
         break
       case Action.Window.SHOW_MODAL_UPGRADE:
         setUpgradeInfo({
@@ -182,7 +186,7 @@ const AppMenu: React.FC = () => {
     return (
       <>
         <Tabs.Panel value={Page.HOME}>
-          <PageGroupMemberExporter />
+          <PageGroupAdminFinder />
         </Tabs.Panel>
       </>
     )
