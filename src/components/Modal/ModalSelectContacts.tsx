@@ -1,7 +1,16 @@
 import Modal from '@/components/Modal/Modal'
 import wa from '@/libs/wa'
+import { getContactName } from '@/utils/util'
 import { Icon } from '@iconify/react'
-import { Button, Group, Stack, TextInput, Title } from '@mantine/core'
+import {
+  Avatar,
+  Button,
+  Group,
+  Stack,
+  Text,
+  TextInput,
+  Title,
+} from '@mantine/core'
 import { DataTable, type DataTableColumn } from 'mantine-datatable'
 import React, { useEffect, useMemo, useState } from 'react'
 
@@ -67,8 +76,13 @@ const ModalSelectContacts: React.FC<Props> = ({
     {
       accessor: 'name',
       title: 'Name',
-      // -- MODIFIED: Corrected typo from `pubictName` to `publicName`.
-      render: (record) => record.publicName || record.savedName || 'N/A',
+      // ++ MODIFIED: Added Avatar to display the contact's profile picture.
+      render: (record) => (
+        <Group gap="sm">
+          <Avatar src={record.avatar} size="md" radius="xl" />
+          <Text size="sm">{getContactName(record)}</Text>
+        </Group>
+      ),
     },
     {
       accessor: 'number',
