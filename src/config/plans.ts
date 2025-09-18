@@ -62,7 +62,7 @@ const plans = [
     isFree: false,
     description: 'Pay once, access forever, no monthly fees.',
     placeholderPrice: '$89',
-    price: '$27',
+    price: '$19',
     priceSuffix: '/one-time',
     link: 'https://extdotninja.lemonsqueezy.com/buy/7f1401c0-fd00-4898-af64-15a869f9fb12?logo=0',
     features: [
