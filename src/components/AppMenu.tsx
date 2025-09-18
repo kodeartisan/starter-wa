@@ -1,6 +1,6 @@
 // src/components/AppMenu.tsx
 import { Action, Page, Setting } from '@/constants'
-import PageChatBackup from '@/features/tools/backup-chat/PageChatBackup'
+import PageGroupChatBackup from '@/features/tools/backup-chat/PageGroupChatBackup'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
 import useWindowMessage from '@/hooks/useWindowMessage'
@@ -164,7 +164,7 @@ const AppMenu: React.FC = () => {
     return (
       <>
         <Tabs.Panel value={Page.CHAT_BACKUP}>
-          <PageChatBackup />
+          <PageGroupChatBackup />
         </Tabs.Panel>
       </>
     )

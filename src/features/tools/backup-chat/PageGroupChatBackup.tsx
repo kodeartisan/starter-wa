@@ -1,22 +1,12 @@
-// src/features/tools/backup-chat/PageChatBackup.tsx
+// src/features/tools/backup-chat/PageGroupChatBackup.tsx
 import LayoutPage from '@/components/Layout/LayoutPage'
-import { Icon } from '@iconify/react'
-import {
-  Card,
-  Divider,
-  Group,
-  Stack,
-  Text,
-  ThemeIcon,
-  Title,
-} from '@mantine/core'
 import React from 'react'
 import BackupOptions from './components/BackupOptions'
 import BackupProgress from './components/BackupProgress'
 import BackupResult from './components/BackupResult'
 import { useChatBackup } from './hooks/useChatBackup'
 
-const PageChatBackup: React.FC = () => {
+const PageGroupChatBackup: React.FC = () => {
   const backup = useChatBackup()
 
   const renderContent = () => {
@@ -28,6 +18,7 @@ const PageChatBackup: React.FC = () => {
         />
       )
     }
+
     if (backup.backupResult) {
       return (
         <BackupResult
@@ -36,14 +27,11 @@ const PageChatBackup: React.FC = () => {
         />
       )
     }
+
     return <BackupOptions backupHook={backup} onStart={backup.startBackup} />
   }
 
-  return (
-    <LayoutPage width={800}>
-      <Stack>{renderContent()}</Stack>
-    </LayoutPage>
-  )
+  return <LayoutPage width={800}>{renderContent()}</LayoutPage>
 }
 
-export default PageChatBackup
+export default PageGroupChatBackup
