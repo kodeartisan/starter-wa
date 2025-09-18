@@ -1,3 +1,4 @@
+import ModalSelectContacts from '@/components/Modal/ModalSelectContacts'
 import { Icon } from '@iconify/react'
 import {
   ActionIcon,
@@ -12,7 +13,6 @@ import {
 import type { UseFormReturnType } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
 import React from 'react'
-import ModalSelectContacts from './ModalSelectContacts'
 
 interface Props {
   form: UseFormReturnType<any>
