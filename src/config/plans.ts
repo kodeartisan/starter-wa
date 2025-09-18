@@ -58,26 +58,11 @@ const plans = [
     ],
   },
   {
-    name: 'Per Day',
-    isFree: false,
-    description: 'Ideal for testing.',
-    placeholderPrice: null,
-    price: '$5',
-    priceSuffix: '/Day',
-    link: 'https://extdotninja.lemonsqueezy.com/buy/24835902-9c13-435d-ac6e-0a35dcc60509?logo=0',
-    features: [
-      'Export Unlimited members',
-      'Export to CSV, Excel, PDF, JSON & vCard',
-      'Advanced Filtering & Search',
-      'Priority Customer Support',
-    ],
-  },
-  {
     name: 'Lifetime',
     isFree: false,
-    description: 'Pay once, access all features forever.',
+    description: 'Pay once, access forever, no monthly fees.',
     placeholderPrice: '$89',
-    price: '$27',
+    price: '$19',
     priceSuffix: 'one-time',
     link: 'https://extdotninja.lemonsqueezy.com/buy/b37c82a9-5119-4912-b2df-fcc72e3b5ad6?logo=0',
     features: [
@@ -85,6 +70,8 @@ const plans = [
       'Export to CSV, Excel, PDF, JSON & vCard',
       'Advanced Filtering & Search',
       'Priority Customer Support',
+      'No monthly fees, No subscription',
+      'Pay once, access forever',
     ],
   },
 ]

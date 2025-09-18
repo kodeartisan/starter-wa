@@ -22,12 +22,13 @@ interface Props {
 
 const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
   return (
-    <Modal opened={opened} onClose={onClose} w={1300} withCloseButton={false}>
+    <Modal opened={opened} onClose={onClose} w={1000} withCloseButton={false}>
       <Stack py={'md'}>
         <Stack align="center" ta="center">
           <Title order={1}>Simple, transparent pricing</Title>
           <Text size={'xl'} c="dimmed">
-            Choose the perfect plan for your needs.
+            {' '}
+            Choose the perfect plan for your needs.{' '}
           </Text>
         </Stack>
         <Group justify="center" align="stretch" mt="sm" gap="lg">
@@ -48,6 +49,22 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
                 position: 'relative',
               }}
             >
+              {/* ADDED: Urgency badge for the Pro plan */}
+              {!plan.isFree && (
+                <Badge
+                  variant="gradient"
+                  gradient={{ from: 'yellow', to: 'orange' }}
+                  size="xl"
+                  style={{
+                    position: 'absolute',
+                    top: -15,
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                  }}
+                >
+                  Limited Time Offer
+                </Badge>
+              )}
               <Stack justify="space-between" style={{ height: '100%' }}>
                 <Box ta="center">
                   <Title order={2}>{plan.name}</Title>
@@ -56,28 +73,37 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
                     {plan.description}{' '}
                   </Text>
                 </Box>
-                <Group gap={8} align={'baseline'} justify="center">
-                  {!plan.isFree && plan.placeholderPrice && (
-                    <Text
-                      component="span"
-                      c="dimmed"
-                      fz="xl"
-                      fw={500}
-                      td="line-through"
-                    >
-                      {plan.placeholderPrice}
-                    </Text>
+                {/* MODIFIED: Wrapped price section in a Stack to add the savings badge */}
+                <Stack align="center" gap={4}>
+                  <Group gap={8} align={'baseline'} justify="center">
+                    {!plan.isFree && plan.placeholderPrice && (
+                      <Text
+                        component="span"
+                        c="dimmed"
+                        fz={32}
+                        fw={500}
+                        td="line-through"
+                      >
+                        {plan.placeholderPrice}
+                      </Text>
+                    )}
+                    <Title order={1} fz={52}>
+                      {' '}
+                      {plan.price}{' '}
+                    </Title>
+                    {plan.priceSuffix && (
+                      <Text component="span" c="dimmed" fz="xl" fw={500}>
+                        {plan.priceSuffix}
+                      </Text>
+                    )}
+                  </Group>
+                  {/* ADDED: Savings badge to explicitly highlight the discount */}
+                  {!plan.isFree && (
+                    <Badge variant="filled" size="lg">
+                      Save over 78%
+                    </Badge>
                   )}
-                  <Title order={1} fz={52}>
-                    {' '}
-                    {plan.price}{' '}
-                  </Title>
-                  {plan.priceSuffix && (
-                    <Text component="span" c="dimmed" fz="xl" fw={500}>
-                      {plan.priceSuffix}
-                    </Text>
-                  )}
-                </Group>
+                </Stack>
 
                 <Stack gap="sm">
                   {plan.features.map((feature, idx) => (
@@ -99,7 +125,8 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
                         )}
                       </ThemeIcon>
                       <Text size="sm" fw={500}>
-                        {feature}
+                        {' '}
+                        {feature}{' '}
                       </Text>
                     </Group>
                   ))}
@@ -132,18 +159,6 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
             </Paper>
           ))}
         </Group>
-        <Stack gap={4} align="center" mt="md">
-          <Group justify="center" gap={6}>
-            <Icon
-              icon="tabler:lock"
-              fontSize={16}
-              color="var(--mantine-color-gray-6)"
-            />
-            <Text size="sm" c="dimmed" fw={500}>
-              100% Secure Payment via Lemon Squeezy
-            </Text>
-          </Group>
-        </Stack>
       </Stack>
     </Modal>
   )
