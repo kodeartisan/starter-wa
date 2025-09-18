@@ -1,9 +1,9 @@
 {
-  "name": "whats-backup",
-  "shortName": "WhatsBackup",
-  "displayName": "WA Chats Backup & Exporter for WhatsApp",
-  "version": "1.7.0",
-  "description": "Save your WhatsApp chat and export to multiple formats",
+  "name": "whats-groups-backup",
+  "shortName": "WhatsGroupBackup",
+  "displayName": "WA Group Chats Backup for WhatsApp",
+  "version": "1.0.0",
+  "description": "Easily save & backup your group chats and export to multiple formats",
   "author": "Extninja",
   "scripts": {
     "dev": "plasmo dev --no-cs-reload",
@@ -21,7 +21,7 @@
     "@plasmohq/messaging": "0.7.1",
     "@plasmohq/storage": "^1.15.0",
     "@react-pdf/renderer": "^4.3.0",
-    "@wppconnect/wa-js": "^3.18.4",
+    "@wppconnect/wa-js": "^3.18.5",
     "axios": "^1.11.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

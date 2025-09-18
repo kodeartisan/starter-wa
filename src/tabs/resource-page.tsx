@@ -42,7 +42,6 @@ const PROMO_GRADIENT_BACKGROUND =
   'linear-gradient(135deg, var(--mantine-color-teal-8), var(--mantine-color-lime-8))'
 
 // --- Marquee Promo Tiles (1280x800px) --- //
-
 // English: [MODIFIED] Component dimensions changed to 1280x800.
 // English: The feature card grid has been changed to a vertical stack.
 const MarqueeTileFeatureShowcase = () => (
@@ -71,11 +70,11 @@ const MarqueeTileFeatureShowcase = () => (
             </ThemeIcon>
             <Title fz={48} lh={1.2} c="white">
               {' '}
-              The Ultimate WhatsApp Backup & Export Tool{' '}
+              The Ultimate WhatsApp Group Chat Backup & Export Tool{' '}
             </Title>
             <Title order={2} c="white" fw={500} mt="md">
               {' '}
-              Save your conversations and media in multiple formats with
+              Save your group conversations and media in multiple formats with
               advanced filtering.{' '}
             </Title>
           </Stack>
@@ -103,7 +102,6 @@ const MarqueeTileFeatureShowcase = () => (
                 HTML, PDF, Excel, CSV, JSON, TXT.{' '}
               </Title>
             </Card>
-
             <Card withBorder shadow="lg" p="lg">
               <Group>
                 <ThemeIcon
@@ -152,7 +150,6 @@ const MarqueeTileFeatureShowcase = () => (
 )
 
 // --- Feature Mockups for Screenshots --- //
-
 // English: These components represent the light-themed UI and remain unchanged.
 const FeatureMockupExportFormats = () => (
   <Card withBorder radius="md" p="xl" w={620}>
@@ -179,7 +176,6 @@ const FeatureMockupExportFormats = () => (
     </Stack>
   </Card>
 )
-
 const FeatureMockupAdvancedFiltering = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
@@ -205,7 +201,6 @@ const FeatureMockupAdvancedFiltering = () => (
     </Stack>
   </Card>
 )
-
 const FeatureMockupMediaBackup = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
@@ -228,7 +223,6 @@ const FeatureMockupMediaBackup = () => (
     </Stack>
   </Card>
 )
-
 const FeatureMockupPrivacy = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack align="center">
@@ -270,20 +264,19 @@ const FeatureMockupPrivacy = () => (
     </Stack>
   </Card>
 )
-
 const FeatureMockupSimpleInterface = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
       <Title order={4}>Start Your Backup in Seconds</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        Our intuitive interface makes saving your chats effortless.{' '}
+        Our intuitive interface makes saving your group chats effortless.{' '}
       </Text>
       <Select
         mt="md"
-        label="1. Select Chat"
+        label="1. Select Group Chat"
         placeholder="Click to choose a conversation"
-        data={[{ value: 'jane', label: 'Jane Doe' }]}
+        data={[{ value: 'jane', label: 'Project Alpha Team' }]}
         defaultValue="jane"
         disabled
         leftSection={
@@ -322,6 +315,7 @@ interface MarqueeTileFeatureDetailProps {
   description: string
   featureComponent: React.ReactNode
 }
+
 const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
   icon,
   title,
@@ -381,7 +375,7 @@ const ScreenshotGallery: React.FC = () => {
         <MarqueeTileFeatureDetail
           icon="tabler:files"
           title="Multiple Export Formats"
-          description="Convert into HTML, PDF, CSV, Excel, JSON, and TXT files."
+          description="Convert group chats into HTML, PDF, CSV, Excel, JSON, and TXT files."
           featureComponent={<FeatureMockupExportFormats />}
         />
       ),
@@ -393,7 +387,7 @@ const ScreenshotGallery: React.FC = () => {
         <MarqueeTileFeatureDetail
           icon="tabler:filter"
           title="Advanced Filtering"
-          description="Filter your exports by custom date ranges or multiple keywords."
+          description="Filter your group chat exports by custom date ranges or multiple keywords."
           featureComponent={<FeatureMockupAdvancedFiltering />}
         />
       ),
@@ -405,7 +399,7 @@ const ScreenshotGallery: React.FC = () => {
         <MarqueeTileFeatureDetail
           icon="tabler:photo-video"
           title="Save Your Media"
-          description="Back up and include all media types."
+          description="Back up and include all media types from your group chats."
           featureComponent={<FeatureMockupMediaBackup />}
         />
       ),
@@ -429,13 +423,12 @@ const ScreenshotGallery: React.FC = () => {
         <MarqueeTileFeatureDetail
           icon="tabler:mouse"
           title="Easy-to-Use Interface"
-          description="A clean and straightforward design allows you to back up your important chats in just a few clicks. No complicated steps."
+          description="A clean and straightforward design allows you to back up your important group chats in just a few clicks. No complicated steps."
           featureComponent={<FeatureMockupSimpleInterface />}
         />
       ),
     },
   ]
-
   return (
     <Stack>
       <Text c="dimmed" mb="md">
@@ -457,13 +450,11 @@ const ScreenshotGallery: React.FC = () => {
     </Stack>
   )
 }
-
 // --- End of Embedded Screenshot Components ---
 
 const ResourcePage = () => {
   // English: A single ref for the promotional icon.
   const iconRef = useRef<HTMLDivElement>(null)
-
   // English: Defines the data for the single icon option to be mapped in the UI.
   // MODIFIED: Reduced to a single, preferred icon.
   const icons = [
@@ -476,62 +467,58 @@ const ResourcePage = () => {
 
   const storeListingText = {
     titles: [
-      'Backup & Export for WhatsApp',
-      'WhatsApp Chat Exporter & Saver',
-      'Secure WhatsApp Chat Backup',
+      'WhatsApp Group Chat Backup',
+      'Exporter for WhatsApp Groups',
+      'Save Group Chats to PDF & Excel',
     ],
     shortDescriptions: [
-      'Securely back up and export your WhatsApp chats to PDF, Excel, CSV, and more formats right from your computer.',
-      'One-click tool to save your WhatsApp chat history. Export conversations and media to PDF, Excel, or CSV locally & privately.',
-      'Never lose your chat history. Archive any WhatsApp conversation with media into multiple file formats. 100% secure & private.',
+      'Securely back up & export your WhatsApp group chats to PDF, Excel, CSV, and more. Includes photos & videos. 100% private & local.',
+      'One-click tool to save your entire WhatsApp group chat history. Convert group conversations and media to searchable files. Works offline.',
+      'Never lose your group chat history. Archive any WhatsApp group conversation with media into multiple file formats. 100% secure & private.',
     ],
-    // MODIFIED: Emojis have been re-added to the long description for better visual appeal.
-    longDescription: `🛡️ Secure Your WhatsApp Conversations Forever
+    // MODIFIED: Emojis and copywriting updated to focus on group chat backup.
+    longDescription: `🛡️ Secure Your WhatsApp Group Conversations Forever
 
-Never lose important conversations or precious memories again. WhatsBackup - WA Chats Backup & Exporter for WhatsApp is the ultimate tool for archiving your WhatsApp chats securely and easily. With a single click, convert your chat history into professional, organized files like PDF, Excel, and CSV, all processed 100% locally on your computer for maximum privacy.
+Your most important conversations—business projects, legal discussions, family memories—happen in WhatsApp groups. WhatsBackup is the ultimate tool for securely archiving your group chat history. With a single click, convert conversations into professional files like PDF and Excel, all processed 100% locally on your computer for maximum privacy.
 
 ✨ Key Features
-💾 Unlimited Backups: Archive entire conversations with no message limits.
-🖼️ Include Media: Save photos, videos, voice notes, and documents.
+💾 Unlimited Group Backups: Archive entire group conversations with no message limits.
+🖼️ Include All Media: Save every photo, video, voice note, and document shared in the group.
 📄 Multiple Export Formats: Export to PDF, Excel, CSV, JSON, HTML, and TXT.
-🔍 Advanced Filtering: Pinpoint messages with custom date ranges and keyword searches.
-🔐 100% Secure: Your data never leaves your computer.
+🔍 Advanced Filtering: Pinpoint specific messages with custom date ranges and keyword searches.
+🔐 100% Secure & Private: Your data never leaves your computer.
 
 🔒 Your Privacy is Our Priority
 We believe you should have complete control over your data. This extension operates entirely within your browser.
-✅ Your messages and media are never uploaded to any server.
+✅ Your group chat messages and media are never uploaded to any server.
 ✅ The entire backup process happens on your own machine.
 ✅ Your conversations remain private and secure, always.
 
 🤔 Who Is This For?
-💼 Professionals: Archive client communications for record-keeping or legal compliance.
-❤️ Individuals: Save precious conversations with family and friends forever.
-🔬 Researchers: Export chat data into structured formats like CSV or JSON for analysis.
-🙋‍♀️ Anyone who values their data: Protect yourself from accidental data loss from a lost or broken phone.
+💼 Professionals: Archive client communications from group chats for record-keeping or legal compliance.
+❤️ Families: Save precious conversations from your family group chat forever.
+🔬 Researchers: Export group chat data into structured formats like CSV or JSON for analysis.
+🙋‍♀️ Anyone who values their data: Protect yourself from losing important group chat history if you lose or break your phone.
 
-🚀 Get peace of mind knowing your WhatsApp history is safe, secure, and accessible in any format you need.
+🚀 Get peace of mind knowing your WhatsApp group history is safe, secure, and accessible in any format you need.
 
 WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other countries. This extension has no relationship to WhatsApp or WhatsApp Inc.`,
   }
 
   // English: Added justification texts for the new Privacy tab.
   const justificationTexts = {
-    singlePurpose: `The core purpose of this extension is to provide users with a secure and private way to back up their WhatsApp chats and export them into various file formats (PDF, CSV, Excel, etc.). All features, including chat selection, date filtering, keyword searching, and format conversion, are directly related to this single purpose of creating local, user-controlled backups of their WhatsApp data.`,
-    storage: `The 'storage' permission is used to store essential user settings and license information locally on the user's device. This includes:
-- The user's license key to unlock Pro features.
-- An instance ID for license activation management.
-- User preferences, such as default export settings.
-This data is stored only on the user's computer and is crucial for providing a persistent and personalized experience without requiring a remote server or user accounts.`,
-    scripting: `Content scripts are essential for the extension's functionality. They are used exclusively on web.whatsapp.com to:
-1. Inject the user interface (the main modal for backup options) onto the page, allowing users to interact with the extension directly within the WhatsApp Web environment.
-2. Communicate with the WhatsApp Web application's JavaScript context to securely fetch chat and message data for the backup process. This data is handled locally and is necessary to fulfill the extension's core purpose of exporting chats.`,
-    hostWhatsapp: `The permission for "https://web.whatsapp.com/*" is required to allow the extension's content scripts to run on WhatsApp Web. The extension needs to access the DOM and interact with the page to inject its UI and retrieve chat data for the user to back up. The extension's functionality is entirely dependent on its ability to operate on this specific domain.`,
+    singlePurpose: `The core purpose of this extension is to provide users with a secure and private way to back up their WhatsApp group chats and export them into various file formats (PDF, CSV, Excel, etc.). All features, including group selection, date filtering, keyword searching, and format conversion, are directly related to this single purpose of creating local, user-controlled backups of their WhatsApp group data.`,
+    storage: `The 'storage' permission is used to store essential user settings and license information locally on the user's device. This includes: - The user's license key to unlock Pro features. - An instance ID for license activation management. - User preferences, such as default export settings. This data is stored only on the user's computer and is crucial for providing a persistent and personalized experience without requiring a remote server or user accounts.`,
+    scripting: `Content scripts are essential for the extension's functionality. They are used exclusively on web.whatsapp.com to: 1. Inject the user interface (the main modal for backup options) onto the page, allowing users to interact with the extension directly within the WhatsApp Web environment. 2. Communicate with the WhatsApp Web application's JavaScript context to securely fetch group chat and message data for the backup process. This data is handled locally and is necessary to fulfill the extension's core purpose.`,
+    hostWhatsapp: `The permission for "https://web.whatsapp.com/*" is required to allow the extension's content scripts to run on WhatsApp Web. The extension needs to access the DOM and interact with the page to inject its UI and retrieve group chat data for the user to back up. The extension's functionality is entirely dependent on its ability to operate on this specific domain.`,
     hostLemonSqueezy: `The permission for "https://api.lemonsqueezy.com/*" is used to securely communicate with the Lemon Squeezy API for license validation and management. When a user activates a Pro license, the extension sends a request to this domain to verify, activate, or deactivate the license key. This is a standard and secure method for handling software licensing and does not transmit any personal chat data.`,
   }
 
   const keywords = [
     'WhatsApp backup',
     'export chat',
+    'group chat backup',
+    'export whatsapp group',
     'PDF converter',
     'save WhatsApp',
     'WhatsApp archive',
@@ -555,6 +542,7 @@ This data is stored only on the user's computer and is crucial for providing a p
       if (blob) FileSaver.saveAs(blob, filename)
     })
   }
+
   return (
     <MantineProvider theme={theme}>
       <Container size="lg" py="xl">
@@ -606,7 +594,6 @@ This data is stored only on the user's computer and is crucial for providing a p
                 Privacy Justifications{' '}
               </Tabs.Tab>
             </Tabs.List>
-
             <Tabs.Panel value="text" pt="lg">
               <Stack gap="xl">
                 <Stack>
