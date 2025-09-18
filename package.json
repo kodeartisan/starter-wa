@@ -2,7 +2,7 @@
   "name": "whats-validator",
   "shortName": "WhatsValidator",
   "displayName": "WA Check & Verify Numbers for WhatsApp",
-  "version": "1.5.0",
+  "version": "1.6.0",
   "description": "Safely validate of WhatsApp numbers in bulk and export",
   "author": "Extninja",
   "scripts": {
@@ -20,7 +20,7 @@
     "@mantine/hooks": "^8.2.2",
     "@plasmohq/messaging": "0.7.1",
     "@plasmohq/storage": "^1.15.0",
-    "@wppconnect/wa-js": "^3.18.4",
+    "@wppconnect/wa-js": "^3.18.5",
     "axios": "^1.11.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
