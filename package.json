@@ -2,7 +2,7 @@
   "name": "whats-status",
   "shortName": "WhatsStatus",
   "displayName": "WA Status Automate & Scheduler For Whatsapp ",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "description": "Easily schedule whatsapp text, image, and video status automatically.",
   "author": "Extninja",
   "scripts": {
@@ -20,7 +20,7 @@
     "@mantine/hooks": "^8.2.2",
     "@plasmohq/messaging": "0.7.1",
     "@plasmohq/storage": "^1.15.0",
-    "@wppconnect/wa-js": "^3.18.4",
+    "@wppconnect/wa-js": "^3.18.5",
     "axios": "^1.11.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
