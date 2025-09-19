@@ -1,8 +1,8 @@
 {
-  "name": "wa-group-member-exporter-downloader",
-  "displayName": "WA Group Members Exporter & Downloader for WhatsApp",
+  "name": "wa-group-chat-backup",
+  "displayName": "WA Group Chats Backup for WhatsApp",
   "version": "1.0.0",
-  "description": "The easiest way to extract and download contact lists from your WhatsApp groups. Supports multiple formats.",
+  "description": "Easily download contact lists of admins from your WhatsApp groups.",
   "author": "Extninja",
   "scripts": {
     "dev": "plasmo dev --no-cs-reload",
@@ -20,7 +20,7 @@
     "@plasmohq/messaging": "0.7.1",
     "@plasmohq/storage": "^1.15.0",
     "@react-pdf/renderer": "^4.3.0",
-    "@wppconnect/wa-js": "^3.18.4",
+    "@wppconnect/wa-js": "^3.18.5",
     "axios": "^1.11.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",

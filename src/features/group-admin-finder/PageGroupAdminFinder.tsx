@@ -68,7 +68,7 @@ const PageGroupAdminFinder: React.FC = () => {
   }
 
   return (
-    <LayoutPage title="Group Admin Finder">
+    <LayoutPage>
       <InputSelectGroup
         value={selectedGroupIds}
         onChange={setSelectedGroupIds}

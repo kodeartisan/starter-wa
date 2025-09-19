@@ -30,7 +30,7 @@ import '@mantine/core/styles.css'
 import { useWindowScroll } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
 
-// --- Start: Updated Config for Group Member Exporter Focus ---
+// --- Start: Updated Config for Group Admin Finder Focus ---
 // Define a structured feature type for the comparison table
 export interface PlanFeature {
   feature: string
@@ -41,17 +41,17 @@ export interface PlanFeature {
 // Centralized list of features for easy management and comparison
 const comparisonFeatures: PlanFeature[] = [
   { feature: 'Select a Single Group', free: true, pro: true },
-  { feature: 'Export Members', free: 'Up to 10 members', pro: 'Unlimited' },
-  { feature: 'Export to CSV & Excel', free: false, pro: true },
-  { feature: 'Export to PDF & JSON', free: false, pro: true },
+  {
+    feature: 'Find Admins & Super Admins',
+    free: 'Up to 10 admins',
+    pro: 'Unlimited',
+  },
+  { feature: 'Export to CSV', free: true, pro: true },
+  { feature: 'Export to Excel, PDF & JSON', free: false, pro: true },
   { feature: 'Export as vCard (.vcf)', free: false, pro: true },
   { feature: 'Select Multiple Groups at Once', free: false, pro: true },
-  {
-    feature: 'Advanced Filtering (by Admin/Contact Status)',
-    free: false,
-    pro: true,
-  },
   { feature: 'Customize Export Columns', free: false, pro: true },
+  { feature: 'Direct Message an Admin from the List', free: true, pro: true },
   {
     feature: 'Customer Support',
     free: 'Standard Support',
@@ -64,14 +64,14 @@ const plans = [
   {
     name: 'Free',
     isFree: true,
-    description: 'For basic group member exports.',
+    description: 'For basic admin discovery.',
     price: '$0',
     placeholderPrice: null,
     link: '#',
     features: [
       'Select one group at a time',
-      'Preview all members',
-      'Export up to 10 members per group',
+      'Find all admins and super admins',
+      'Export up to 10 admins to CSV',
       'Standard support',
     ],
   },
@@ -79,21 +79,20 @@ const plans = [
     name: 'Pro Lifetime',
     isFree: false,
     description:
-      'Pay once, unlock powerful tools to manage and analyze your group data.',
+      'Pay once, unlock powerful tools to connect with and manage group administrators.',
     placeholderPrice: '$89',
-    price: '$29',
-    link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?media=0&logo=0&desc=0&discount=0',
+    price: '$19',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/b37c82a9-5119-4912-b2df-fcc72e3b5ad6?logo=0',
     features: [
-      'Export from Multiple Groups at Once',
-      'Unlimited Member Exports',
+      'Find Admins from Multiple Groups at Once',
+      'Unlimited Admin Exports',
       'Export to CSV, Excel, PDF, JSON & vCard',
-      'Advanced Filtering & Search',
+      'Customize Export Columns',
       'Priority Customer Support',
       'All Future Updates Included',
     ],
   },
 ]
-
 // --- End: Updated Config ---
 
 const CheckIcon = () => (
@@ -104,7 +103,6 @@ const CheckIcon = () => (
     color="var(--mantine-color-teal-6)"
   />
 )
-
 const CrossIcon = () => (
   <Icon
     icon="tabler:x"
@@ -208,16 +206,17 @@ const HeroSection = () => (
         variant="gradient"
         gradient={{ from: 'teal', to: 'lime' }}
       >
-        <Icon icon="tabler:file-export" fontSize={48} />
+        <Icon icon="tabler:users-group" fontSize={48} />
       </ThemeIcon>
       <Title order={1} fz={{ base: 36, sm: 48 }}>
         {' '}
-        Export WhatsApp Group Members to Excel in Seconds.{' '}
+        Find and Export WhatsApp Group Admins in a Click.{' '}
       </Title>
       <Text c="dimmed" fz="lg">
         {' '}
-        Stop manually copying names and numbers. Select one or more groups and
-        instantly export member data to CSV, Excel, PDF, and vCard formats.{' '}
+        Stop manually searching for group admins. Select your groups and
+        instantly get a clean list of all administrators and super admins, ready
+        to export.{' '}
       </Text>
       <Stack align="center">
         <Button
@@ -245,44 +244,45 @@ const HeroSection = () => (
 const FeaturesSection = () => {
   const featuresData = [
     {
-      icon: 'tabler:table-export',
-      title: 'Advanced Data Export',
+      icon: 'tabler:zoom-scan',
+      title: 'Instant Admin Detection',
       description:
-        'Select multiple groups and export a clean list of all members. Choose from CSV, Excel, PDF, JSON, or even vCard to import directly into your contacts. (Pro Feature)',
+        'Select one or multiple groups, and our tool instantly identifies and lists all admins and super admins, saving you hours of manual scrolling.',
     },
     {
-      icon: 'tabler:filter',
-      title: 'Powerful Filtering',
+      icon: 'tabler:table-export',
+      title: 'Powerful Data Export',
       description:
-        'Easily filter members by admin status (admins vs. non-admins) or contact status (saved vs. unsaved) to get the exact data you need for your campaigns. (Pro Feature)',
+        'Export your admin lists to CSV, Excel, PDF, JSON, or even vCard to quickly build a contact list of community leaders. (Pro Feature)',
     },
     {
       icon: 'tabler:shield-lock',
       title: 'Private & Secure',
       description:
-        'Your group member data is processed directly on your computer via WhatsApp Web. We never see, store, or have access to your contacts or conversations.',
+        'Your group data is processed locally on your computer. We never see, store, or have access to your contacts, ensuring your privacy is always protected.',
     },
     {
-      icon: 'tabler:columns',
-      title: 'Customizable Exports',
+      icon: 'tabler:users-group',
+      title: 'Multi-Group Coordination',
       description:
-        'Choose exactly which data columns you need. Export a clean, focused list with only Name, Phone Number, or Admin Status to suit your specific requirements.',
+        'Need to contact all admins across your communities? Select all relevant groups and export a unified list for easy communication and coordination.',
     },
     {
       icon: 'tabler:rocket',
       title: 'Simple & Fast',
       description:
-        'A clean, intuitive interface integrated directly into WhatsApp Web, designed to export thousands of contacts in seconds, not hours.',
+        'A clean, intuitive interface designed to find and export admin contacts in seconds, not hours, directly within WhatsApp Web.',
     },
   ]
   return (
     <Box mt={80}>
       <Center>
         <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>A Smarter Way to Manage Group Data</Title>
+          <Title order={2}>Streamline Your Community Management</Title>
           <Text c="dimmed">
             {' '}
-            Turn chaotic group lists into structured, actionable data.{' '}
+            Turn chaotic group structures into organized contact lists of key
+            people.{' '}
           </Text>
         </Stack>
       </Center>
@@ -315,11 +315,11 @@ const UserPersonaSection = () => (
   <Box mt={80}>
     <Center>
       <Stack align="center" ta="center" maw={600}>
-        <Title order={2}>Built For Community Builders & Marketers</Title>
+        <Title order={2}>Built for Networkers & Community Builders</Title>
         <Text c="dimmed">
           {' '}
-          Whether you're running a business or a community, we've got you
-          covered.{' '}
+          Whether you're coordinating large communities or building a network,
+          we've got you covered.{' '}
         </Text>
       </Stack>
     </Center>
@@ -329,15 +329,14 @@ const UserPersonaSection = () => (
           <Stack style={{ height: '100%' }}>
             <Group>
               <ThemeIcon variant="light" size={40} radius="md">
-                <Icon icon="tabler:briefcase" fontSize={22} />
+                <Icon icon="tabler:building-community" fontSize={22} />
               </ThemeIcon>
-              <Title order={3}>For Marketing & Sales Teams</Title>
+              <Title order={3}>For Community Managers</Title>
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Quickly extract contact information from product interest groups
-              or event attendees to build targeted marketing lists and follow-up
-              campaigns.{' '}
+              Quickly get a list of all co-admins across dozens of groups to
+              streamline communication and ensure everyone is on the same page.{' '}
             </Text>
             <List
               spacing="xs"
@@ -351,15 +350,15 @@ const UserPersonaSection = () => (
             >
               <List.Item>
                 {' '}
-                Export unsaved numbers to identify new leads.{' '}
+                Create an admin-only coordination group in minutes.{' '}
               </List.Item>
               <List.Item>
                 {' '}
-                Create contact lists for SMS or broadcast campaigns.{' '}
+                Send updates to all group leaders simultaneously.{' '}
               </List.Item>
               <List.Item>
                 {' '}
-                Analyze member lists from competitor or community groups.{' '}
+                Keep a record of who is managing each community.{' '}
               </List.Item>
             </List>
             <Button
@@ -370,7 +369,7 @@ const UserPersonaSection = () => (
               color="teal"
             >
               {' '}
-              Upgrade for Business Needs{' '}
+              Coordinate Your Admins{' '}
             </Button>
           </Stack>
         </Card>
@@ -380,14 +379,14 @@ const UserPersonaSection = () => (
           <Stack style={{ height: '100%' }}>
             <Group>
               <ThemeIcon variant="light" size={40} radius="md">
-                <Icon icon="tabler:users" fontSize={22} />
+                <Icon icon="tabler:briefcase" fontSize={22} />
               </ThemeIcon>
-              <Title order={3}>For Community & Group Admins</Title>
+              <Title order={3}>For Business & Networking</Title>
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Get a clear overview of your members, create backups of your
-              contact lists, or coordinate with other admins more effectively.{' '}
+              Extract contact details of admins from industry, partner, or
+              networking groups to build valuable B2B connection lists.{' '}
             </Text>
             <List
               spacing="xs"
@@ -399,14 +398,17 @@ const UserPersonaSection = () => (
                 </ThemeIcon>
               }
             >
-              <List.Item> Backup your member list for safety. </List.Item>
               <List.Item>
                 {' '}
-                Export a list of just the admins for coordination.{' '}
+                Identify key decision-makers in communities.{' '}
               </List.Item>
               <List.Item>
                 {' '}
-                Easily import all group members into your phone contacts.{' '}
+                Build a targeted outreach list of group leaders.{' '}
+              </List.Item>
+              <List.Item>
+                {' '}
+                Easily import key contacts into your CRM or phone.{' '}
               </List.Item>
             </List>
             <Button
@@ -417,7 +419,7 @@ const UserPersonaSection = () => (
               color="teal"
             >
               {' '}
-              Manage Your Community Better{' '}
+              Enhance Your Networking{' '}
             </Button>
           </Stack>
         </Card>
@@ -429,25 +431,25 @@ const UserPersonaSection = () => (
 const CaseStudySection = () => {
   const caseStudies = [
     {
-      icon: 'tabler:building-community',
-      title: 'Creating a Marketing List',
+      icon: 'tabler:network',
+      title: 'Coordinating a Network',
       description:
-        'A marketing manager exports unsaved numbers from five different product interest groups. They use the exported CSV file to launch a targeted broadcast campaign for a new product, reaching hundreds of warm leads.',
-      features: ['Multi-Group Export', 'Filtering'],
+        'A manager of a 30-group brand ambassador network needs to send a critical update. They select all 30 groups, find all admins, and export the list to create a new, private broadcast channel for leaders only.',
+      features: ['Multi-Group Selection', 'Time-Saving'],
     },
     {
-      icon: 'tabler:users-group',
-      title: 'Coordinating a Large Community',
+      icon: 'tabler:building-store',
+      title: 'B2B Lead Generation',
       description:
-        "An admin for a network of 20 neighborhood groups needs to contact all other admins. They select all groups, filter by 'Admins only', and export the list to quickly create a private admin coordination group.",
-      features: ['Admin Filtering', 'Time-Saving'],
+        'A sales rep joins several industry-specific groups. They export the admin lists from each group, creating a high-quality lead list of potential business partners and decision-makers to contact.',
+      features: ['vCard Export', 'Lead Generation'],
     },
     {
-      icon: 'tabler:device-floppy',
-      title: 'Backing Up Group Contacts',
+      icon: 'tabler:school',
+      title: 'Managing School Groups',
       description:
-        'A user wants a personal backup of all members in their important hobby group. They export the full member list to both Excel and as a vCard file, securing their contacts outside of WhatsApp.',
-      features: ['Data Backup', 'vCard Export'],
+        'A school principal needs to contact the parent-teacher admin from each class group. They quickly get a list of all admins, making it easy to schedule a meeting without searching through each group individually.',
+      features: ['Efficient Communication', 'Admin Lists'],
     },
   ]
   return (
@@ -457,7 +459,8 @@ const CaseStudySection = () => {
           <Title order={2}>Solves Real-World Problems</Title>
           <Text c="dimmed">
             {' '}
-            See how people use our tool to make communication faster and easier.{' '}
+            See how people use our tool to connect with the right people,
+            faster.{' '}
           </Text>
         </Stack>
       </Center>
@@ -535,6 +538,7 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 {plan.description}{' '}
               </Text>
             </Box>
+
             <Box my="lg" ta="center">
               {!plan.isFree && (
                 <Stack mb="lg">
@@ -569,7 +573,9 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 </Group>
               </Box>
             </Box>
+
             <Divider label="Key Features" labelPosition="center" my="sm" />
+
             <Stack gap="sm" mb="lg">
               {plan.features.map((feature, idx) => (
                 <Group key={idx} gap="sm" wrap="nowrap" align="flex-start">
@@ -589,6 +595,7 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 </Group>
               ))}
             </Stack>
+
             <Box mt="auto">
               {plan.isFree ? (
                 <Button size="md" variant="default" fullWidth disabled>
@@ -818,33 +825,33 @@ const TestimonialsSection = () => {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-5.png',
       name: 'David G.',
-      role: 'Community Manager',
+      role: 'Community Network Manager',
       quote:
-        'Managing member lists for over 20 WhatsApp groups was a nightmare. This tool lets me export everything into a single Excel file. The <b>ability to filter by admins or saved contacts</b> has streamlined my entire workflow. An absolute must-have!',
+        'Coordinating with admins across 50+ groups was a nightmare. This tool lets me get a unified list of every admin in seconds. The <b>ability to export from multiple groups at once</b> has been a game-changer for my weekly syncs.',
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-4.png',
       name: 'Alisha C.',
-      role: 'Event Coordinator',
+      role: 'Business Development',
       quote:
-        "For my events, I need a quick way to get a list of all attendees from the group chat. This extension not only exports to CSV in seconds but the <b>vCard export feature is brilliant</b> for adding everyone to my phone's contacts.",
+        "For my B2B outreach, I need to connect with decision-makers. Finding group admins is key. This extension's <b>vCard export is brilliant</b>—I get a ready-to-import contact list of potential partners in minutes.",
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-8.png',
       name: 'Sarah L.',
-      role: 'Small Business Owner',
+      role: 'Marketing Strategist',
       quote:
-        'I run several local business groups and needed to extract unsaved numbers for a lead list. Being able to <b>export from multiple groups at once</b> saved me hours of manual work. The Pro upgrade was an immediate purchase for me.',
+        'I identify key influencers by finding the admins of major community groups. This tool saves me so much time. The Pro upgrade was a no-brainer for the <b>unlimited exports and Excel format</b>.',
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png',
       name: 'Mike P.',
-      role: 'Hobby Group Admin',
+      role: 'Club President',
       quote:
-        'Just needed a simple way to back up my group members. This does exactly that. Simple, fast, and works perfectly. The <b>PDF export is a nice touch</b> for keeping clean records!',
+        'Just needed a simple way to get a contact list of all the other club admins in the district. This does it perfectly. Simple, fast, and the <b>CSV export works great</b> for my records.',
     },
   ]
   return (
@@ -921,7 +928,7 @@ const FaqSection = () => {
       icon: 'tabler:rocket',
       question: 'What are the main benefits of upgrading to Pro?',
       answer:
-        'Pro turns the tool into a powerful data suite. You can <b>export from multiple groups at once</b>, which is a huge time-saver. You also unlock <b>all export formats (Excel, PDF, vCard)</b> and powerful <b>filtering capabilities</b> to get the exact data you need.',
+        'Pro makes finding and managing admins incredibly efficient. You can <b>select multiple groups at once</b> to get a unified list, which is a massive time-saver. You also unlock <b>all export formats (Excel, PDF, vCard)</b> and get unlimited exports.',
     },
     {
       icon: 'tabler:key',
@@ -931,15 +938,15 @@ const FaqSection = () => {
     },
     {
       icon: 'tabler:alert-circle',
-      question: "Can I export members from a group I'm not in?",
+      question: "Can I find admins from a group I'm not in?",
       answer:
-        'No. For security and privacy, you can only export member lists from groups that you are currently a member of. The extension will automatically show you a list of your groups.',
+        'No. For security and privacy, you can only find admins from groups that you are currently a member of. The extension automatically populates a list of your available groups.',
     },
     {
-      icon: 'tabler:shield-check',
-      question: 'Is it safe to use?',
+      icon: 'tabler:users',
+      question: 'What is the difference between an Admin and a Super Admin?',
       answer:
-        'Absolutely. The extension uses the official WhatsApp Web interface to access group data. It operates <b>locally on your computer</b>, and we do not store your group data, contacts, or have access to your account.',
+        'A "Super Admin" is typically the original creator of the group and has the ultimate authority, including the ability to remove other admins. An "Admin" has privileges like adding or removing members, but cannot remove a Super Admin. Our tool identifies and labels both for you.',
     },
   ]
   return (
@@ -987,8 +994,8 @@ const ValueStackSection = () => (
           <Title order={2}>Here's Everything You Get</Title>
           <Text c="dimmed">
             {' '}
-            Your Pro Lifetime License is a complete package for powerful group
-            data management.{' '}
+            Your Pro Lifetime License is a complete package for powerful admin
+            and community management.{' '}
           </Text>
         </Stack>
       </Center>
@@ -1004,8 +1011,8 @@ const ValueStackSection = () => (
               </ThemeIcon>
             }
           >
-            <List.Item>Export from Multiple Groups</List.Item>
-            <List.Item>Unlimited Member Exports</List.Item>
+            <List.Item>Find Admins from Multiple Groups</List.Item>
+            <List.Item>Unlimited Admin Exports</List.Item>
             <List.Item>Export to CSV, Excel, PDF & JSON</List.Item>
           </List>
         </Grid.Col>
@@ -1021,7 +1028,7 @@ const ValueStackSection = () => (
             }
           >
             <List.Item>Export to vCard (for Contacts app)</List.Item>
-            <List.Item>Advanced Filtering & Search</List.Item>
+            <List.Item>Customize Export Columns</List.Item>
             <List.Item>Priority Customer Support</List.Item>
             <List.Item>30-Day Money-Back Guarantee</List.Item>
           </List>
@@ -1114,7 +1121,7 @@ const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
                 gradient={{ from: 'teal', to: 'lime' }}
               >
                 {' '}
-                Get Lifetime Access for Just $29!{' '}
+                Get Lifetime Access for Just $19!{' '}
               </Button>
             </Group>
           </Container>
@@ -1129,6 +1136,7 @@ const getOfferEndDate = (): Date => {
   if (storedEndDate && new Date(storedEndDate) > new Date()) {
     return new Date(storedEndDate)
   }
+
   const newEndDate = new Date()
   newEndDate.setDate(newEndDate.getDate() + 3)
   localStorage.setItem('offerEndDate', newEndDate.toISOString())
@@ -1149,6 +1157,7 @@ const LandingPage = () => {
       { city: 'Miami', country: 'United States' },
     ]
     let timeoutId: NodeJS.Timeout
+
     const scheduleNextNotification = () => {
       clearTimeout(timeoutId)
       const randomDelay = Math.floor(Math.random() * (15000 - 8000 + 1)) + 8000 // 8-15 seconds
@@ -1156,6 +1165,7 @@ const LandingPage = () => {
         const randomLocation =
           locations[Math.floor(Math.random() * locations.length)]
         setNotification(randomLocation)
+
         timeoutId = setTimeout(() => {
           setNotification(null)
           scheduleNextNotification()
@@ -1186,11 +1196,11 @@ const LandingPage = () => {
           <FaqSection />
           <ValueStackSection />
           <ContactUsSection />
-
           <Center mt={40}>
             <Stack align="center" gap="lg">
               <Title order={2}>
-                Ready to Supercharge Your Group Management?
+                {' '}
+                Ready to Streamline Your Admin Coordination?{' '}
               </Title>
               <Text c="dimmed" size="lg">
                 {' '}
@@ -1208,7 +1218,7 @@ const LandingPage = () => {
                   radius="md"
                 >
                   {' '}
-                  Get Lifetime Access Now for Just $29{' '}
+                  Get Lifetime Access Now for Just $19{' '}
                 </Button>
                 <Text size="xs" c="dimmed">
                   {' '}
@@ -1217,7 +1227,6 @@ const LandingPage = () => {
               </Stack>
             </Stack>
           </Center>
-
           <Footer />
         </Stack>
       </Container>

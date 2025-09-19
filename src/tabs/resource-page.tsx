@@ -64,16 +64,16 @@ const MarqueeTileFeatureShowcase = () => (
               variant="gradient"
               gradient={{ from: 'teal', to: 'lime' }}
             >
-              <Icon icon="tabler:file-export" fontSize={70} />
+              <Icon icon="tabler:users-group" fontSize={70} />
             </ThemeIcon>
             <Title fz={48} lh={1.2} c="white">
               {' '}
-              Bulk Group Member Exporter{' '}
+              Group Admin Finder for WA{' '}
             </Title>
             <Title order={2} c="white" fw={500} mt="md">
               {' '}
-              Export member lists from your WhatsApp groups to Excel, CSV, PDF,
-              and more.{' '}
+              Instantly find and export admin lists from your WhatsApp groups to
+              Excel, CSV, PDF, and more.{' '}
             </Title>
           </Stack>
         </Grid.Col>
@@ -87,11 +87,11 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={60}
                 >
-                  <Icon icon="tabler:table-export" fontSize={45} />
+                  <Icon icon="tabler:zoom-scan" fontSize={45} />
                 </ThemeIcon>
                 <Title order={1} fw={700}>
                   {' '}
-                  Export Member Lists{' '}
+                  Find Admin Lists{' '}
                 </Title>
               </Group>
               <Title size={26} c="gray.7" fw={500} mt="md">
@@ -107,16 +107,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={60}
                 >
-                  <Icon icon="tabler:filter" fontSize={45} />
+                  <Icon icon="tabler:users" fontSize={45} />
                 </ThemeIcon>
                 <Title order={1} fw={700}>
                   {' '}
-                  Advanced Filtering{' '}
+                  Identify Key Contacts{' '}
                 </Title>
               </Group>
               <Title size={26} c="gray.7" fw={500} mt="md">
                 {' '}
-                Filter by admin or contact status.{' '}
+                Quickly identify admins & super admins.{' '}
               </Title>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -136,7 +136,7 @@ const MarqueeTileFeatureShowcase = () => (
               </Group>
               <Title size={26} c="gray.7" fw={500} mt="md">
                 {' '}
-                Supports Excel, CSV, PDF, JSON & more.{' '}
+                Supports Excel, CSV, PDF, JSON & vCard.{' '}
               </Title>
             </Card>
           </Stack>
@@ -147,13 +147,14 @@ const MarqueeTileFeatureShowcase = () => (
 )
 
 // --- Feature Mockups for Screenshots --- //
-const FeatureMockupSelectAndFilter = () => (
+const FeatureMockupSelectGroups = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
-      <Title order={4}>Export Group Members in Bulk</Title>
+      <Title order={4}>Find Group Admins in Bulk</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        Save time by selecting multiple groups and applying powerful filters.{' '}
+        Save time by selecting multiple groups to find all administrators at
+        once.{' '}
       </Text>
       <Paper p="lg" withBorder radius="md" mt="md">
         <Stack>
@@ -177,7 +178,8 @@ const FeatureMockupSelectAndFilter = () => (
                   </ActionIcon>
                 }
               >
-                Project Alpha (15 members)
+                {' '}
+                Project Alpha (5 admins){' '}
               </Badge>
               <Badge
                 variant="light"
@@ -192,7 +194,8 @@ const FeatureMockupSelectAndFilter = () => (
                   </ActionIcon>
                 }
               >
-                Marketing Team (8 members)
+                {' '}
+                Marketing Team (2 admins){' '}
               </Badge>
               <Badge
                 variant="light"
@@ -207,30 +210,15 @@ const FeatureMockupSelectAndFilter = () => (
                   </ActionIcon>
                 }
               >
-                Community Event (120 members)
+                {' '}
+                Community Event (12 admins){' '}
               </Badge>
             </Group>
           </Paper>
-
-          <TextInput
-            label="Search Members"
-            placeholder="Search by name or number..."
-            leftSection={<Icon icon="tabler:search" fontSize={16} />}
-          />
-          <Group grow>
-            <SegmentedControl
-              data={[
-                { label: 'All Roles', value: 'ALL' },
-                { label: 'Admins', value: 'ADMIN' },
-              ]}
-            />
-            <SegmentedControl
-              data={[
-                { label: 'All Contacts', value: 'ALL' },
-                { label: 'Saved', value: 'SAVED' },
-              ]}
-            />
-          </Group>
+          <Text size="sm" fw={500} mt="sm">
+            {' '}
+            73 admins found across 3 groups.{' '}
+          </Text>
         </Stack>
       </Paper>
     </Stack>
@@ -240,10 +228,10 @@ const FeatureMockupSelectAndFilter = () => (
 const FeatureMockupDataTable = () => (
   <Card withBorder radius="md" p="xl" w={620}>
     <Stack>
-      <Title order={4}>Preview Your Filtered List</Title>
+      <Title order={4}>Preview Your Admin List</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        Review the member data in a clean table before exporting.{' '}
+        Review the admin data in a clean table before exporting.{' '}
       </Text>
       <DataTable
         minHeight={200}
@@ -251,21 +239,21 @@ const FeatureMockupDataTable = () => (
           {
             name: 'Alice Johnson',
             number: '+12025550181',
-            role: 'Admin',
+            role: 'Super Admin',
             status: 'Saved',
             group: 'Marketing Team',
           },
           {
             name: 'Bob Williams',
             number: '+442079460992',
-            role: 'Member',
+            role: 'Admin',
             status: 'Saved',
             group: 'Project Alpha',
           },
           {
             name: 'Charlie Brown',
             number: '+13105550134',
-            role: 'Member',
+            role: 'Admin',
             status: 'Unsaved',
             group: 'Community Event',
           },
@@ -278,7 +266,8 @@ const FeatureMockupDataTable = () => (
               <Group gap="sm">
                 <Avatar size={30} radius="xl" />
                 <Text fz="sm" fw={500}>
-                  {name}
+                  {' '}
+                  {name}{' '}
                 </Text>
               </Group>
             ),
@@ -288,7 +277,9 @@ const FeatureMockupDataTable = () => (
             accessor: 'role',
             title: 'Role',
             render: ({ role }) => (
-              <Badge color={role === 'Admin' ? 'teal' : 'gray'}>{role}</Badge>
+              <Badge color={role === 'Super Admin' ? 'red' : 'teal'}>
+                {role}
+              </Badge>
             ),
           },
           {
@@ -299,7 +290,8 @@ const FeatureMockupDataTable = () => (
                 variant="light"
                 color={status === 'Saved' ? 'blue' : 'gray'}
               >
-                {status}
+                {' '}
+                {status}{' '}
               </Badge>
             ),
           },
@@ -308,13 +300,12 @@ const FeatureMockupDataTable = () => (
     </Stack>
   </Card>
 )
-
 const FeatureMockupExportOptions = () => (
   <Card withBorder radius="md" p="xl" w={450}>
     <Stack align="center" p="md">
       <Title order={4} ta="center">
         {' '}
-        Customize & Export Data{' '}
+        Customize & Export Admin Data{' '}
       </Title>
       <Text c="dimmed" size="sm" ta="center">
         {' '}
@@ -322,7 +313,8 @@ const FeatureMockupExportOptions = () => (
       </Text>
       <Group mt="lg">
         <Button size="sm" leftSection={<Icon icon="tabler:download" />}>
-          Export Data
+          {' '}
+          Export Data{' '}
         </Button>
         <Popover width={200} position="bottom-end" withArrow shadow="md" opened>
           <Popover.Target>
@@ -331,7 +323,8 @@ const FeatureMockupExportOptions = () => (
               size="sm"
               leftSection={<Icon icon="tabler:columns" />}
             >
-              Customize Columns
+              {' '}
+              Customize Columns{' '}
             </Button>
           </Popover.Target>
           <Popover.Dropdown>
@@ -350,22 +343,25 @@ const FeatureMockupExportOptions = () => (
           </Popover.Dropdown>
         </Popover>
       </Group>
-
       <Paper withBorder radius="md" p="lg" mt="lg">
         <Stack>
           <Text fw={500}>Export Formats</Text>
           <List spacing="sm" size="sm" icon={<span />}>
             <List.Item icon={<Icon icon="tabler:file-type-csv" />}>
-              Export as CSV
+              {' '}
+              Export as CSV{' '}
             </List.Item>
             <List.Item icon={<Icon icon="tabler:file-type-xls" />}>
-              Export as Excel
+              {' '}
+              Export as Excel{' '}
             </List.Item>
             <List.Item icon={<Icon icon="tabler:file-type-pdf" />}>
-              Export as PDF
+              {' '}
+              Export as PDF{' '}
             </List.Item>
             <List.Item icon={<Icon icon="tabler:id" />}>
-              Export as vCard (.vcf)
+              {' '}
+              Export as vCard (.vcf){' '}
             </List.Item>
           </List>
         </Stack>
@@ -384,20 +380,21 @@ const FeatureMockupOutputFile = () => (
           size="lg"
           leftSection={<Icon icon="tabler:file-type-xls" />}
         >
-          Excel File
+          {' '}
+          Excel File{' '}
         </Badge>
       </Group>
       <Text c="dimmed" size="sm">
         {' '}
-        Get a perfectly formatted file, ready for your marketing campaigns, data
-        analysis, or contact management.{' '}
+        Get a perfectly formatted file of group admins, ready for outreach,
+        coordination, or data analysis.{' '}
       </Text>
       <Table striped highlightOnHover withTableBorder mt="md">
         <Table.Thead>
           <Table.Tr>
             <Table.Th>savedName</Table.Th>
             <Table.Th>phoneNumber</Table.Th>
-            <Table.Th>isAdmin</Table.Th>
+            <Table.Th>isSuperAdmin</Table.Th>
             <Table.Th>isMyContact</Table.Th>
             <Table.Th>groupName</Table.Th>
           </Table.Tr>
@@ -429,6 +426,7 @@ const FeatureMockupOutputFile = () => (
     </Stack>
   </Card>
 )
+
 // --- New Reusable Marquee Tile for Feature Details ---
 interface MarqueeTileFeatureDetailProps {
   icon: string
@@ -436,7 +434,6 @@ interface MarqueeTileFeatureDetailProps {
   description: string
   featureComponent: React.ReactNode
 }
-
 const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
   icon,
   title,
@@ -482,36 +479,36 @@ const ScreenshotGallery: React.FC = () => {
   const screenshotData = [
     {
       title: 'Marquee Promo Tile: Feature Showcase (1280x800)',
-      filename: 'marquee_promo_tile_features.png',
+      filename: 'marquee_promo_tile_admin_finder.png',
       component: <MarqueeTileFeatureShowcase />,
     },
     {
-      title: 'Feature Screenshot: Select Groups & Filter (1280x800)',
-      filename: 'feature_select_and_filter.png',
+      title: 'Feature Screenshot: Select Groups (1280x800)',
+      filename: 'feature_admin_select_groups.png',
       component: (
         <MarqueeTileFeatureDetail
           icon="tabler:list-details"
-          title="Select & Filter"
-          description="Choose one or more groups, then narrow down your list with powerful search and filtering options."
-          featureComponent={<FeatureMockupSelectAndFilter />}
+          title="Select Your Groups"
+          description="Choose one or more groups to begin finding all associated admins and super admins."
+          featureComponent={<FeatureMockupSelectGroups />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: Preview Data Table (1280x800)',
-      filename: 'feature_data_table.png',
+      title: 'Feature Screenshot: Preview Admin Data (1280x800)',
+      filename: 'feature_admin_data_table.png',
       component: (
         <MarqueeTileFeatureDetail
           icon="tabler:table"
-          title="Preview Your Data"
-          description="Instantly see a clean, organized table with the members that match your criteria before you export."
+          title="Preview Your Admins"
+          description="Instantly see a clean, organized table of all admins found, complete with their roles and contact status."
           featureComponent={<FeatureMockupDataTable />}
         />
       ),
     },
     {
       title: 'Feature Screenshot: Export Options (1280x800)',
-      filename: 'feature_export_options.png',
+      filename: 'feature_admin_export_options.png',
       component: (
         <MarqueeTileFeatureDetail
           icon="tabler:settings-cog"
@@ -523,17 +520,18 @@ const ScreenshotGallery: React.FC = () => {
     },
     {
       title: 'Feature Screenshot: Final Exported File (1280x800)',
-      filename: 'feature_output_file.png',
+      filename: 'feature_admin_output_file.png',
       component: (
         <MarqueeTileFeatureDetail
           icon="tabler:file-check"
           title="Clean & Ready-to-Use"
-          description="Your exported file is perfectly formatted and ready for data analysis, marketing campaigns, or contact management."
+          description="Your exported admin list is perfectly formatted and ready for your outreach, coordination, and networking efforts."
           featureComponent={<FeatureMockupOutputFile />}
         />
       ),
     },
   ]
+
   return (
     <Stack>
       <Text c="dimmed" mb="md">
@@ -555,74 +553,72 @@ const ScreenshotGallery: React.FC = () => {
     </Stack>
   )
 }
+
 // --- End of Embedded Screenshot Components ---
 
 const ResourcePage = () => {
   const iconRef = useRef<HTMLDivElement>(null)
   const icons = [
     {
-      component: <PromoIcon size={128} icon={'tabler:file-export'} />,
+      component: <PromoIcon size={128} icon={'tabler:users-group'} />,
       ref: iconRef,
       name: 'promotional_icon.png',
     },
   ]
-
   const storeListingText = {
     titles: [
-      'Group Member Exporter for WA',
-      'Bulk WA Group Contact Exporter',
-      'Export WhatsApp Group to Excel',
+      'Group Admin Finder for WA',
+      'Find & Export WA Group Admins',
+      'Export WhatsApp Admin Lists',
     ],
     shortDescriptions: [
-      'Export WhatsApp group members to Excel, CSV, PDF & vCard. Select multiple groups and filter contacts in one click.',
-      'The easiest way to extract and download contact lists from your WhatsApp groups. Supports multiple formats.',
-      'Save time managing your WhatsApp communities. Quickly export member lists from one or many groups simultaneously.',
+      'Instantly find all admins from any WhatsApp group. Export admin lists to Excel, CSV, PDF & vCard in one click.',
+      'The easiest way to find and download contact lists of admins and super admins from your WhatsApp groups.',
+      'Save time coordinating communities. Quickly get a list of all administrators from one or many groups.',
     ],
-    longDescription: `⚙️ The Ultimate Tool for WhatsApp Community Managers
+    longDescription: `⚙️ The Ultimate Tool for Community Coordinators & Networkers
 
-Tired of manually copying and pasting member lists from your WhatsApp groups? The Group Member Exporter streamlines your workflow, allowing you to extract, filter, and download group contacts with unparalleled ease and efficiency, right from WhatsApp Web.
+Tired of manually scrolling through long participant lists to find out who the admins are? The Group Admin Finder for WA streamlines your workflow, allowing you to instantly identify, filter, and export a clean list of all administrators from your WhatsApp groups.
 
 ✨ Key Features
-- **Bulk Group Selection**: Select multiple groups at once and export all their members into a single, clean file. (Pro)
-- **Multiple Export Formats**: Download your member lists as CSV, Excel (XLSX), PDF, JSON, or even vCard (.vcf) files to import directly to your contacts. (Pro)
-- **Advanced Filtering**: Easily filter members by their admin status (Admins only or Non-Admins) or by their contact status (Saved vs. Unsaved numbers). (Pro)
-- **Customizable Columns**: Choose exactly which data you want to export. Keep it simple with just names and numbers, or include admin status, group name, and more.
-- **Search Functionality**: Quickly find specific members within large groups by searching for a name or phone number.
-- **Privacy-Focused**: Your data is your own. The extension operates locally in your browser and does not collect, store, or transmit any of your personal data or chat information.
+- **Instant Admin Discovery**: Select any group you're in, and the tool immediately shows you a list of all its admins and super admins.
+- **Bulk Group Scanning**: Select multiple groups at once to get a single, unified list of all administrators across your communities. (Pro)
+- **Multiple Export Formats**: Download your admin lists as CSV, Excel (XLSX), PDF, JSON, or vCard (.vcf) files to build contact lists for outreach or coordination. (Pro)
+- **Customizable Columns**: Choose exactly which data you want to export. Keep it simple with just names and numbers, or include admin status and group source.
+- **Direct Messaging**: Need to contact an admin? Send them a message directly from the found list with a single click.
+- **Privacy-Focused**: Your data is your own. The extension operates locally in your browser. We never collect, store, or transmit your personal data, contacts, or chat information.
 
 🤔 Who Is This For?
-- **Community Managers**: Get a complete overview of your members across all groups and create master contact lists.
-- **Marketers & Sales Teams**: Extract contacts from interest groups to build targeted lead lists for campaigns.
-- **Event Organizers**: Quickly download a list of all event attendees from the WhatsApp group.
-- **Anyone needing a backup**: Securely save your valuable group contacts outside of WhatsApp.
+- **Community Managers**: Quickly create an admin-only chat or send updates to all your community leaders at once.
+- **Business Networkers**: Identify and export the contact details of key decision-makers and influencers in professional groups.
+- **Event Organizers**: Easily coordinate with co-organizers by getting a list of all admins from your event groups.
+- **Anyone needing to connect**: Stop wasting time searching. Find the right people to talk to, fast.
 
-🚀 Boost your productivity and turn your group data into an actionable asset. Stop wasting time with manual work and manage your group members like a pro!
+🚀 Boost your productivity and make community management simpler than ever. Stop the scroll and start connecting!
 
 WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other countries. This extension is an independent project and has no relationship to WhatsApp or WhatsApp Inc.`,
   }
-
   const justificationTexts = {
-    singlePurpose: `The extension's single purpose is to allow users to export and manage member data from their WhatsApp groups. All features—including selecting groups, filtering members, customizing columns, and exporting to various file formats—are directly tied to this core function of member data extraction within the WhatsApp Web interface.`,
+    singlePurpose: `The extension's single purpose is to allow users to find and export administrator data from their WhatsApp groups. All features—including selecting groups, identifying admins, and exporting their contact information to various file formats—are directly tied to this core function of admin data extraction within the WhatsApp Web interface.`,
     storage: `The 'storage' permission is used to locally store user settings and license information. This includes: the user's license key for Pro features and an instance ID for license management. This data is kept on the user's device to ensure a consistent experience without needing a remote server.`,
-    scripting: `Content scripts are essential to inject the extension's user interface (the exporter modal) onto the web.whatsapp.com page. They also communicate with the WhatsApp Web application's context to securely fetch the user's group and member lists, which is necessary to fulfill the extension's core purpose.`,
-    hostWhatsapp: `Permission for "https://web.whatsapp.com/*" is required for the extension to function. It allows the content scripts to run on WhatsApp Web, enabling the injection of its UI and interaction with the page to retrieve group and member data for the user to export.`,
+    scripting: `Content scripts are essential to inject the extension's user interface (the admin finder modal) onto the web.whatsapp.com page. They also communicate with the WhatsApp Web application's context to securely fetch the user's group and participant lists, which is necessary to fulfill the extension's core purpose of identifying admins.`,
+    hostWhatsapp: `Permission for "https://web.whatsapp.com/*" is required for the extension to function. It allows the content scripts to run on WhatsApp Web, enabling the injection of its UI and interaction with the page to retrieve group and admin data for the user to export.`,
     hostLemonSqueezy: `Permission for "https://api.lemonsqueezy.com/*" is used for secure license management. When a user activates a Pro license, the extension communicates with this API to verify, activate, or deactivate the license key. This is a standard and secure method for handling software licensing and does not involve any personal chat data.`,
   }
 
   const keywords = [
-    'whatsapp group export',
-    'export whatsapp contacts',
-    'whatsapp to excel',
-    'group member list',
-    'whatsapp data extractor',
-    'whatsapp scraper',
-    'download whatsapp group contacts',
-    'whatsapp marketing',
-    'contact management',
-    'whatsapp bulk',
+    'whatsapp admin finder',
+    'find whatsapp admin',
+    'export group admins',
+    'whatsapp admin list',
+    'community management tool',
+    'whatsapp network',
+    'contact group admins',
+    'whatsapp B2B',
+    'whatsapp group tool',
+    'admin extractor',
   ]
   const keywordsString = keywords.join(', ')
-
   const handleDownloadIcon = async (
     ref: React.RefObject<HTMLDivElement>,
     filename: string,
@@ -635,7 +631,6 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
       if (blob) FileSaver.saveAs(blob, filename)
     })
   }
-
   return (
     <MantineProvider theme={theme}>
       <Container size="lg" py="xl">
@@ -648,7 +643,6 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
             {' '}
             Use these assets and text to create your store listing page.{' '}
           </Text>
-
           <Tabs defaultValue="screenshots">
             <Tabs.List grow>
               <Tabs.Tab
@@ -786,7 +780,6 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
                 </Card>
               </Stack>
             </Tabs.Panel>
-
             <Tabs.Panel value="icons" pt="lg">
               <Center>
                 <Card withBorder radius="md" p="xl" w={300}>
@@ -808,7 +801,6 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
                 </Card>
               </Center>
             </Tabs.Panel>
-
             <Tabs.Panel value="screenshots" pt="lg">
               <ScreenshotGallery />
             </Tabs.Panel>
