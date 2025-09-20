@@ -1,7 +1,7 @@
 import { Group, TagsInput, Text, Tooltip } from '@mantine/core'
 import type { UseFormReturnType } from '@mantine/form'
 import React from 'react'
-import ExcelUploadPopover from './Excel/ExcelUploadPopover'
+import ExcelUploadPopover from '../../../features/broadcast/components/Excel/ExcelUploadPopover'
 
 interface Props {
   form: UseFormReturnType<any>

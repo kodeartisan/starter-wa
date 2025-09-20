@@ -1,5 +1,4 @@
 // src/components/Modal/ModalCreateUpdateTemplate.tsx
-
 import Modal from '@/components/Modal/Modal'
 import { Media, Message } from '@/constants'
 import db, { type BroadcastTemplate } from '@/libs/db'

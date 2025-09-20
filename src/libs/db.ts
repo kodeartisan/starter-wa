@@ -52,46 +52,17 @@ export interface BroadcastRecipient {
   createdAt: Date
 }
 
-export interface Label {
-  id: number
-  label: string
-  value: string
-  show: number
-  custom: number
-  numbers?: any[]
-  color?: string
-  group?: string
-  isPinned?: number
-}
-
-export interface DirectChatTemplate {
-  id: number
-  name: string
-  message: string
-}
-
-export interface QuickReply {
-  id: number
-  name: string
-  type: string
-  message: any
-  isPinned?: number
-  createdAt?: Date
-}
-
 const db = new Dexie(packageJson.name) as Dexie & {
   media: EntityTable<Media, 'id'>
   broadcasts: EntityTable<Broadcast, 'id'>
   broadcastContacts: EntityTable<BroadcastContact, 'id'>
   broadcastTemplates: EntityTable<BroadcastTemplate, 'id'>
   broadcastRecipients: EntityTable<BroadcastRecipient, 'id'>
-  labels: EntityTable<Label, 'id'>
-  directChatTemplates: EntityTable<DirectChatTemplate, 'id'>
-  quickReplies: EntityTable<QuickReply, 'id'>
 }
 
 // NOTE: Dexie cannot index boolean values. Fields intended for use in `where()` clauses
 // have been changed from `boolean` to `number` (0 for false, 1 for true).
+// ++ MODIFIED: Added a compound index '[broadcastId+status]' to optimize status-based queries per broadcast.
 db.version(1).stores({
   media: '++id, parentId, type, name, file, ext',
   broadcasts:
@@ -100,9 +71,6 @@ db.version(1).stores({
     '++id, broadcastId, number, name, status, error, scheduledAt, sendAt, [broadcastId+status]',
   broadcastTemplates: '++id, name, type, message',
   broadcastRecipients: '++id, name, createdAt',
-  labels: '++id, label, value, show, custom, color, group, isPinned, *numbers',
-  directChatTemplates: '++id, name',
-  quickReplies: '++id, name, type, isPinned, createdAt',
 })
 
 export default db

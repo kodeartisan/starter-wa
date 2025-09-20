@@ -1,6 +1,6 @@
 // src/components/AppMenu.tsx
 import { Action, Page, Setting } from '@/constants'
-import PageDirectChat from '@/features/direct-chat/PageDirectChat'
+import PageBroadcast from '@/features/broadcast/PageBroadcast'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
 import useWindowMessage from '@/hooks/useWindowMessage'
@@ -129,12 +129,8 @@ const AppMenu: React.FC = () => {
         <Stack justify="space-between" gap={0} style={{ height: '100%' }}>
           <Box>
             <Tabs.Tab value={Page.HOME} className={classes.tab}>
-              <Tooltip label="Direct Chat" position="left">
-                <Icon
-                  icon="tabler:message-circle-plus"
-                  fontSize={26}
-                  color="white"
-                />
+              <Tooltip label="Broadcast" position="left">
+                <Icon icon="tabler:broadcast" fontSize={26} color="white" />
               </Tooltip>
             </Tabs.Tab>
           </Box>
@@ -177,7 +173,7 @@ const AppMenu: React.FC = () => {
     return (
       <>
         <Tabs.Panel value={Page.HOME}>
-          <PageDirectChat />
+          <PageBroadcast />
         </Tabs.Panel>
       </>
     )
