@@ -197,7 +197,6 @@ const PageBroadcast: React.FC = () => {
     }
   }
 
-  // ++ MODIFIED: Pass the pre-calculated stats map to the columns component.
   const columns = getBroadcastColumns(
     {
       onViewDetails: handleViewDetails,
@@ -254,7 +253,7 @@ const PageBroadcast: React.FC = () => {
                 dataQuery.toggleSort(status.columnAccessor)
               }
             }}
-            minHeight={200}
+            minHeight={500}
             noRecordsText="No broadcasts found"
             striped
             highlightOnHover

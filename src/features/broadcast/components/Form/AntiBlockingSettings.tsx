@@ -47,21 +47,23 @@ const AntiBlockingSettings: React.FC<Props> = ({ form }) => {
       }
     >
       <Stack>
-        <InputTyping form={form} />
         <Group grow>
           <NumberInput
             label="Min Delay (sec)"
             description="Minimum time between messages."
-            min={1}
+            size="sm"
+            min={3}
             {...form.getInputProps('delayMin')}
           />
           <NumberInput
             label="Max Delay (sec)"
             description="Maximum time between messages."
-            min={1}
+            min={5}
+            size="sm"
             {...form.getInputProps('delayMax')}
           />
         </Group>
+        <InputTyping form={form} />
         <Switch
           label="Pause after a number of messages"
           {...form.getInputProps('pauseEnabled', { type: 'checkbox' })}

@@ -35,6 +35,7 @@ const contact = (contact: ContactModel) => {
   const hasUnread = WPP.chat.get(contact.id._serialized)?.hasUnread ?? false
   return {
     id: contact.id._serialized,
+    number: contact.id.user,
     avatar: contact.getProfilePicThumb().__x_eurl,
     name: contact.name,
     pushname: contact.pushname,
@@ -56,6 +57,7 @@ const contact = (contact: ContactModel) => {
     isUser: contact.isUser,
     isWaContact: contact.isWAContact,
     labels: contact.labels,
+
     hasUnread,
   }
 }

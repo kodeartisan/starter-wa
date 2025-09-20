@@ -1,7 +1,9 @@
+// src/features/broadcast/components/Modal/ModalSourceGroups.tsx
 import Modal from '@/components/Modal/Modal'
 import { useAppStore } from '@/stores/app'
 import { Icon } from '@iconify/react'
 import {
+  Avatar,
   Button,
   Card,
   Center,
@@ -14,6 +16,8 @@ import {
   TextInput,
   Title,
 } from '@mantine/core'
+// ++ ADDED: Import useDebouncedValue for search input debouncing
+import { useDebouncedValue } from '@mantine/hooks'
 import React, { useMemo, useState } from 'react'
 import { When } from 'react-if'
 
@@ -26,29 +30,44 @@ interface Props {
 /**
  * @component ModalSourceGroups
  * @description A modal component to select recipients from the user's WhatsApp groups.
- * It now includes a search functionality to filter groups by name.
+ * It now includes a search functionality and displays group avatars for better identification.
  */
 const ModalSourceGroups: React.FC<Props> = ({ opened, onClose, onSubmit }) => {
   const { groups } = useAppStore()
   const [selectedGroups, setSelectedGroups] = useState<string[]>([])
-  // ++ ADDED: State to hold the search query from the text input.
   const [searchQuery, setSearchQuery] = useState('')
+  // ++ ADDED: Debounce the search query with a 300ms delay to improve performance.
+  const [debouncedSearchQuery] = useDebouncedValue(searchQuery, 300)
 
-  // ++ MODIFIED: The memoized value now filters groups based on the search query before mapping them.
-  // This improves performance by re-computing the list only when groups or the search query change.
-  const filteredAndFormattedGroups = useMemo(() => {
-    const lowerCaseQuery = searchQuery.toLowerCase()
-    return (
-      groups
-        ?.filter((group: any) =>
-          group.name.toLowerCase().includes(lowerCaseQuery),
-        )
-        .map((group: any) => ({
-          label: `${group.name} (${group.participants.length} members)`,
-          value: group.id,
-        })) || []
+  // -- MODIFIED: This improves performance by re-computing the list only when groups or the debounced search query change.
+  const filteredGroups = useMemo(() => {
+    if (!groups) return []
+    if (!debouncedSearchQuery) return groups
+    const lowerCaseQuery = debouncedSearchQuery.toLowerCase()
+    return groups.filter((group: any) =>
+      group.name.toLowerCase().includes(lowerCaseQuery),
     )
-  }, [groups, searchQuery])
+  }, [groups, debouncedSearchQuery])
+
+  // ++ ADDED: Check if all currently filtered groups are selected.
+  const allFilteredSelected =
+    filteredGroups.length > 0 &&
+    filteredGroups.every((group) => selectedGroups.includes(group.id))
+
+  // ++ ADDED: Handler to toggle selection for all filtered groups.
+  const handleToggleSelectAll = () => {
+    if (allFilteredSelected) {
+      // If all are selected, deselect only the filtered ones
+      const filteredGroupIds = new Set(filteredGroups.map((g) => g.id))
+      setSelectedGroups((prev) =>
+        prev.filter((id) => !filteredGroupIds.has(id)),
+      )
+    } else {
+      // If not all are selected, add all filtered ones to the selection
+      const filteredGroupIds = filteredGroups.map((g) => g.id)
+      setSelectedGroups((prev) => [...new Set([...prev, ...filteredGroupIds])])
+    }
+  }
 
   const handleToggleGroup = (groupId: string) => {
     setSelectedGroups((prev) =>
@@ -67,7 +86,6 @@ const ModalSourceGroups: React.FC<Props> = ({ opened, onClose, onSubmit }) => {
           name: group.name, // The group's name
           source: 'Group', // The source identifier
         })) || []
-
     onSubmit(finalRecipients)
     handleClose()
   }
@@ -85,15 +103,11 @@ const ModalSourceGroups: React.FC<Props> = ({ opened, onClose, onSubmit }) => {
           <Center>
             <Title order={4}>Add Recipients from Groups</Title>
           </Center>
-          <Text size="sm" c="dimmed" ta="center">
-            Select the groups you want to broadcast to.
-          </Text>
-
-          {/* ++ ADDED: TextInput for search functionality. */}
           <TextInput
             placeholder="Search groups by name..."
             leftSection={<Icon icon="tabler:search" fontSize={16} />}
             value={searchQuery}
+            size="sm"
             onChange={(event) => setSearchQuery(event.currentTarget.value)}
             disabled={groups.length === 0}
           />
@@ -106,26 +120,37 @@ const ModalSourceGroups: React.FC<Props> = ({ opened, onClose, onSubmit }) => {
           </When>
 
           <When condition={groups.length > 0}>
+            {/* ++ ADDED: "Select All" checkbox appears when there are filterable groups. */}
+            {filteredGroups.length > 0 && (
+              <Checkbox
+                label={allFilteredSelected ? 'Deselect All' : 'Select All'}
+                checked={allFilteredSelected}
+                onChange={handleToggleSelectAll}
+              />
+            )}
             <ScrollArea h={300}>
-              {/* ++ MODIFIED: Conditional rendering based on search results. */}
-              {filteredAndFormattedGroups.length > 0 ? (
+              {filteredGroups.length > 0 ? (
                 <Stack>
-                  {filteredAndFormattedGroups.map((group) => (
+                  {filteredGroups.map((group: any) => (
                     <Card
-                      key={group.value}
+                      key={group.id}
                       withBorder
                       p="xs"
                       radius="sm"
+                      shadow="none"
                       style={{ cursor: 'pointer' }}
-                      onClick={() => handleToggleGroup(group.value)}
+                      onClick={() => handleToggleGroup(group.id)}
                     >
-                      <Group>
+                      <Group wrap="nowrap">
                         <Checkbox
-                          checked={selectedGroups.includes(group.value)}
+                          checked={selectedGroups.includes(group.id)}
                           readOnly
-                          aria-label={`Select group ${group.label}`}
+                          aria-label={`Select group ${group.name}`}
                         />
-                        <Text>{group.label}</Text>
+                        <Avatar src={group.avatar} radius="xl" variant="filled">
+                          {group.name.charAt(0).toUpperCase()}
+                        </Avatar>
+                        <Text size="sm">{group.name}</Text>
                       </Group>
                     </Card>
                   ))}

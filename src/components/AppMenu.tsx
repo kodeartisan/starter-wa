@@ -1,8 +1,10 @@
 // src/components/AppMenu.tsx
 import { Action, Page, Setting } from '@/constants'
+import BroadcastListener from '@/features/broadcast/components/Listeners/BroadcastListener'
 import PageBroadcast from '@/features/broadcast/PageBroadcast'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
+import useWa from '@/hooks/useWa'
 import useWindowMessage from '@/hooks/useWindowMessage'
 import { useAppStore } from '@/stores/app'
 import env from '@/utils/env'
@@ -20,7 +22,8 @@ import ModalProfile from './Modal/ModalProfile'
 import ModalUpgrade from './Modal/ModalUpgrade'
 
 const AppMenu: React.FC = () => {
-  const { setIsReady, setActiveChat } = useAppStore()
+  const { setIsReady, setActiveChat, setGroups } = useAppStore()
+  const wa = useWa()
   const license = useLicense()
   const [showModalMain, modalMain] = useDisclosure(env.isDevelopment())
   const [showModalActivation, modalActivation] = useDisclosure(false)
@@ -96,6 +99,16 @@ const AppMenu: React.FC = () => {
       setNeedToOpen(false).then().catch(console.error)
     }
   }, [needToOpen])
+
+  useEffect(() => {
+    ;(async function () {
+      if (!wa.isReady) return
+      setTimeout(async () => {
+        const groups = await wa.group.list()
+        setGroups(groups)
+      }, 3000)
+    })()
+  }, [wa.isReady])
 
   const handleChangeTab = (value: string | null) => {
     if (Page.UPGRADE === value) {
@@ -207,6 +220,7 @@ const AppMenu: React.FC = () => {
         featureName={upgradeInfo.featureName}
         featureBenefit={upgradeInfo.featureBenefit}
       />
+      <BroadcastListener />
     </>
   )
 }

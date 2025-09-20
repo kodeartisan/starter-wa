@@ -1,5 +1,7 @@
 // src/features/broadcast/components/Modal/ModalManageSources.tsx
 import Modal from '@/components/Modal/Modal'
+import useFile from '@/hooks/useFile'
+import db from '@/libs/db'
 import toast from '@/utils/toast'
 import { Icon } from '@iconify/react'
 import {
@@ -9,16 +11,21 @@ import {
   Menu,
   Stack,
   Text,
+  TextInput,
   Tooltip,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import _ from 'lodash'
 import { DataTable, type DataTableColumn } from 'mantine-datatable'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import ModalEditRecipient from './ModalEditRecipient'
+import ModalLoadRecipientList from './ModalLoadRecipientList'
+import ModalSaveRecipientList from './ModalSaveRecipientList'
 import ModalSourceExcel from './ModalSourceExcel'
 import ModalSourceGroups from './ModalSourceGroups'
 import ModalSourceManual from './ModalSourceManual'
+// ++ ADDED: Import the new component
+import ModalSourceMyContacts from './ModalSourceMyContacts'
 
 interface Props {
   opened: boolean
@@ -37,32 +44,52 @@ const ModalManageSources: React.FC<Props> = ({
 }) => {
   const [recipients, setRecipients] = useState<any[]>([])
   const [editingRecipient, setEditingRecipient] = useState<any | null>(null)
-
-  // ++ ADDED: State for pagination
   const [page, setPage] = useState(1)
   const [paginatedRecipients, setPaginatedRecipients] = useState<any[]>([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSaving, setIsSaving] = useState(false)
 
   const [showManualModal, manualModalHandlers] = useDisclosure(false)
   const [showExcelModal, excelModalHandlers] = useDisclosure(false)
   const [showGroupsModal, groupsModalHandlers] = useDisclosure(false)
   const [showEditModal, editModalHandlers] = useDisclosure(false)
+  const [showMyContactsModal, myContactsModalHandlers] = useDisclosure(false)
   const [showSaveListModal, saveListModalHandlers] = useDisclosure(false)
   const [showLoadListModal, loadListModalHandlers] = useDisclosure(false)
+
+  const fileExporter = useFile()
 
   // Sync with initial recipients when modal opens
   useEffect(() => {
     if (opened) {
       setRecipients(_.cloneDeep(initialRecipients))
       setPage(1) // Reset to first page on open
+      setSearchQuery('')
     }
   }, [opened, initialRecipients])
 
-  // ++ ADDED: Effect to update paginated data when recipients or page changes
+  // Memoize filtered results for performance
+  const filteredRecipients = useMemo(() => {
+    if (!searchQuery) return recipients
+    const lowerCaseQuery = searchQuery.toLowerCase()
+    return recipients.filter(
+      (r) =>
+        r.name?.toLowerCase().includes(lowerCaseQuery) ||
+        r.number?.toLowerCase().includes(lowerCaseQuery),
+    )
+  }, [recipients, searchQuery])
+
+  // Effect to update paginated data when filtered recipients or page changes
   useEffect(() => {
     const from = (page - 1) * PAGE_SIZE
     const to = from + PAGE_SIZE
-    setPaginatedRecipients(recipients.slice(from, to))
-  }, [recipients, page])
+    setPaginatedRecipients(filteredRecipients.slice(from, to))
+  }, [filteredRecipients, page])
+
+  // Reset page to 1 when search query changes
+  useEffect(() => {
+    setPage(1)
+  }, [searchQuery])
 
   const handleAddRecipients = (newRecipients: any[]) => {
     const formattedNewRecipients = newRecipients.map((rec) => {
@@ -72,7 +99,6 @@ const ModalManageSources: React.FC<Props> = ({
       return {
         number: rec.number || rec.phoneNumber,
         name: rec.name || rec.savedName || rec.publicName || 'N/A',
-        source: rec.source || 'Import',
       }
     })
 
@@ -80,7 +106,6 @@ const ModalManageSources: React.FC<Props> = ({
     const combined = [...recipients, ...formattedNewRecipients]
     const uniqueRecipients = _.uniqBy(combined, 'number')
     const finalCount = uniqueRecipients.length
-
     setRecipients(uniqueRecipients)
 
     const addedCount = finalCount - initialCount
@@ -122,6 +147,46 @@ const ModalManageSources: React.FC<Props> = ({
       ),
     )
     editModalHandlers.close()
+  }
+
+  const handleSaveList = async (name: string) => {
+    if (recipients.length === 0) {
+      toast.error('Cannot save an empty list.')
+      return
+    }
+    setIsSaving(true)
+    try {
+      await db.broadcastRecipients.add({
+        name,
+        recipients,
+        createdAt: new Date(),
+      })
+      toast.success(`List "${name}" saved successfully.`)
+      saveListModalHandlers.close()
+    } catch (error) {
+      console.error('Failed to save list:', error)
+      toast.error('Failed to save the list.')
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const handleLoadList = (loadedRecipients: any[]) => {
+    setRecipients(loadedRecipients)
+    toast.success(`Loaded ${loadedRecipients.length} recipients.`)
+  }
+
+  const handleExport = async (format: string) => {
+    if (recipients.length === 0) {
+      toast.info('No recipients to export.')
+      return
+    }
+    const dataForExport = recipients.map((r) => ({
+      number: r.number,
+      name: r.name,
+    }))
+    const filename = `recipients_${new Date().toISOString().slice(0, 10)}`
+    await fileExporter.saveAs(format, dataForExport, filename)
   }
 
   const handleClearAll = () => {
@@ -170,34 +235,12 @@ const ModalManageSources: React.FC<Props> = ({
 
   return (
     <>
-      <Modal opened={opened} onClose={onClose} w={900} withCloseButton>
+      <Modal opened={opened} onClose={onClose} w={750} withCloseButton>
         <Stack justify="space-between" h={'calc(80vh)'} p="sm">
           <Stack>
             <Group justify="space-between">
               <Text fw={500}>Current Recipients ({recipients.length})</Text>
               <Group>
-                <Button
-                  size="xs"
-                  color="blue"
-                  variant="outline"
-                  onClick={saveListModalHandlers.open}
-                  disabled={recipients.length === 0}
-                  leftSection={
-                    <Icon icon="tabler:device-floppy" fontSize={16} />
-                  }
-                >
-                  Save List
-                </Button>
-                <Button
-                  size="xs"
-                  color="red"
-                  variant="outline"
-                  onClick={handleClearAll}
-                  disabled={recipients.length === 0}
-                  leftSection={<Icon icon="tabler:x" fontSize={16} />}
-                >
-                  Clear All
-                </Button>
                 <Menu shadow="md">
                   <Menu.Target>
                     <Button
@@ -208,16 +251,6 @@ const ModalManageSources: React.FC<Props> = ({
                     </Button>
                   </Menu.Target>
                   <Menu.Dropdown>
-                    <Menu.Label>Saved Lists</Menu.Label>
-                    <Menu.Item
-                      leftSection={
-                        <Icon icon="tabler:list-check" fontSize={16} />
-                      }
-                      onClick={loadListModalHandlers.open}
-                    >
-                      Load from Saved List
-                    </Menu.Item>
-                    <Menu.Divider />
                     <Menu.Label>Sources</Menu.Label>
                     <Menu.Item
                       leftSection={
@@ -225,7 +258,7 @@ const ModalManageSources: React.FC<Props> = ({
                       }
                       onClick={manualModalHandlers.open}
                     >
-                      Manual Input
+                      Manual
                     </Menu.Item>
                     <Menu.Item
                       leftSection={
@@ -233,30 +266,109 @@ const ModalManageSources: React.FC<Props> = ({
                       }
                       onClick={excelModalHandlers.open}
                     >
-                      From Excel
+                      Excel
                     </Menu.Item>
                     <Menu.Item
                       leftSection={<Icon icon="tabler:users" fontSize={16} />}
                       onClick={groupsModalHandlers.open}
                     >
-                      From Groups
+                      Groups
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={
+                        <Icon icon="tabler:address-book" fontSize={16} />
+                      }
+                      onClick={myContactsModalHandlers.open}
+                    >
+                      My Contacts
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={
+                        <Icon icon="tabler:database-import" fontSize={16} />
+                      }
+                      onClick={loadListModalHandlers.open}
+                    >
+                      Load Saved List
+                    </Menu.Item>
+                  </Menu.Dropdown>
+                </Menu>
+                <Menu shadow="md" withArrow>
+                  <Menu.Target>
+                    <Button
+                      variant="default"
+                      size="xs"
+                      leftSection={
+                        <Icon icon="tabler:settings" fontSize={16} />
+                      }
+                    >
+                      Manage
+                    </Button>
+                  </Menu.Target>
+                  <Menu.Dropdown>
+                    <Menu.Item
+                      leftSection={
+                        <Icon icon="tabler:device-floppy" fontSize={16} />
+                      }
+                      onClick={saveListModalHandlers.open}
+                      disabled={recipients.length === 0}
+                    >
+                      Save Current List
+                    </Menu.Item>
+                    <Menu.Divider />
+                    <Menu.Label>Export List</Menu.Label>
+                    <Menu.Item
+                      leftSection={
+                        <Icon icon="tabler:file-type-csv" fontSize={16} />
+                      }
+                      onClick={() => handleExport('csv')}
+                      disabled={recipients.length === 0}
+                    >
+                      Export as CSV
+                    </Menu.Item>
+                    <Menu.Item
+                      leftSection={
+                        <Icon icon="tabler:file-type-xls" fontSize={16} />
+                      }
+                      onClick={() => handleExport('xlsx')}
+                      disabled={recipients.length === 0}
+                    >
+                      Export as XLSX
+                    </Menu.Item>
+                    <Menu.Divider />
+                    <Menu.Item
+                      color="red"
+                      leftSection={<Icon icon="tabler:x" fontSize={16} />}
+                      onClick={handleClearAll}
+                      disabled={recipients.length === 0}
+                    >
+                      Clear All Recipients
                     </Menu.Item>
                   </Menu.Dropdown>
                 </Menu>
               </Group>
             </Group>
-
-            {/* ++ MODIFIED: Replaced ScrollArea with a paginated DataTable */}
+            <TextInput
+              placeholder={`Search in ${recipients.length} recipients...`}
+              leftSection={<Icon icon="tabler:search" fontSize={16} />}
+              value={searchQuery}
+              size="sm"
+              onChange={(e) => setSearchQuery(e.currentTarget.value)}
+              disabled={recipients.length === 0}
+            />
             <DataTable
-              height={'calc(70vh - 120px)'}
+              height={'calc(70vh - 160px)'}
               records={paginatedRecipients}
               columns={columns}
-              totalRecords={recipients.length}
+              totalRecords={filteredRecipients.length}
               recordsPerPage={PAGE_SIZE}
               page={page}
               onPageChange={(p) => setPage(p)}
-              minHeight={recipients.length === 0 ? 150 : 0}
-              noRecordsText="No recipients added yet."
+              minHeight={filteredRecipients.length === 0 ? 150 : 0}
+              noRecordsText={
+                searchQuery
+                  ? 'No recipients match your search'
+                  : 'No recipients added yet.'
+              }
               withTableBorder={false}
               striped
             />
@@ -269,6 +381,7 @@ const ModalManageSources: React.FC<Props> = ({
           </Group>
         </Stack>
       </Modal>
+
       <ModalEditRecipient
         opened={showEditModal}
         onClose={editModalHandlers.close}
@@ -289,6 +402,23 @@ const ModalManageSources: React.FC<Props> = ({
         opened={showGroupsModal}
         onClose={groupsModalHandlers.close}
         onSubmit={handleAddRecipients}
+      />
+      {/* ++ ADDED: Render the new modal component */}
+      <ModalSourceMyContacts
+        opened={showMyContactsModal}
+        onClose={myContactsModalHandlers.close}
+        onSubmit={handleAddRecipients}
+      />
+      <ModalSaveRecipientList
+        opened={showSaveListModal}
+        onClose={saveListModalHandlers.close}
+        onSave={handleSaveList}
+        isSaving={isSaving}
+      />
+      <ModalLoadRecipientList
+        opened={showLoadListModal}
+        onClose={loadListModalHandlers.close}
+        onLoad={handleLoadList}
       />
     </>
   )

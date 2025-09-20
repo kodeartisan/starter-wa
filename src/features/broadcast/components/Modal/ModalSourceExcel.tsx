@@ -2,6 +2,7 @@ import Modal from '@/components/Modal/Modal'
 import ExcelUploadPopover from '@/features/broadcast/components/Excel/ExcelUploadPopover'
 import { Center, Stack, Title } from '@mantine/core'
 import React from 'react'
+import ExcelUploader from '../Excel/ExcelUploader'
 
 interface Props {
   opened: boolean
@@ -32,8 +33,7 @@ const ModalSourceExcel: React.FC<Props> = ({ opened, onClose, onSubmit }) => {
         <Center>
           <Title order={4}>Add Numbers From Excel</Title>
         </Center>
-
-        <ExcelUploadPopover onConfirm={handleConfirmUpload} />
+        <ExcelUploader onConfirm={handleConfirmUpload} onClose={onClose} />
       </Stack>
     </Modal>
   )

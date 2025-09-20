@@ -59,11 +59,11 @@ const ModalCreateBroadcast: React.FC<Props> = ({
 
   return (
     <>
-      <Modal opened={opened} onClose={handleClose} w={900} withCloseButton>
+      <Modal opened={opened} onClose={handleClose} w={700} withCloseButton>
         <ScrollArea h={650}>
           <Stack>
             <TextInput
-              label="Broadcast Name"
+              label="Name"
               placeholder="e.g., Weekly Newsletter"
               {...form.getInputProps('name')}
             />
