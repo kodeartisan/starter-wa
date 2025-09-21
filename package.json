@@ -1,9 +1,9 @@
 {
   "name": "whats-groups-backup",
   "shortName": "WhatsGroupBackup",
-  "displayName": "WA Group Chats Backup for WhatsApp",
-  "version": "1.0.0",
-  "description": "Easily save & backup your group chats and export to multiple formats",
+  "displayName": "WA Group Chat Backup for WhatsApp",
+  "version": "1.1.0",
+  "description": "Easily save & backup your group chat and export to multiple formats",
   "author": "Extninja",
   "scripts": {
     "dev": "plasmo dev --no-cs-reload",
