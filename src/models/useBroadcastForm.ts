@@ -1,3 +1,4 @@
+// src/models/useBroadcastForm.ts
 import { Media, Message, Setting, Status } from '@/constants'
 import useInputMessage from '@/features/broadcast/components/Input/Message/useInputMessage'
 import useLicense from '@/hooks/useLicense'
@@ -51,7 +52,6 @@ export const useBroadcastForm = ({
   const license = useLicense()
   const [isPreviewing, setIsPreviewing] = useState(false)
   const { profile } = useAppStore()
-
   const form = useForm({
     initialValues: defaultValues,
     validate: {
@@ -137,8 +137,10 @@ export const useBroadcastForm = ({
     ) {
       return ''
     }
+
     let minSeconds = recipientCount * delayMin
     let maxSeconds = recipientCount * delayMax
+
     if (pauseEnabled && pauseAfter > 0 && pauseDuration > 0) {
       const numberOfPauses = Math.floor((recipientCount - 1) / pauseAfter)
       if (numberOfPauses > 0) {
@@ -147,8 +149,10 @@ export const useBroadcastForm = ({
         maxSeconds += totalPauseSeconds
       }
     }
+
     const minMinutes = Math.round(minSeconds / 60)
     const maxMinutes = Math.round(maxSeconds / 60)
+
     if (maxMinutes < 1) return 'Less than a minute.'
     if (minMinutes === maxMinutes)
       return `About ${minMinutes} minute${minMinutes > 1 ? 's' : ''}.`
@@ -162,7 +166,6 @@ export const useBroadcastForm = ({
         let recipientsToSet: any[] = []
         let nameSuffix = ' (Copy)'
         const broadcastName = `${cloneData.name || 'Broadcast'}`
-
         if (cloneData.recipients && cloneData.recipients.length > 0) {
           recipientsToSet = cloneData.recipients
           nameSuffix = ' (Resend)'
@@ -190,7 +193,6 @@ export const useBroadcastForm = ({
           pauseAfter: cloneData.pauseAfter || 50,
           pauseDuration: cloneData.pauseDuration || 5,
         })
-
         const { type, message } = cloneData
         inputMessageForm.setFieldValue('type', type)
         switch (type) {
@@ -232,7 +234,6 @@ export const useBroadcastForm = ({
         }
       }
     }
-
     if (cloneData) {
       populateForm().catch(console.error)
     } else {
@@ -251,9 +252,9 @@ export const useBroadcastForm = ({
   const handlePreviewBroadcast = async () => {
     if (formHasErrors(form, inputMessageForm)) return
     setIsPreviewing(true)
+
     const { type } = inputMessageForm.values
     const myChatId = `${profile?.number}@c.us`
-
     if (!myChatId) {
       toast.error(
         'Could not retrieve your number for the preview. Please try again.',
@@ -300,10 +301,39 @@ export const useBroadcastForm = ({
   }
 
   const proceedWithBroadcast = async () => {
+    // ++ ADDED: Fetch signature settings from storage
+    const signatureEnabled = await storage.get(Setting.SIGNATURE_ENABLED)
+    const signatureText = await storage.get<string>(Setting.SIGNATURE_TEXT)
+
+    let messagePayload = getMessage()
+    const messageType = inputMessageForm.values.type
+
+    // ++ ADDED: Logic to append signature if enabled
+    if (signatureEnabled && signatureText && signatureText.trim() !== '') {
+      const signature = `\n\n${signatureText}`
+      if (messageType === Message.TEXT) {
+        messagePayload += signature
+      } else if (
+        (messageType === Message.IMAGE ||
+          messageType === Message.VIDEO ||
+          messageType === Message.FILE) &&
+        typeof messagePayload === 'object' &&
+        messagePayload !== null
+      ) {
+        // This handles image, video, and file captions
+        if ('caption' in messagePayload) {
+          messagePayload.caption = (messagePayload.caption || '') + signature
+        } else {
+          // Fallback for file message which might not have a caption property initially
+          messagePayload = (messagePayload || '') + signature
+        }
+      }
+    }
+
     const broadcastData = {
       ...form.values,
-      type: inputMessageForm.values.type,
-      message: getMessage(),
+      type: messageType,
+      message: messagePayload, // Use the potentially modified message payload
       isTyping: form.values.isTyping ? 1 : 0,
       isScheduler: form.values.scheduler.enabled ? 1 : 0,
       status: Status.PENDING,
@@ -315,9 +345,11 @@ export const useBroadcastForm = ({
     try {
       //@ts-ignore
       const broadcastId = await db.broadcasts.add(broadcastData as Broadcast)
+
       if (isTypeMessageMedia(inputMessageForm.values.type)) {
         await insertBroadcastFile(broadcastId, Media.BROADCAST)
       }
+
       //@ts-ignore
       const contacts: BroadcastContact[] = form.values.numbers.map(
         (recipient: any) => ({

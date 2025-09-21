@@ -1,3 +1,4 @@
+// src/features/broadcast/components/Form/AntiBlockingSettings.tsx
 import { Icon } from '@iconify/react'
 import {
   ActionIcon,
@@ -8,6 +9,7 @@ import {
   Stack,
   Switch,
   Text,
+  Tooltip,
 } from '@mantine/core'
 import type { UseFormReturnType } from '@mantine/form'
 import React from 'react'
@@ -48,38 +50,65 @@ const AntiBlockingSettings: React.FC<Props> = ({ form }) => {
     >
       <Stack>
         <Group grow>
-          <NumberInput
-            label="Min Delay (sec)"
-            description="Minimum time between messages."
-            size="sm"
-            min={3}
-            {...form.getInputProps('delayMin')}
-          />
-          <NumberInput
-            label="Max Delay (sec)"
-            description="Maximum time between messages."
-            min={5}
-            size="sm"
-            {...form.getInputProps('delayMax')}
-          />
+          {/* MODIFIED: Wrapped the NumberInput in a Tooltip for clarity */}
+          <Tooltip
+            label="The shortest time to wait before sending the next message. Helps simulate human behavior."
+            position="top-start"
+            multiline
+            withArrow
+          >
+            <NumberInput
+              label="Min Delay (sec)"
+              description="Minimum time between messages."
+              size="sm"
+              min={3}
+              {...form.getInputProps('delayMin')}
+            />
+          </Tooltip>
+          {/* MODIFIED: Wrapped the NumberInput in a Tooltip for clarity */}
+          <Tooltip
+            label="The longest time to wait before sending the next message. A random delay between Min and Max will be chosen for each message."
+            position="top-start"
+            multiline
+            withArrow
+          >
+            <NumberInput
+              label="Max Delay (sec)"
+              description="Maximum time between messages."
+              min={5}
+              size="sm"
+              {...form.getInputProps('delayMax')}
+            />
+          </Tooltip>
         </Group>
         <InputTyping form={form} />
-        <Switch
-          label="Pause after a number of messages"
-          {...form.getInputProps('pauseEnabled', { type: 'checkbox' })}
-        />
+        <Tooltip
+          label="Automatically pause the broadcast after a certain number of messages to reduce the risk of being blocked."
+          refProp="rootRef"
+          position="top-start"
+          multiline
+          w={350}
+          withArrow
+        >
+          <Switch
+            label={<Text fw={500}>Pause after a number of messages</Text>}
+            {...form.getInputProps('pauseEnabled', { type: 'checkbox' })}
+          />
+        </Tooltip>
         {form.values.pauseEnabled && (
           <Group grow>
             <NumberInput
               label="Pause After (messages)"
               description="Number of messages to send before pausing."
               min={1}
+              size="sm"
               {...form.getInputProps('pauseAfter')}
             />
             <NumberInput
               label="Pause For (minutes)"
               description="How long to pause the broadcast."
               min={1}
+              size="sm"
               {...form.getInputProps('pauseDuration')}
             />
           </Group>

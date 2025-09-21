@@ -1,3 +1,4 @@
+// src/features/broadcast/components/Modal/ModalCreateBroadcast.tsx
 import Modal from '@/components/Modal/Modal'
 import type { Broadcast } from '@/libs/db'
 import { useBroadcastForm } from '@/models/useBroadcastForm'
@@ -8,6 +9,8 @@ import AntiBlockingSettings from '../Form/AntiBlockingSettings'
 import BroadcastActions from '../Form/BroadcastActions'
 import BroadcastScheduler from '../Form/BroadcastScheduler'
 import RecipientManager from '../Form/RecipientManager'
+// ++ ADDED: Import the new SignatureSettings component
+import SignatureSettings from '../Form/SignatureSettings'
 import InputMessage from '../Input/Message/InputMessage'
 import ModalFirstBroadcastWarning from './ModalFirstBroadcastWarning'
 import ModalManageSources from './ModalManageSources'
@@ -75,6 +78,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
             />
             <InputMessage form={inputMessageForm} />
             <AntiBlockingSettings form={form} />
+            <SignatureSettings />
             <BroadcastScheduler form={form} estimatedTime={estimatedTime} />
             <BroadcastActions
               onPreview={handlePreviewBroadcast}
@@ -93,6 +97,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
         onSubmit={handleUpdateRecipients}
         initialRecipients={form.values.numbers}
       />
+
       <ModalFirstBroadcastWarning
         opened={showWarningModal}
         onClose={warningModalHandlers.close}

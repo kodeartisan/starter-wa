@@ -221,6 +221,7 @@ const PageBroadcast: React.FC = () => {
             leftSection={<Icon icon="tabler:search" fontSize={16} />}
           />
           <Button
+            size="sm"
             leftSection={<Icon icon="tabler:plus" fontSize={18} />}
             onClick={() => handleOpenCreateModal()}
           >

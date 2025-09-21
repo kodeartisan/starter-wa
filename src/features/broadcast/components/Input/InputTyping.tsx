@@ -20,11 +20,6 @@ const InputTyping: React.FC<Props> = ({ form }: Props) => {
         label={
           <Group gap="xs">
             <Text fw={500}>Typing effect</Text>
-            <When condition={license.isFree()}>
-              <Badge size="sm" variant="light" color="teal">
-                PRO
-              </Badge>
-            </When>
           </Group>
         }
         {...form.getInputProps('isTyping', { type: 'checkbox' })}
