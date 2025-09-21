@@ -22,6 +22,7 @@ const defaultValues = {
   name: '',
   numbers: [] as any[],
   isTyping: false,
+  validateNumbers: false,
   scheduler: {
     enabled: false,
     scheduledAt: addMinutes(new Date(), 5),
@@ -166,6 +167,7 @@ export const useBroadcastForm = ({
         let recipientsToSet: any[] = []
         let nameSuffix = ' (Copy)'
         const broadcastName = `${cloneData.name || 'Broadcast'}`
+
         if (cloneData.recipients && cloneData.recipients.length > 0) {
           recipientsToSet = cloneData.recipients
           nameSuffix = ' (Resend)'
@@ -183,6 +185,7 @@ export const useBroadcastForm = ({
           name: `${broadcastName}${nameSuffix}`,
           numbers: recipientsToSet,
           isTyping: !!cloneData.isTyping,
+          validateNumbers: cloneData.validateNumbers !== 0,
           scheduler: {
             enabled: false,
             scheduledAt: addMinutes(new Date(), 5),
@@ -193,8 +196,10 @@ export const useBroadcastForm = ({
           pauseAfter: cloneData.pauseAfter || 50,
           pauseDuration: cloneData.pauseDuration || 5,
         })
+
         const { type, message } = cloneData
         inputMessageForm.setFieldValue('type', type)
+
         switch (type) {
           case Message.TEXT:
             inputMessageForm.setFieldValue('inputText', message as string)
@@ -262,7 +267,6 @@ export const useBroadcastForm = ({
       setIsPreviewing(false)
       return
     }
-
     try {
       switch (type) {
         case Message.TEXT:
@@ -301,14 +305,11 @@ export const useBroadcastForm = ({
   }
 
   const proceedWithBroadcast = async () => {
-    // ++ ADDED: Fetch signature settings from storage
     const signatureEnabled = await storage.get(Setting.SIGNATURE_ENABLED)
     const signatureText = await storage.get<string>(Setting.SIGNATURE_TEXT)
-
     let messagePayload = getMessage()
     const messageType = inputMessageForm.values.type
 
-    // ++ ADDED: Logic to append signature if enabled
     if (signatureEnabled && signatureText && signatureText.trim() !== '') {
       const signature = `\n\n${signatureText}`
       if (messageType === Message.TEXT) {
@@ -320,11 +321,9 @@ export const useBroadcastForm = ({
         typeof messagePayload === 'object' &&
         messagePayload !== null
       ) {
-        // This handles image, video, and file captions
         if ('caption' in messagePayload) {
           messagePayload.caption = (messagePayload.caption || '') + signature
         } else {
-          // Fallback for file message which might not have a caption property initially
           messagePayload = (messagePayload || '') + signature
         }
       }
@@ -333,7 +332,8 @@ export const useBroadcastForm = ({
     const broadcastData = {
       ...form.values,
       type: messageType,
-      message: messagePayload, // Use the potentially modified message payload
+      message: messagePayload,
+      validateNumbers: form.values.validateNumbers ? 1 : 0,
       isTyping: form.values.isTyping ? 1 : 0,
       isScheduler: form.values.scheduler.enabled ? 1 : 0,
       status: Status.PENDING,
@@ -349,7 +349,6 @@ export const useBroadcastForm = ({
       if (isTypeMessageMedia(inputMessageForm.values.type)) {
         await insertBroadcastFile(broadcastId, Media.BROADCAST)
       }
-
       //@ts-ignore
       const contacts: BroadcastContact[] = form.values.numbers.map(
         (recipient: any) => ({
@@ -378,6 +377,7 @@ export const useBroadcastForm = ({
     const hasAcknowledged = await storage.get(
       Setting.HAS_ACKNOWLEDGED_BROADCAST_WARNING,
     )
+
     if (!hasAcknowledged) {
       return false // Indicate that the warning modal should be shown
     }

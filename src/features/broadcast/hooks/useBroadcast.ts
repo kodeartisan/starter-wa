@@ -2,6 +2,7 @@
 import { Status } from '@/constants'
 import type { Broadcast, BroadcastContact } from '@/libs/db'
 import db from '@/libs/db'
+import wa from '@/libs/wa'
 import BroadcastContactModel from '@/models/BroadcastContactModel'
 import BroadcastModel from '@/models/BroadcastModel'
 import toast from '@/utils/toast'
@@ -32,7 +33,6 @@ const useBroadcast = () => {
     ) {
       return
     }
-
     // This query is faster now due to the compound index [broadcastId+status]
     const successCount = await db.broadcastContacts
       .where({ broadcastId: broadcast.id, status: Status.SUCCESS })
@@ -66,6 +66,7 @@ const useBroadcast = () => {
         Math.random() * (broadcast.delayMax - broadcast.delayMin + 1),
       ) + broadcast.delayMin
     await delay(randomDelay)
+
     const action = getBroadcastAction(broadcast, contact)
     if (action) {
       await action()
@@ -138,6 +139,7 @@ const useBroadcast = () => {
             }
             continue // Skip to the next group.
           }
+
           if (broadcast.status !== Status.RUNNING) {
             await BroadcastModel.running(broadcast.id)
           }
@@ -145,6 +147,18 @@ const useBroadcast = () => {
           // 5. Process each contact within the group.
           for (const contact of contactGroup) {
             if (!validationRef.current) return // Allow cancellation mid-batch
+
+            if (broadcast.validateNumbers === 1) {
+              const isValid = await wa.contact.isExist(contact.number)
+              if (!isValid) {
+                await BroadcastContactModel.failed(
+                  contact.id,
+                  'Number is not a valid WhatsApp account.',
+                )
+                continue // Skip to the next contact
+              }
+            }
+
             try {
               await BroadcastContactModel.running(contact.id)
               await runBroadcast(broadcast, contact)
@@ -154,6 +168,7 @@ const useBroadcast = () => {
               await BroadcastContactModel.failed(contact.id, error.message)
             }
           }
+
           // 6. Check if the entire broadcast is done after processing a batch.
           await checkAllContactsDone(broadcast)
         }

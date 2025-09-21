@@ -81,7 +81,23 @@ const AntiBlockingSettings: React.FC<Props> = ({ form }) => {
             />
           </Tooltip>
         </Group>
+
+        <Tooltip
+          label="Verify that each number is a valid WhatsApp account before sending. This can add a small delay before the broadcast starts but greatly increases safety and prevents sending to non-existent numbers."
+          refProp="rootRef"
+          position="top-start"
+          multiline
+          w={350}
+          withArrow
+        >
+          <Switch
+            label={<Text fw={500}>Only send to valid numbers</Text>}
+            {...form.getInputProps('validateNumbers', { type: 'checkbox' })}
+          />
+        </Tooltip>
+
         <InputTyping form={form} />
+
         <Tooltip
           label="Automatically pause the broadcast after a certain number of messages to reduce the risk of being blocked."
           refProp="rootRef"

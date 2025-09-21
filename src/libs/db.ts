@@ -25,6 +25,7 @@ export interface Broadcast {
   pauseAfter?: number
   pauseDuration?: number
   pausedUntil?: Date | null
+  validateNumbers?: number
 }
 
 export interface BroadcastContact {
@@ -66,7 +67,7 @@ const db = new Dexie(packageJson.name) as Dexie & {
 db.version(1).stores({
   media: '++id, parentId, type, name, file, ext',
   broadcasts:
-    '++id, name, type, message, isTyping, isScheduler, status, delayMin, delayMax, pauseEnabled, pauseAfter, pauseDuration, pausedUntil',
+    '++id, name, type, message, isTyping, isScheduler, status, delayMin, delayMax, pauseEnabled, pauseAfter, pauseDuration, pausedUntil, validateNumbers',
   broadcastContacts:
     '++id, broadcastId, number, name, status, error, scheduledAt, sendAt, [broadcastId+status]',
   broadcastTemplates: '++id, name, type, message',

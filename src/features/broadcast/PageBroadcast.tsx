@@ -36,21 +36,18 @@ const PageBroadcast: React.FC = () => {
   const fileExporter = useFile()
   const license = useLicense()
 
-  // ++ ADDED: Fetch all contacts once to calculate stats efficiently.
   const allBroadcastContacts =
     useLiveQuery(() => db.broadcastContacts.toArray(), []) || []
 
   const [showModalCreate, modalCreateHandlers] = useDisclosure(false)
   const [showModalDetail, modalDetailHandlers] = useDisclosure(false)
-
   const [detailData, setDetailData] = useState<Broadcast | null>(null)
   const [cloneData, setCloneData] = useState<
     (Broadcast & { recipients?: any[] }) | null
   >(null)
   const [isExporting, setIsExporting] = useState(false)
+  const [selectedRecords, setSelectedRecords] = useState<Broadcast[]>([])
 
-  // ++ ADDED: Pre-calculate statistics for all broadcasts.
-  // This avoids re-calculating stats for every row on every render.
   const broadcastStatsMap = useMemo(() => {
     const statsMap = new Map<
       number,
@@ -65,7 +62,6 @@ const PageBroadcast: React.FC = () => {
         firstError?: string
       }
     >()
-
     for (const contact of allBroadcastContacts) {
       if (!statsMap.has(contact.broadcastId)) {
         statsMap.set(contact.broadcastId, {
@@ -92,7 +88,6 @@ const PageBroadcast: React.FC = () => {
           break
         case Status.FAILED:
           stats.failed++
-          // Store the first error message found for tooltip display
           if (!stats.firstError && contact.error) {
             stats.firstError = contact.error
           }
@@ -135,17 +130,18 @@ const PageBroadcast: React.FC = () => {
     modalDetailHandlers.open()
   }
 
-  const handleDelete = async (broadcast: Broadcast) => {
-    if (
-      !confirm(
-        `Are you sure you want to delete broadcast "${
-          broadcast.name || `ID ${broadcast.id}`
-        }"? This is irreversible.`,
-      )
-    )
-      return
+  const deleteBroadcasts = async (broadcastsToDelete: Broadcast[]) => {
+    if (broadcastsToDelete.length === 0) return
+
+    const isPlural = broadcastsToDelete.length > 1
+    const confirmationMessage = `Are you sure you want to delete ${
+      broadcastsToDelete.length
+    } broadcast${isPlural ? 's' : ''}? This action is irreversible.`
+
+    if (!confirm(confirmationMessage)) return
 
     try {
+      const broadcastIds = broadcastsToDelete.map((b) => b.id)
       await db.transaction(
         'rw',
         db.broadcasts,
@@ -153,19 +149,44 @@ const PageBroadcast: React.FC = () => {
         db.media,
         async () => {
           await db.broadcastContacts
-            .where({ broadcastId: broadcast.id })
+            .where('broadcastId')
+            .anyOf(broadcastIds)
             .delete()
           await db.media
-            .where({ parentId: broadcast.id, type: Media.BROADCAST })
+            .where('parentId')
+            .anyOf(broadcastIds)
+            .and((item) => item.type === Media.BROADCAST)
             .delete()
-          await db.broadcasts.delete(broadcast.id)
+          await db.broadcasts.bulkDelete(broadcastIds)
         },
       )
-      toast.success('Broadcast deleted successfully.')
+      toast.success(
+        `${broadcastsToDelete.length} broadcast${
+          isPlural ? 's' : ''
+        } deleted successfully.`,
+      )
+      setSelectedRecords([])
     } catch (error) {
-      console.error('Failed to delete broadcast:', error)
-      toast.error('Failed to delete broadcast.')
+      console.error('Failed to delete broadcast(s):', error)
+      toast.error('Failed to delete the broadcast(s).')
     }
+  }
+
+  const handleDelete = (broadcast: Broadcast) => {
+    deleteBroadcasts([broadcast])
+  }
+
+  const handleBulkDelete = () => {
+    deleteBroadcasts(selectedRecords)
+  }
+
+  const handleClearAll = async () => {
+    const allBroadcasts = await db.broadcasts.toArray()
+    if (allBroadcasts.length === 0) {
+      toast.info('There are no broadcasts to clear.')
+      return
+    }
+    await deleteBroadcasts(allBroadcasts)
   }
 
   const handleExport = async (broadcast: Broadcast, format: string) => {
@@ -220,13 +241,44 @@ const PageBroadcast: React.FC = () => {
             onChange={(e) => dataQuery.setSearch(e.currentTarget.value)}
             leftSection={<Icon icon="tabler:search" fontSize={16} />}
           />
-          <Button
-            size="sm"
-            leftSection={<Icon icon="tabler:plus" fontSize={18} />}
-            onClick={() => handleOpenCreateModal()}
-          >
-            Create Broadcast
-          </Button>
+          {/* ++ MODIFIED: Replaced Menu with conditionally rendered Buttons for a clearer UI. */}
+          <Group>
+            {/* Show Delete Selected button only when records are selected */}
+            {selectedRecords.length > 0 && (
+              <Button
+                variant="outline"
+                color="red"
+                size="sm"
+                leftSection={<Icon icon="tabler:trash" fontSize={18} />}
+                onClick={handleBulkDelete}
+              >
+                Delete Selected ({selectedRecords.length})
+              </Button>
+            )}
+
+            {/* Show Clear All button only when there is data AND no records are selected */}
+            {dataQuery.data &&
+              dataQuery.data.length > 0 &&
+              selectedRecords.length === 0 && (
+                <Button
+                  variant="default"
+                  color="red"
+                  size="sm"
+                  leftSection={<Icon icon="tabler:clear-all" fontSize={18} />}
+                  onClick={handleClearAll}
+                >
+                  Clear All
+                </Button>
+              )}
+
+            <Button
+              size="sm"
+              leftSection={<Icon icon="tabler:plus" fontSize={18} />}
+              onClick={() => handleOpenCreateModal()}
+            >
+              Create Broadcast
+            </Button>
+          </Group>
         </Group>
         <Box style={{ position: 'relative' }}>
           <LoadingOverlay
@@ -235,6 +287,8 @@ const PageBroadcast: React.FC = () => {
             overlayProps={{ radius: 'sm', blur: 2 }}
           />
           <DataTable
+            selectedRecords={selectedRecords}
+            onSelectedRecordsChange={setSelectedRecords}
             records={dataQuery.data}
             columns={columns}
             totalRecords={dataQuery.totalRecords}
