@@ -4,9 +4,7 @@ import useInputMessage from '@/features/broadcast/components/Input/Message/useIn
 import useLicense from '@/hooks/useLicense'
 import db, { type Broadcast, type BroadcastContact } from '@/libs/db'
 import { storage } from '@/libs/storage'
-import wa from '@/libs/wa'
 import { useAppStore } from '@/stores/app'
-import parse from '@/utils/parse'
 import toast from '@/utils/toast'
 import {
   formHasErrors,
@@ -16,7 +14,7 @@ import {
 import { useForm } from '@mantine/form'
 import { addMinutes, isFuture } from 'date-fns'
 import _ from 'lodash'
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo } from 'react'
 
 const defaultValues = {
   name: '',
@@ -29,9 +27,6 @@ const defaultValues = {
   },
   delayMin: 3,
   delayMax: 6,
-  pauseEnabled: false,
-  pauseAfter: 50,
-  pauseDuration: 5,
 }
 
 interface useBroadcastFormProps {
@@ -51,7 +46,6 @@ export const useBroadcastForm = ({
   onClose,
 }: useBroadcastFormProps) => {
   const license = useLicense()
-  const [isPreviewing, setIsPreviewing] = useState(false)
   const { profile } = useAppStore()
   const form = useForm({
     initialValues: defaultValues,
@@ -101,18 +95,9 @@ export const useBroadcastForm = ({
         }
         return null
       },
-      pauseAfter: (value, values) =>
-        values.pauseEnabled && (!value || value < 1)
-          ? 'Please enter a valid number of messages.'
-          : null,
-      pauseDuration: (value, values) =>
-        values.pauseEnabled && (!value || value < 1)
-          ? 'Please enter a valid pause duration in minutes.'
-          : null,
     },
     validateInputOnChange: ['numbers'],
   })
-
   const {
     form: inputMessageForm,
     getMessage,
@@ -120,15 +105,9 @@ export const useBroadcastForm = ({
   } = useInputMessage()
 
   const estimatedTime = useMemo(() => {
-    const {
-      numbers,
-      delayMin,
-      delayMax,
-      pauseEnabled,
-      pauseAfter,
-      pauseDuration,
-    } = form.values
+    const { numbers, delayMin, delayMax } = form.values
     const recipientCount = numbers.length
+
     if (
       recipientCount === 0 ||
       !delayMin ||
@@ -142,21 +121,13 @@ export const useBroadcastForm = ({
     let minSeconds = recipientCount * delayMin
     let maxSeconds = recipientCount * delayMax
 
-    if (pauseEnabled && pauseAfter > 0 && pauseDuration > 0) {
-      const numberOfPauses = Math.floor((recipientCount - 1) / pauseAfter)
-      if (numberOfPauses > 0) {
-        const totalPauseSeconds = numberOfPauses * pauseDuration * 60
-        minSeconds += totalPauseSeconds
-        maxSeconds += totalPauseSeconds
-      }
-    }
-
     const minMinutes = Math.round(minSeconds / 60)
     const maxMinutes = Math.round(maxSeconds / 60)
 
     if (maxMinutes < 1) return 'Less than a minute.'
     if (minMinutes === maxMinutes)
       return `About ${minMinutes} minute${minMinutes > 1 ? 's' : ''}.`
+
     return `About ${minMinutes} to ${maxMinutes} minutes.`
   }, [form.values])
 
@@ -167,7 +138,6 @@ export const useBroadcastForm = ({
         let recipientsToSet: any[] = []
         let nameSuffix = ' (Copy)'
         const broadcastName = `${cloneData.name || 'Broadcast'}`
-
         if (cloneData.recipients && cloneData.recipients.length > 0) {
           recipientsToSet = cloneData.recipients
           nameSuffix = ' (Resend)'
@@ -192,9 +162,6 @@ export const useBroadcastForm = ({
           },
           delayMin: cloneData.delayMin ? cloneData.delayMin / 1000 : 3,
           delayMax: cloneData.delayMax ? cloneData.delayMax / 1000 : 6,
-          pauseEnabled: !!cloneData.pauseEnabled,
-          pauseAfter: cloneData.pauseAfter || 50,
-          pauseDuration: cloneData.pauseDuration || 5,
         })
 
         const { type, message } = cloneData
@@ -254,59 +221,10 @@ export const useBroadcastForm = ({
     onClose()
   }
 
-  const handlePreviewBroadcast = async () => {
-    if (formHasErrors(form, inputMessageForm)) return
-    setIsPreviewing(true)
-
-    const { type } = inputMessageForm.values
-    const myChatId = `${profile?.number}@c.us`
-    if (!myChatId) {
-      toast.error(
-        'Could not retrieve your number for the preview. Please try again.',
-      )
-      setIsPreviewing(false)
-      return
-    }
-    try {
-      switch (type) {
-        case Message.TEXT:
-          await wa.send.text(
-            myChatId,
-            await parse.text(inputMessageForm.values.inputText, myChatId),
-          )
-          break
-        case Message.IMAGE:
-          if (!inputMessageForm.values.inputImage.file) throw new Error()
-          await wa.send.file(
-            myChatId,
-            inputMessageForm.values.inputImage.file,
-            {
-              type: 'image',
-              caption: await parse.text(
-                inputMessageForm.values.inputImage.caption,
-                myChatId,
-              ),
-            },
-          )
-          break
-        // NOTE: Previews for other media types can be added here.
-        default:
-          toast.info(
-            'Preview is currently only available for text and image messages.',
-          )
-          break
-      }
-      toast.success('Preview sent to your number!')
-    } catch (e) {
-      toast.error('Failed to send preview. Please check your message content.')
-    } finally {
-      setIsPreviewing(false)
-    }
-  }
-
   const proceedWithBroadcast = async () => {
     const signatureEnabled = await storage.get(Setting.SIGNATURE_ENABLED)
     const signatureText = await storage.get<string>(Setting.SIGNATURE_TEXT)
+
     let messagePayload = getMessage()
     const messageType = inputMessageForm.values.type
 
@@ -339,7 +257,6 @@ export const useBroadcastForm = ({
       status: Status.PENDING,
       delayMin: form.values.delayMin * 1000,
       delayMax: form.values.delayMax * 1000,
-      pauseEnabled: form.values.pauseEnabled ? 1 : 0,
     }
 
     try {
@@ -349,6 +266,7 @@ export const useBroadcastForm = ({
       if (isTypeMessageMedia(inputMessageForm.values.type)) {
         await insertBroadcastFile(broadcastId, Media.BROADCAST)
       }
+
       //@ts-ignore
       const contacts: BroadcastContact[] = form.values.numbers.map(
         (recipient: any) => ({
@@ -377,10 +295,10 @@ export const useBroadcastForm = ({
     const hasAcknowledged = await storage.get(
       Setting.HAS_ACKNOWLEDGED_BROADCAST_WARNING,
     )
-
     if (!hasAcknowledged) {
       return false // Indicate that the warning modal should be shown
     }
+
     await proceedWithBroadcast()
     return true // Indicate that the action was performed
   }
@@ -393,10 +311,8 @@ export const useBroadcastForm = ({
   return {
     form,
     inputMessageForm,
-    isPreviewing,
     estimatedTime,
     handleClose,
-    handlePreviewBroadcast,
     handleSendBroadcast,
     handleWarningAccepted,
   }

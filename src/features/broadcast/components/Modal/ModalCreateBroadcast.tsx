@@ -30,14 +30,11 @@ const ModalCreateBroadcast: React.FC<Props> = ({
 }) => {
   const [showWarningModal, warningModalHandlers] = useDisclosure(false)
   const [showSourcesModal, sourcesModalHandlers] = useDisclosure(false)
-
   const {
     form,
     inputMessageForm,
-    isPreviewing,
     estimatedTime,
     handleClose,
-    handlePreviewBroadcast,
     handleSendBroadcast,
     handleWarningAccepted,
   } = useBroadcastForm({
@@ -64,7 +61,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
     <>
       <Modal opened={opened} onClose={handleClose} w={700} withCloseButton>
         <ScrollArea h={650}>
-          <Stack>
+          <Stack px={'md'}>
             <TextInput
               label="Name"
               placeholder="e.g., Weekly Newsletter"
@@ -81,23 +78,19 @@ const ModalCreateBroadcast: React.FC<Props> = ({
             <SignatureSettings />
             <BroadcastScheduler form={form} estimatedTime={estimatedTime} />
             <BroadcastActions
-              onPreview={handlePreviewBroadcast}
               onSend={onSendClick}
-              isPreviewing={isPreviewing}
               isScheduled={form.values.scheduler.enabled}
               scheduledAt={form.values.scheduler.scheduledAt}
             />
           </Stack>
         </ScrollArea>
       </Modal>
-
       <ModalManageSources
         opened={showSourcesModal}
         onClose={sourcesModalHandlers.close}
         onSubmit={handleUpdateRecipients}
         initialRecipients={form.values.numbers}
       />
-
       <ModalFirstBroadcastWarning
         opened={showWarningModal}
         onClose={warningModalHandlers.close}

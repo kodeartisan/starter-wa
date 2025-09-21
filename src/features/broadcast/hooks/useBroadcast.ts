@@ -22,37 +22,6 @@ const useBroadcast = () => {
   const processingState = useRef<'IDLE' | 'PROCESSING'>('IDLE')
 
   /**
-   * Checks if a broadcast needs to pause based on its settings after a message is sent.
-   * @param {Broadcast} broadcast - The parent broadcast record.
-   */
-  const checkAndApplyPause = async (broadcast: Broadcast) => {
-    if (
-      !broadcast.pauseEnabled ||
-      !broadcast.pauseAfter ||
-      !broadcast.pauseDuration
-    ) {
-      return
-    }
-    // This query is faster now due to the compound index [broadcastId+status]
-    const successCount = await db.broadcastContacts
-      .where({ broadcastId: broadcast.id, status: Status.SUCCESS })
-      .count()
-
-    if (successCount > 0 && successCount % broadcast.pauseAfter === 0) {
-      const pausedUntil = dayjs()
-        .add(broadcast.pauseDuration, 'minutes')
-        .toDate()
-      await db.broadcasts.update(broadcast.id, {
-        status: Status.PAUSED,
-        pausedUntil: pausedUntil,
-      })
-      toast.info(
-        `Broadcast "${broadcast.name}" paused for ${broadcast.pauseDuration} minutes.`,
-      )
-    }
-  }
-
-  /**
    * Executes the sending logic for a single contact.
    * @param {Broadcast} broadcast - The parent broadcast.
    * @param {BroadcastContact} contact - The recipient contact.
@@ -121,22 +90,20 @@ const useBroadcast = () => {
           // 4. Fetch the parent broadcast object ONCE per group.
           const broadcast = await BroadcastModel.get(broadcastId)
 
-          if (!broadcast || broadcast.status === Status.PAUSED) {
-            if (!broadcast) {
-              // Mark contacts as failed if their parent broadcast is missing.
-              const contactIds = contactGroup.map((c) => c.id)
-              await db.broadcastContacts
-                .bulkUpdate(
-                  contactIds.map((id) => ({
-                    key: id,
-                    changes: {
-                      status: Status.FAILED,
-                      error: 'Broadcast record missing.',
-                    },
-                  })),
-                )
-                .catch(console.error)
-            }
+          if (!broadcast) {
+            // Mark contacts as failed if their parent broadcast is missing.
+            const contactIds = contactGroup.map((c) => c.id)
+            await db.broadcastContacts
+              .bulkUpdate(
+                contactIds.map((id) => ({
+                  key: id,
+                  changes: {
+                    status: Status.FAILED,
+                    error: 'Broadcast record missing.',
+                  },
+                })),
+              )
+              .catch(console.error)
             continue // Skip to the next group.
           }
 
@@ -158,12 +125,10 @@ const useBroadcast = () => {
                 continue // Skip to the next contact
               }
             }
-
             try {
               await BroadcastContactModel.running(contact.id)
               await runBroadcast(broadcast, contact)
               await BroadcastContactModel.success(contact.id)
-              await checkAndApplyPause(broadcast) // Check for pause after each success
             } catch (error: any) {
               await BroadcastContactModel.failed(contact.id, error.message)
             }
@@ -184,20 +149,10 @@ const useBroadcast = () => {
   }
 
   /**
-   * Checks for scheduled items and resumes paused campaigns.
+   * Checks for scheduled items.
    */
   const checkScheduled = async () => {
     const now = new Date()
-    // Resume paused broadcasts
-    const unpausedCount = await db.broadcasts
-      .where('status')
-      .equals(Status.PAUSED)
-      .and((b) => b.pausedUntil! <= now)
-      .modify({ status: Status.PENDING, pausedUntil: null })
-
-    if (unpausedCount > 0) {
-      toast.info(`Resumed ${unpausedCount} paused broadcast(s).`)
-    }
 
     // Mark scheduled contacts as 'PENDING'
     await db.broadcastContacts
@@ -210,7 +165,6 @@ const useBroadcast = () => {
   }
 
   const validationRef = useRef(true) // Added for cancellation logic
-
   /**
    * Cancels a running or scheduled broadcast.
    */
@@ -225,7 +179,6 @@ const useBroadcast = () => {
         .where({ broadcastId })
         .and((c) => [Status.PENDING, Status.SCHEDULER].includes(c.status))
         .modify({ status: Status.CANCELLED, error: 'Cancelled by user' })
-
       await BroadcastModel.cancel(broadcastId)
       toast.info('Broadcast has been cancelled.')
     } catch (e) {
