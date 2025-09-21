@@ -1,8 +1,8 @@
 {
   "name": "wa-group-member-exporter-downloader",
-  "displayName": "WA Group Members Exporter & Downloader for WhatsApp",
-  "version": "1.1.0",
-  "description": "The easiest way to extract and download contact lists from your WhatsApp groups. Supports multiple formats.",
+  "displayName": "WA Group Member Exporter & Downloader for WhatsApp",
+  "version": "1.2.0",
+  "description": "The easiest way to extract and download contact lists from your WhatsApp groups, support multiple formats.",
   "author": "Extninja",
   "scripts": {
     "dev": "plasmo dev --no-cs-reload",
