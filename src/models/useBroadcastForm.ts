@@ -69,9 +69,9 @@ export const useBroadcastForm = ({
       },
       scheduler: (value) => {
         // if (license.isFree() && value.enabled) {
-        //   form.setFieldValue('scheduler.enabled', false)
-        //   showModalUpgrade()
-        //   return 'Scheduler is a Pro feature.'
+        // form.setFieldValue('scheduler.enabled', false)
+        // showModalUpgrade()
+        // return 'Scheduler is a Pro feature.'
         // }
         if (value.enabled && !value.scheduledAt) {
           return 'Scheduled date and time is required.'
@@ -98,6 +98,7 @@ export const useBroadcastForm = ({
     },
     validateInputOnChange: ['numbers'],
   })
+
   const {
     form: inputMessageForm,
     getMessage,
@@ -107,7 +108,6 @@ export const useBroadcastForm = ({
   const estimatedTime = useMemo(() => {
     const { numbers, delayMin, delayMax } = form.values
     const recipientCount = numbers.length
-
     if (
       recipientCount === 0 ||
       !delayMin ||
@@ -117,17 +117,13 @@ export const useBroadcastForm = ({
     ) {
       return ''
     }
-
     let minSeconds = recipientCount * delayMin
     let maxSeconds = recipientCount * delayMax
-
     const minMinutes = Math.round(minSeconds / 60)
     const maxMinutes = Math.round(maxSeconds / 60)
-
     if (maxMinutes < 1) return 'Less than a minute.'
     if (minMinutes === maxMinutes)
       return `About ${minMinutes} minute${minMinutes > 1 ? 's' : ''}.`
-
     return `About ${minMinutes} to ${maxMinutes} minutes.`
   }, [form.values])
 
@@ -150,7 +146,6 @@ export const useBroadcastForm = ({
             name: contact.name,
           }))
         }
-
         form.setValues({
           name: `${broadcastName}${nameSuffix}`,
           numbers: recipientsToSet,
@@ -163,10 +158,8 @@ export const useBroadcastForm = ({
           delayMin: cloneData.delayMin ? cloneData.delayMin / 1000 : 3,
           delayMax: cloneData.delayMax ? cloneData.delayMax / 1000 : 6,
         })
-
         const { type, message } = cloneData
         inputMessageForm.setFieldValue('type', type)
-
         switch (type) {
           case Message.TEXT:
             inputMessageForm.setFieldValue('inputText', message as string)
@@ -254,7 +247,8 @@ export const useBroadcastForm = ({
       validateNumbers: form.values.validateNumbers ? 1 : 0,
       isTyping: form.values.isTyping ? 1 : 0,
       isScheduler: form.values.scheduler.enabled ? 1 : 0,
-      status: Status.PENDING,
+      // -- MODIFIED: The status is now set based on whether the scheduler is enabled.
+      status: form.values.scheduler.enabled ? Status.SCHEDULER : Status.PENDING,
       delayMin: form.values.delayMin * 1000,
       delayMax: form.values.delayMax * 1000,
     }
@@ -298,7 +292,6 @@ export const useBroadcastForm = ({
     if (!hasAcknowledged) {
       return false // Indicate that the warning modal should be shown
     }
-
     await proceedWithBroadcast()
     return true // Indicate that the action was performed
   }
