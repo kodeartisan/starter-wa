@@ -1,5 +1,6 @@
+// src/features/broadcast/components/Input/InputSendLater.tsx
 import useLicense from '@/hooks/useLicense'
-import { Badge, Group, Switch, Text } from '@mantine/core'
+import { Badge, Group, Switch, Text, Tooltip } from '@mantine/core'
 import { DateTimePicker } from '@mantine/dates'
 import type { UseFormReturnType } from '@mantine/form'
 import dayjs from 'dayjs'
@@ -14,19 +15,20 @@ const InputSendLater: React.FC<Props> = ({ form }: Props) => {
   const license = useLicense()
   return (
     <>
-      <Switch
-        label={
-          <Group gap="xs">
-            <Text fw={500}>Send later</Text>
-            <When condition={license.isFree()}>
-              <Badge size="sm" variant="light" color="teal">
-                PRO
-              </Badge>
-            </When>
-          </Group>
-        }
-        {...form.getInputProps('scheduler.enabled', { type: 'checkbox' })}
-      />
+      {/* MODIFIED: Wrapped the Switch component in a Tooltip to explain its function. */}
+      <Tooltip
+        label="Schedule your broadcast to be sent at a specific date and time in the future."
+        position="top-start"
+        multiline
+        w={350}
+        withArrow
+        refProp="rootRef"
+      >
+        <Switch
+          label={<Text fw={500}>Send later</Text>}
+          {...form.getInputProps('scheduler.enabled', { type: 'checkbox' })}
+        />
+      </Tooltip>
       <When condition={form.values.scheduler.enabled}>
         <DateTimePicker
           label="Date time"

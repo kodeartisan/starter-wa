@@ -60,7 +60,7 @@ const AntiBlockingSettings: React.FC<Props> = ({ form }) => {
         </Tooltip>
       </Group>
       <Tooltip
-        label="Verify that each number is a valid WhatsApp account before sending. This can add a small delay before the broadcast starts but greatly increases safety and prevents sending to non-existent numbers."
+        label="Verify that each number is a valid WhatsApp account before sending. Increases safety and prevents sending to non-existent numbers."
         refProp="rootRef"
         position="top-start"
         multiline

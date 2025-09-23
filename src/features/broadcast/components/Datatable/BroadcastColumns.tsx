@@ -1,4 +1,4 @@
-// src/features/Broadcast/Datatable/BroadcastColumns.tsx
+// src/features/broadcast/components/Datatable/BroadcastColumns.tsx
 import { Message, Status } from '@/constants'
 import type { Broadcast } from '@/libs/db'
 import { truncate } from '@/utils/util'
@@ -12,6 +12,7 @@ import {
   Text,
   Tooltip,
 } from '@mantine/core'
+import dayjs from 'dayjs'
 import type { DataTableColumn } from 'mantine-datatable'
 import React from 'react'
 import MessageStatus from './MessageStatus'
@@ -26,7 +27,6 @@ interface ColumnActions {
   onDelete: (broadcast: Broadcast) => void
 }
 
-// ++ ADDED: Define a type for the stats map for clarity.
 type BroadcastStatsMap = Map<
   number,
   {
@@ -38,13 +38,13 @@ type BroadcastStatsMap = Map<
     scheduled: number
     cancelled: number
     firstError?: string
+    scheduledAt?: Date
   }
 >
 
 const renderMessagePreview = (broadcast: Broadcast) => {
   const { type, message } = broadcast
   if (!message) return 'N/A'
-
   switch (type) {
     case Message.TEXT:
       return typeof message === 'string' ? message : JSON.stringify(message)
@@ -62,14 +62,10 @@ const renderMessagePreview = (broadcast: Broadcast) => {
       return `Unsupported type: ${type}`
   }
 }
-
-// ++ MODIFIED: The function now accepts the pre-calculated `broadcastStatsMap`.
 export const getBroadcastColumns = (
   actions: ColumnActions,
   broadcastStatsMap: BroadcastStatsMap,
 ): DataTableColumn<Broadcast>[] => {
-  // -- REMOVED: The inefficient useLiveQuery hook and getContactStats function are no longer needed here.
-
   const defaultStats = {
     total: 0,
     success: 0,
@@ -117,7 +113,6 @@ export const getBroadcastColumns = (
     {
       accessor: 'status',
       title: 'Status',
-      // ++ MODIFIED: Status rendering now uses the fast map lookup.
       render: (broadcast) => {
         const stats = broadcastStatsMap.get(broadcast.id)
         let overallError =
@@ -133,9 +128,8 @@ export const getBroadcastColumns = (
     {
       accessor: 'stats',
       title: 'Recipients',
-      // ++ MODIFIED: Recipient stats are now retrieved instantly from the map.
       render: (broadcast) => {
-        const stats = broadcastStatsMap.get(broadcast.id) || defaultStats
+        const stats: any = broadcastStatsMap.get(broadcast.id) || defaultStats
         return (
           <Stack gap={2}>
             <Text size="xs">Total: {stats.total}</Text>
@@ -169,6 +163,12 @@ export const getBroadcastColumns = (
                 Scheduled: {stats.scheduled}{' '}
               </Text>
             )}
+            {/* ++ ADDED: Conditionally render the scheduled time */}
+            {stats.scheduledAt && (
+              <Text size="xs" c="dimmed">
+                On: {dayjs(stats.scheduledAt).format('DD MMM, HH:mm')}
+              </Text>
+            )}
           </Stack>
         )
       },
@@ -179,7 +179,6 @@ export const getBroadcastColumns = (
       title: <Box mr="xs">Actions</Box>,
       textAlign: 'right',
       width: '0%',
-      // ++ MODIFIED: Action buttons logic now uses the efficient stats map.
       render: (broadcast) => {
         const stats = broadcastStatsMap.get(broadcast.id) || defaultStats
         const isFinished = [

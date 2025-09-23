@@ -20,8 +20,8 @@ import {
 } from '@mantine/core'
 import dayjs from 'dayjs'
 import { useLiveQuery } from 'dexie-react-hooks'
-import { DataTable } from 'mantine-datatable' // ++ ADDED: Import DataTable
-import React, { useEffect, useMemo, useState } from 'react' // ++ ADDED: Import useEffect and useState for pagination
+import { DataTable } from 'mantine-datatable'
+import React, { useEffect, useMemo, useState } from 'react'
 import MessageStatus from '../Datatable/MessageStatus'
 
 // This component displays campaign performance as a series of stacked, colored trapezoids.
@@ -36,7 +36,11 @@ const FunnelChart = ({ stats }: { stats: any }) => {
     },
     { label: 'Successful', value: stats.success, color: theme.colors.teal[6] },
     { label: 'Failed', value: stats.failed, color: theme.colors.red[6] },
-    { label: 'Cancelled', value: stats.cancelled, color: theme.colors.gray[6] },
+    {
+      label: 'Cancelled',
+      value: stats.cancelled,
+      color: theme.colors.gray[6],
+    },
   ]
     .filter((item) => item.value > 0)
     .sort((a, b) => b.value - a.value) // Sort from largest to smallest for visual consistency.
@@ -104,18 +108,16 @@ const ModalDetailHistory: React.FC<{
         .toArray()
     }, [data]) || []
 
-  // ++ ADDED: State for pagination
   const [page, setPage] = useState(1)
   const [records, setRecords] = useState<BroadcastContact[]>([])
 
-  // ++ ADDED: Effect to handle slicing data for the current page
   useEffect(() => {
     const from = (page - 1) * PAGE_SIZE
     const to = from + PAGE_SIZE
     setRecords(contacts.slice(from, to))
   }, [page, contacts])
 
-  const { stats, summaryData } = useMemo(() => {
+  const { stats, summaryData, scheduledAt } = useMemo(() => {
     const defaultStats = {
       total: 0,
       success: 0,
@@ -125,9 +127,12 @@ const ModalDetailHistory: React.FC<{
       scheduled: 0,
       cancelled: 0,
     }
+
     if (!contacts || contacts.length === 0) {
-      return { stats: defaultStats, summaryData: [] }
+      return { stats: defaultStats, summaryData: [], scheduledAt: null }
     }
+
+    const scheduledAt = contacts[0]?.scheduledAt || null
 
     const total = contacts.length
     const success = contacts.filter((c) => c.status === Status.SUCCESS).length
@@ -140,6 +145,7 @@ const ModalDetailHistory: React.FC<{
     const cancelled = contacts.filter(
       (c) => c.status === Status.CANCELLED,
     ).length
+
     const calculatedStats = {
       total,
       success,
@@ -149,7 +155,6 @@ const ModalDetailHistory: React.FC<{
       scheduled,
       cancelled,
     }
-
     const summaryItems = [
       {
         title: 'Success',
@@ -183,8 +188,7 @@ const ModalDetailHistory: React.FC<{
         icon: 'tabler:ban',
       },
     ].filter((item) => item.value > 0)
-
-    return { stats: calculatedStats, summaryData: summaryItems }
+    return { stats: calculatedStats, summaryData: summaryItems, scheduledAt }
   }, [contacts])
 
   const renderSummaryCards = () => {
@@ -210,9 +214,6 @@ const ModalDetailHistory: React.FC<{
   return (
     <Modal opened={opened} onClose={onClose} w={850} withCloseButton>
       <Stack p="md">
-        <Title order={3} ta="center">
-          Report for: {data?.name || 'Broadcast'}
-        </Title>
         {contacts && contacts.length > 0 ? (
           <>
             <Card withBorder radius="md" mt="md" shadow="none">
@@ -229,9 +230,22 @@ const ModalDetailHistory: React.FC<{
                 </Grid.Col>
               </Grid>
             </Card>
-            <Divider my="md" label="Recipient Details" labelPosition="center" />
-
-            {/* ++ MODIFIED: Replaced ScrollArea and Table with paginated DataTable */}
+            {scheduledAt && (
+              <Card withBorder radius="md" mt="md" p="xs" bg="blue.0">
+                <Center>
+                  <Group>
+                    <Icon
+                      icon="tabler:calendar-time"
+                      color="var(--mantine-color-blue-7)"
+                    />
+                    <Text size="sm" c="blue.7" fw={500}>
+                      Scheduled for:{' '}
+                      {dayjs(scheduledAt).format('DD MMMM YYYY, HH:mm')}
+                    </Text>
+                  </Group>
+                </Center>
+              </Card>
+            )}
             <DataTable
               height={350}
               records={records}

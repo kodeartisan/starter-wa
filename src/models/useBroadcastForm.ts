@@ -68,11 +68,11 @@ export const useBroadcastForm = ({
         return null
       },
       scheduler: (value) => {
-        if (license.isFree() && value.enabled) {
-          form.setFieldValue('scheduler.enabled', false)
-          showModalUpgrade()
-          return 'Scheduler is a Pro feature.'
-        }
+        // if (license.isFree() && value.enabled) {
+        //   form.setFieldValue('scheduler.enabled', false)
+        //   showModalUpgrade()
+        //   return 'Scheduler is a Pro feature.'
+        // }
         if (value.enabled && !value.scheduledAt) {
           return 'Scheduled date and time is required.'
         }

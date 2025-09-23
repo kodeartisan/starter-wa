@@ -1,4 +1,4 @@
-// src/features/Broadcast/PageBroadcast.tsx
+// src/features/broadcast/PageBroadcast.tsx
 import LayoutPage from '@/components/Layout/LayoutPage'
 import { Media, Status } from '@/constants'
 import useDataQuery from '@/hooks/useDataQuery'
@@ -35,7 +35,6 @@ const PageBroadcast: React.FC = () => {
   const broadcastHook = useBroadcast()
   const fileExporter = useFile()
   const license = useLicense()
-
   const allBroadcastContacts =
     useLiveQuery(() => db.broadcastContacts.toArray(), []) || []
 
@@ -60,8 +59,10 @@ const PageBroadcast: React.FC = () => {
         scheduled: number
         cancelled: number
         firstError?: string
+        scheduledAt?: Date // ++ ADDED: Add optional scheduledAt property
       }
     >()
+
     for (const contact of allBroadcastContacts) {
       if (!statsMap.has(contact.broadcastId)) {
         statsMap.set(contact.broadcastId, {
@@ -74,8 +75,10 @@ const PageBroadcast: React.FC = () => {
           cancelled: 0,
         })
       }
+
       const stats = statsMap.get(contact.broadcastId)!
       stats.total++
+
       switch (contact.status) {
         case Status.SUCCESS:
           stats.success++
@@ -94,6 +97,10 @@ const PageBroadcast: React.FC = () => {
           break
         case Status.SCHEDULER:
           stats.scheduled++
+          // ++ ADDED: Capture the scheduled date from the first relevant contact found.
+          if (!stats.scheduledAt && contact.scheduledAt) {
+            stats.scheduledAt = contact.scheduledAt
+          }
           break
         case Status.CANCELLED:
           stats.cancelled++
@@ -132,7 +139,6 @@ const PageBroadcast: React.FC = () => {
 
   const deleteBroadcasts = async (broadcastsToDelete: Broadcast[]) => {
     if (broadcastsToDelete.length === 0) return
-
     const isPlural = broadcastsToDelete.length > 1
     const confirmationMessage = `Are you sure you want to delete ${
       broadcastsToDelete.length
@@ -142,6 +148,7 @@ const PageBroadcast: React.FC = () => {
 
     try {
       const broadcastIds = broadcastsToDelete.map((b) => b.id)
+
       await db.transaction(
         'rw',
         db.broadcasts,
@@ -152,11 +159,13 @@ const PageBroadcast: React.FC = () => {
             .where('broadcastId')
             .anyOf(broadcastIds)
             .delete()
+
           await db.media
             .where('parentId')
             .anyOf(broadcastIds)
             .and((item) => item.type === Media.BROADCAST)
             .delete()
+
           await db.broadcasts.bulkDelete(broadcastIds)
         },
       )
@@ -195,10 +204,12 @@ const PageBroadcast: React.FC = () => {
       const contacts = await db.broadcastContacts
         .where({ broadcastId: broadcast.id })
         .toArray()
+
       if (contacts.length === 0) {
         toast.info('No data to export.')
         return
       }
+
       const dataForExport = contacts.map((c) => ({
         Name: c.name || '-',
         'Number/ID': c.number.split('@')[0],
@@ -241,9 +252,8 @@ const PageBroadcast: React.FC = () => {
             onChange={(e) => dataQuery.setSearch(e.currentTarget.value)}
             leftSection={<Icon icon="tabler:search" fontSize={16} />}
           />
-          {/* ++ MODIFIED: Replaced Menu with conditionally rendered Buttons for a clearer UI. */}
+
           <Group>
-            {/* Show Delete Selected button only when records are selected */}
             {selectedRecords.length > 0 && (
               <Button
                 variant="outline"
@@ -256,7 +266,6 @@ const PageBroadcast: React.FC = () => {
               </Button>
             )}
 
-            {/* Show Clear All button only when there is data AND no records are selected */}
             {dataQuery.data &&
               dataQuery.data.length > 0 &&
               selectedRecords.length === 0 && (
@@ -270,7 +279,6 @@ const PageBroadcast: React.FC = () => {
                   Clear All
                 </Button>
               )}
-
             <Button
               size="sm"
               leftSection={<Icon icon="tabler:plus" fontSize={18} />}
@@ -280,6 +288,7 @@ const PageBroadcast: React.FC = () => {
             </Button>
           </Group>
         </Group>
+
         <Box style={{ position: 'relative' }}>
           <LoadingOverlay
             visible={isExporting || dataQuery.data === undefined}
@@ -319,6 +328,7 @@ const PageBroadcast: React.FC = () => {
           />
         </Box>
       </Stack>
+
       <ModalCreateBroadcast
         opened={showModalCreate}
         onClose={() => {
