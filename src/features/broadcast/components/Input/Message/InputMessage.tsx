@@ -46,8 +46,8 @@ const InputMessage: React.FC<Props> = ({
 
   // ++ ADDED: Define personalization variables in a central location.
   const personalizationVariables = [
-    { label: 'Insert Name', variable: '{name}' },
-    { label: 'Insert Number', variable: '{number}' },
+    { label: 'name', variable: '{name}' },
+    { label: 'number', variable: '{number}' },
   ]
 
   const labelValueTemplates = useMemo(() => {
