@@ -23,7 +23,9 @@ export const getBroadcastAction = (
 
   const actions: { [key: string]: () => Promise<any> } = {
     [Message.TEXT]: async () => {
-      const text = await parse.text(broadcast.message as string, contact.number)
+      // MODIFIED: Use the synchronous parse.text function, passing the full contact object.
+      // This is more performant as it avoids an unnecessary API call.
+      const text = parse.text(broadcast.message as string, contact)
       return wa.send.text(contact.number, text, sendOptions)
     },
     [Message.IMAGE]: async () => {
@@ -71,6 +73,5 @@ export const getBroadcastAction = (
       )
     },
   }
-
   return actions[broadcast.type] || null
 }

@@ -1,3 +1,4 @@
+// src/features/broadcast/components/Input/Message/FormImage.tsx
 import type { UseFormReturnType } from '@mantine/form'
 import React, { useEffect, useState } from 'react'
 import InputTextarea from '../InputTextarea'
@@ -5,11 +6,12 @@ import Upload from './Upload'
 
 interface Props {
   form: UseFormReturnType<any>
+  // ++ ADDED: Accept variables prop.
+  variables: { label: string; variable: string }[]
 }
 
-const FormImage: React.FC<Props> = ({ form }: Props) => {
+const FormImage: React.FC<Props> = ({ form, variables }) => {
   const [preview, setPreview] = useState<string | null>(null)
-
   useEffect(() => {
     return () => {
       if (preview) {
@@ -27,11 +29,12 @@ const FormImage: React.FC<Props> = ({ form }: Props) => {
           form.setFieldValue('inputImage.file', file)
         }}
       />
-
       <InputTextarea
         value={form.values.inputImage.caption}
         onChange={(data) => form.setFieldValue('inputImage.caption', data)}
         placeholder="Enter your caption here"
+        // ++ MODIFIED: Pass variables to the InputTextarea component.
+        variables={variables}
       />
     </>
   )

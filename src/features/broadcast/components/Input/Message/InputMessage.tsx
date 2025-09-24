@@ -1,3 +1,4 @@
+// src/features/broadcast/components/Input/Message/InputMessage.tsx
 import { Media, Message } from '@/constants'
 import useLicense from '@/hooks/useLicense'
 import db, { type BroadcastTemplate } from '@/libs/db'
@@ -24,7 +25,7 @@ import FormImage from './FormImage'
 import FormLocation from './FormLocation'
 import FormPoll from './FormPoll'
 import FormText from './FormText'
-import FormVCard from './FormVCard' // Import new VCard form
+import FormVCard from './FormVCard'
 import FormVideo from './FormVideo'
 import ProFeatureButton from './ProFeatureButton'
 
@@ -32,6 +33,7 @@ interface Props {
   form: UseFormReturnType<any>
   disabledTemplateButton?: boolean
 }
+
 const InputMessage: React.FC<Props> = ({
   form,
   disabledTemplateButton = false,
@@ -41,12 +43,20 @@ const InputMessage: React.FC<Props> = ({
     async () => await db.broadcastTemplates.toArray(),
   )
   const [showModalManageTemplate, modalManageTemplate] = useDisclosure(false)
+
+  // ++ ADDED: Define personalization variables in a central location.
+  const personalizationVariables = [
+    { label: 'Insert Name', variable: '{name}' },
+    { label: 'Insert Number', variable: '{number}' },
+  ]
+
   const labelValueTemplates = useMemo(() => {
     return templates?.map((template: BroadcastTemplate, index) => ({
       label: template.name,
       value: index.toString(),
     }))
   }, [templates])
+
   const handleSelectTemplate = async (index: string) => {
     const { id, message, type } = templates![parseInt(index, 10)]
     const dataByMessageTypes: { [key: string]: () => any } = {
@@ -87,27 +97,32 @@ const InputMessage: React.FC<Props> = ({
     const data = await dataByMessageTypes[type]?.()
     form.setValues(data)
   }
+
   const renderInputMessage = () => {
     switch (form.values.type) {
       case Message.TEXT:
-        return <FormText form={form} />
+        // ++ MODIFIED: Pass variables to the form component.
+        return <FormText form={form} variables={personalizationVariables} />
       case Message.IMAGE:
-        return <FormImage form={form} />
+        // ++ MODIFIED: Pass variables to the form component.
+        return <FormImage form={form} variables={personalizationVariables} />
       case Message.VIDEO:
-        return <FormVideo form={form} />
+        // ++ MODIFIED: Pass variables to the form component.
+        return <FormVideo form={form} variables={personalizationVariables} />
       case Message.FILE:
-        return <FormDocument form={form} />
+        // ++ MODIFIED: Pass variables to the form component.
+        return <FormDocument form={form} variables={personalizationVariables} />
       case Message.LOCATION:
         return <FormLocation form={form} />
       case Message.POLL:
         return <FormPoll form={form} />
-      // ++ ADDED: Render the VCard form when its type is selected
       case Message.VCARD:
         return <FormVCard form={form} />
       default:
         return null
     }
   }
+
   const renderMenuMessage = () => {
     return (
       <SimpleGrid cols={5}>
@@ -144,22 +159,10 @@ const InputMessage: React.FC<Props> = ({
           icon="tabler:map-pin"
           messageType={Message.LOCATION}
         />
-        {/* <ProFeatureButton
-          form={form}
-          label="Poll"
-          icon="tabler:list-details"
-          messageType={Message.POLL}
-        />
-
-        <ProFeatureButton
-          form={form}
-          label="Contact (VCard)"
-          icon="tabler:user-square"
-          messageType={Message.VCARD}
-        /> */}
       </SimpleGrid>
     )
   }
+
   return (
     <>
       <Stack>
@@ -211,4 +214,5 @@ const InputMessage: React.FC<Props> = ({
     </>
   )
 }
+
 export default InputMessage
