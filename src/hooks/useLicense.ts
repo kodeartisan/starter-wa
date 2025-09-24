@@ -30,15 +30,12 @@ const useLicense = () => {
       Setting.LICENSE_DATA_CACHE,
     )
 
-    if (cachedEntry) {
-      const twoDaysInMs = 2 * 24 * 60 * 60 * 1000
-      const isCacheStale = Date.now() - cachedEntry.timestamp > twoDaysInMs
-
-      // Use the cache only if it's not stale and the license is active.
-      if (!isCacheStale && cachedEntry.data.license_key.status === 'active') {
-        setLicense(cachedEntry.data)
-        return
-      }
+    // MODIFIED: The time-based staleness check has been removed.
+    // Now, if a cached license exists and its status is 'active', it will be used indefinitely.
+    // This prevents unnecessary API calls and ensures the license is "cached forever".
+    if (cachedEntry && cachedEntry.data.license_key.status === 'active') {
+      setLicense(cachedEntry.data)
+      return
     }
 
     // If no valid cache, proceed with the standard validation flow.
@@ -134,8 +131,7 @@ const useLicense = () => {
       setLicense(response.data)
       await storage.set(Setting.LICENSE_KEY, licenseKey)
       await storage.set(Setting.LICENSE_INSTANCE_ID, response.data.instance.id)
-
-      //  Cache the license data with the timestamp on successful activation.
+      // Cache the license data with the timestamp on successful activation.
       if (response.data.license_key.status === 'active') {
         const cacheEntry: CachedLicense = {
           data: response.data,

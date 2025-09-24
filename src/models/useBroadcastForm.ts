@@ -59,20 +59,37 @@ export const useBroadcastForm = ({
         }
         return null
       },
+      validateNumbers: (value) => {
+        if (license.isFree() && value) {
+          form.setFieldValue('validateNumbers', false)
+          showModalUpgrade(
+            'Validate Numbers',
+            'Increase your broadcast safety by verifying that each number is a valid WhatsApp account before sending. This helps protect your account from being flagged.',
+          )
+          return
+        }
+        return null
+      },
       isTyping: (value) => {
         if (license.isFree() && value) {
           form.setFieldValue('isTyping', false)
-          showModalUpgrade()
-          return 'Typing effect is a Pro feature.'
+          showModalUpgrade(
+            'Typing Effect',
+            'Simulate human typing to make your broadcasts appear more natural and reduce the chance of being flagged as automated.',
+          )
+          return
         }
         return null
       },
       scheduler: (value) => {
-        // if (license.isFree() && value.enabled) {
-        // form.setFieldValue('scheduler.enabled', false)
-        // showModalUpgrade()
-        // return 'Scheduler is a Pro feature.'
-        // }
+        if (license.isFree() && value.enabled) {
+          form.setFieldValue('scheduler.enabled', false)
+          showModalUpgrade(
+            'Schedule Broadcasts',
+            'Automatically send your messages at a specific date and time. Perfect for planning campaigns and reaching your audience at the right moment.',
+          )
+          return
+        }
         if (value.enabled && !value.scheduledAt) {
           return 'Scheduled date and time is required.'
         }
@@ -96,7 +113,12 @@ export const useBroadcastForm = ({
         return null
       },
     },
-    validateInputOnChange: ['numbers'],
+    validateInputOnChange: [
+      'numbers',
+      'scheduler.enabled',
+      'isTyping',
+      'validateNumbers',
+    ],
   })
 
   const {

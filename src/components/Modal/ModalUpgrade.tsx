@@ -49,7 +49,7 @@ const ModalUpgrade: React.FC<Props> = ({
         <Title order={3} ta="center">
           Unlock: {featureName}
         </Title>
-        <Text c="dimmed" size="sm" ta="center">
+        <Text size="sm" ta="center">
           {featureBenefit}
         </Text>
         <Text size="sm" ta="center" fw={500}>

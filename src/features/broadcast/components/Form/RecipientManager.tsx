@@ -33,7 +33,7 @@ const RecipientManager: React.FC<Props> = ({
             disabled={recipientCount === 0}
             leftSection={<Icon icon="tabler:x" fontSize={16} />}
           >
-            Clear Recipients
+            Clear
           </Button>
           <Button
             variant="outline"

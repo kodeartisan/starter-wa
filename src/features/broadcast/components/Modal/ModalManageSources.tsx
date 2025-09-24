@@ -24,7 +24,6 @@ import ModalSaveRecipientList from './ModalSaveRecipientList'
 import ModalSourceExcel from './ModalSourceExcel'
 import ModalSourceGroups from './ModalSourceGroups'
 import ModalSourceManual from './ModalSourceManual'
-// ++ ADDED: Import the new component
 import ModalSourceMyContacts from './ModalSourceMyContacts'
 
 interface Props {
@@ -49,6 +48,13 @@ const ModalManageSources: React.FC<Props> = ({
   const [searchQuery, setSearchQuery] = useState('')
   const [isSaving, setIsSaving] = useState(false)
 
+  // State for inline editing
+  const [editingCell, setEditingCell] = useState<{
+    recordId: string
+    columnId: string
+  } | null>(null)
+  const [editValue, setEditValue] = useState('')
+
   const [showManualModal, manualModalHandlers] = useDisclosure(false)
   const [showExcelModal, excelModalHandlers] = useDisclosure(false)
   const [showGroupsModal, groupsModalHandlers] = useDisclosure(false)
@@ -56,7 +62,6 @@ const ModalManageSources: React.FC<Props> = ({
   const [showMyContactsModal, myContactsModalHandlers] = useDisclosure(false)
   const [showSaveListModal, saveListModalHandlers] = useDisclosure(false)
   const [showLoadListModal, loadListModalHandlers] = useDisclosure(false)
-
   const fileExporter = useFile()
 
   // Sync with initial recipients when modal opens
@@ -106,6 +111,7 @@ const ModalManageSources: React.FC<Props> = ({
     const combined = [...recipients, ...formattedNewRecipients]
     const uniqueRecipients = _.uniqBy(combined, 'number')
     const finalCount = uniqueRecipients.length
+
     setRecipients(uniqueRecipients)
 
     const addedCount = finalCount - initialCount
@@ -137,7 +143,7 @@ const ModalManageSources: React.FC<Props> = ({
     editModalHandlers.open()
   }
 
-  const handleUpdateRecipient = (updatedData: {
+  const handleUpdateRecipientFromModal = (updatedData: {
     number: string
     name: string
   }) => {
@@ -147,6 +153,23 @@ const ModalManageSources: React.FC<Props> = ({
       ),
     )
     editModalHandlers.close()
+  }
+
+  // Function to save inline cell edits
+  const handleSaveCellEdit = () => {
+    if (!editingCell) return
+
+    setRecipients((currentRecipients) =>
+      currentRecipients.map((r) => {
+        if (r.number === editingCell.recordId) {
+          // Prevent saving an empty name
+          const finalValue = editValue.trim() === '' ? r.name : editValue.trim()
+          return { ...r, [editingCell.columnId]: finalValue }
+        }
+        return r
+      }),
+    )
+    setEditingCell(null)
   }
 
   const handleSaveList = async (name: string) => {
@@ -199,7 +222,52 @@ const ModalManageSources: React.FC<Props> = ({
   }
 
   const columns: DataTableColumn<any>[] = [
-    { accessor: 'name', title: 'Name', ellipsis: true },
+    {
+      accessor: 'name',
+      title: 'Name',
+      render: (recipient) => {
+        const isEditing =
+          editingCell?.recordId === recipient.number &&
+          editingCell?.columnId === 'name'
+
+        return isEditing ? (
+          <TextInput
+            value={editValue}
+            onChange={(e) => setEditValue(e.currentTarget.value)}
+            onBlur={handleSaveCellEdit}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                handleSaveCellEdit()
+              } else if (e.key === 'Escape') {
+                setEditingCell(null)
+              }
+            }}
+            autoFocus
+            size="xs"
+          />
+        ) : (
+          // ++ MODIFIED: Wrapped the Text component with a Tooltip
+          <Tooltip label="Click to edit" withArrow position="top">
+            <Text
+              onClick={() => {
+                setEditingCell({ recordId: recipient.number, columnId: 'name' })
+                setEditValue(recipient.name)
+              }}
+              style={{
+                cursor: 'pointer',
+                width: '100%',
+                padding: '6px 0',
+                height: '100%',
+              }}
+              truncate
+            >
+              {recipient.name}
+            </Text>
+          </Tooltip>
+        )
+      },
+    },
     { accessor: 'number', title: 'Number', ellipsis: true },
     {
       accessor: 'actions',
@@ -341,7 +409,7 @@ const ModalManageSources: React.FC<Props> = ({
                       onClick={handleClearAll}
                       disabled={recipients.length === 0}
                     >
-                      Clear All Recipients
+                      Clear All
                     </Menu.Item>
                   </Menu.Dropdown>
                 </Menu>
@@ -385,9 +453,10 @@ const ModalManageSources: React.FC<Props> = ({
       <ModalEditRecipient
         opened={showEditModal}
         onClose={editModalHandlers.close}
-        onSubmit={handleUpdateRecipient}
+        onSubmit={handleUpdateRecipientFromModal}
         recipientData={editingRecipient}
       />
+
       <ModalSourceManual
         opened={showManualModal}
         onClose={manualModalHandlers.close}
@@ -403,7 +472,6 @@ const ModalManageSources: React.FC<Props> = ({
         onClose={groupsModalHandlers.close}
         onSubmit={handleAddRecipients}
       />
-      {/* ++ ADDED: Render the new modal component */}
       <ModalSourceMyContacts
         opened={showMyContactsModal}
         onClose={myContactsModalHandlers.close}
