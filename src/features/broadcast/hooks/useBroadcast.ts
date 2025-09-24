@@ -71,6 +71,7 @@ const useBroadcast = () => {
    */
   const processBroadcastQueue = async () => {
     if (processingState.current === 'PROCESSING') return
+
     processingState.current = 'PROCESSING'
 
     try {
@@ -89,7 +90,6 @@ const useBroadcast = () => {
 
           // 4. Fetch the parent broadcast object ONCE per group.
           const broadcast = await BroadcastModel.get(broadcastId)
-
           if (!broadcast) {
             // Mark contacts as failed if their parent broadcast is missing.
             const contactIds = contactGroup.map((c) => c.id)
@@ -115,16 +115,6 @@ const useBroadcast = () => {
           for (const contact of contactGroup) {
             if (!validationRef.current) return // Allow cancellation mid-batch
 
-            if (broadcast.validateNumbers === 1) {
-              const isValid = await wa.contact.isExist(contact.number)
-              if (!isValid) {
-                await BroadcastContactModel.failed(
-                  contact.id,
-                  'Number is not a valid WhatsApp account.',
-                )
-                continue // Skip to the next contact
-              }
-            }
             try {
               await BroadcastContactModel.running(contact.id)
               await runBroadcast(broadcast, contact)
@@ -153,7 +143,6 @@ const useBroadcast = () => {
    */
   const checkScheduled = async () => {
     const now = new Date()
-
     // Mark scheduled contacts as 'PENDING'
     await db.broadcastContacts
       .where('status')

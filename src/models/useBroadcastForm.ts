@@ -14,13 +14,12 @@ import {
 import { useForm } from '@mantine/form'
 import { addMinutes, isFuture } from 'date-fns'
 import _ from 'lodash'
-import { useEffect, useMemo } from 'react'
+import { useEffect } from 'react'
 
 const defaultValues = {
   name: '',
   numbers: [] as any[],
   isTyping: false,
-  validateNumbers: false,
   scheduler: {
     enabled: false,
     scheduledAt: addMinutes(new Date(), 5),
@@ -47,6 +46,7 @@ export const useBroadcastForm = ({
 }: useBroadcastFormProps) => {
   const license = useLicense()
   const { profile } = useAppStore()
+
   const form = useForm({
     initialValues: defaultValues,
     validate: {
@@ -54,19 +54,7 @@ export const useBroadcastForm = ({
         if (_.isEmpty(value)) return 'At least one recipient is required'
         if (license.isFree() && value.length > 5) {
           form.setFieldValue('numbers', _.initial(value))
-          showModalUpgrade()
           return 'Free plan allows up to 5 contacts.'
-        }
-        return null
-      },
-      validateNumbers: (value) => {
-        if (license.isFree() && value) {
-          form.setFieldValue('validateNumbers', false)
-          showModalUpgrade(
-            'Validate Numbers',
-            'Increase your broadcast safety by verifying that each number is a valid WhatsApp account before sending. This helps protect your account from being flagged.',
-          )
-          return
         }
         return null
       },
@@ -113,12 +101,7 @@ export const useBroadcastForm = ({
         return null
       },
     },
-    validateInputOnChange: [
-      'numbers',
-      'scheduler.enabled',
-      'isTyping',
-      'validateNumbers',
-    ],
+    validateInputOnChange: ['numbers', 'scheduler.enabled', 'isTyping'],
   })
 
   const {
@@ -127,28 +110,6 @@ export const useBroadcastForm = ({
     insertBroadcastFile,
   } = useInputMessage()
 
-  const estimatedTime = useMemo(() => {
-    const { numbers, delayMin, delayMax } = form.values
-    const recipientCount = numbers.length
-    if (
-      recipientCount === 0 ||
-      !delayMin ||
-      !delayMax ||
-      delayMin <= 0 ||
-      delayMax <= 0
-    ) {
-      return ''
-    }
-    let minSeconds = recipientCount * delayMin
-    let maxSeconds = recipientCount * delayMax
-    const minMinutes = Math.round(minSeconds / 60)
-    const maxMinutes = Math.round(maxSeconds / 60)
-    if (maxMinutes < 1) return 'Less than a minute.'
-    if (minMinutes === maxMinutes)
-      return `About ${minMinutes} minute${minMinutes > 1 ? 's' : ''}.`
-    return `About ${minMinutes} to ${maxMinutes} minutes.`
-  }, [form.values])
-
   // Effect for populating form when cloning data
   useEffect(() => {
     const populateForm = async () => {
@@ -156,6 +117,7 @@ export const useBroadcastForm = ({
         let recipientsToSet: any[] = []
         let nameSuffix = ' (Copy)'
         const broadcastName = `${cloneData.name || 'Broadcast'}`
+
         if (cloneData.recipients && cloneData.recipients.length > 0) {
           recipientsToSet = cloneData.recipients
           nameSuffix = ' (Resend)'
@@ -168,11 +130,11 @@ export const useBroadcastForm = ({
             name: contact.name,
           }))
         }
+
         form.setValues({
           name: `${broadcastName}${nameSuffix}`,
           numbers: recipientsToSet,
           isTyping: !!cloneData.isTyping,
-          validateNumbers: cloneData.validateNumbers !== 0,
           scheduler: {
             enabled: false,
             scheduledAt: addMinutes(new Date(), 5),
@@ -180,8 +142,10 @@ export const useBroadcastForm = ({
           delayMin: cloneData.delayMin ? cloneData.delayMin / 1000 : 3,
           delayMax: cloneData.delayMax ? cloneData.delayMax / 1000 : 6,
         })
+
         const { type, message } = cloneData
         inputMessageForm.setFieldValue('type', type)
+
         switch (type) {
           case Message.TEXT:
             inputMessageForm.setFieldValue('inputText', message as string)
@@ -221,6 +185,7 @@ export const useBroadcastForm = ({
         }
       }
     }
+
     if (cloneData) {
       populateForm().catch(console.error)
     } else {
@@ -239,7 +204,6 @@ export const useBroadcastForm = ({
   const proceedWithBroadcast = async () => {
     const signatureEnabled = await storage.get(Setting.SIGNATURE_ENABLED)
     const signatureText = await storage.get<string>(Setting.SIGNATURE_TEXT)
-
     let messagePayload = getMessage()
     const messageType = inputMessageForm.values.type
 
@@ -266,7 +230,6 @@ export const useBroadcastForm = ({
       ...form.values,
       type: messageType,
       message: messagePayload,
-      validateNumbers: form.values.validateNumbers ? 1 : 0,
       isTyping: form.values.isTyping ? 1 : 0,
       isScheduler: form.values.scheduler.enabled ? 1 : 0,
       // -- MODIFIED: The status is now set based on whether the scheduler is enabled.
@@ -297,6 +260,7 @@ export const useBroadcastForm = ({
             : null,
         }),
       )
+
       await db.broadcastContacts.bulkAdd(contacts)
       onSuccess()
     } catch (error) {
@@ -311,9 +275,11 @@ export const useBroadcastForm = ({
     const hasAcknowledged = await storage.get(
       Setting.HAS_ACKNOWLEDGED_BROADCAST_WARNING,
     )
+
     if (!hasAcknowledged) {
       return false // Indicate that the warning modal should be shown
     }
+
     await proceedWithBroadcast()
     return true // Indicate that the action was performed
   }
@@ -326,7 +292,6 @@ export const useBroadcastForm = ({
   return {
     form,
     inputMessageForm,
-    estimatedTime,
     handleClose,
     handleSendBroadcast,
     handleWarningAccepted,

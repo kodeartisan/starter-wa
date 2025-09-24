@@ -8,6 +8,7 @@ import {
   Box,
   Group,
   Menu,
+  Progress,
   Stack,
   Text,
   Tooltip,
@@ -45,6 +46,7 @@ type BroadcastStatsMap = Map<
 const renderMessagePreview = (broadcast: Broadcast) => {
   const { type, message } = broadcast
   if (!message) return 'N/A'
+
   switch (type) {
     case Message.TEXT:
       return typeof message === 'string' ? message : JSON.stringify(message)
@@ -62,6 +64,7 @@ const renderMessagePreview = (broadcast: Broadcast) => {
       return `Unsupported type: ${type}`
   }
 }
+
 export const getBroadcastColumns = (
   actions: ColumnActions,
   broadcastStatsMap: BroadcastStatsMap,
@@ -130,40 +133,50 @@ export const getBroadcastColumns = (
       title: 'Recipients',
       render: (broadcast) => {
         const stats: any = broadcastStatsMap.get(broadcast.id) || defaultStats
+        // ++ MODIFIED: Calculate real-time progress for running broadcasts.
+        const isProcessing = broadcast.status === Status.RUNNING
+        const processed = stats.success + stats.failed + stats.cancelled
+        const progress =
+          stats.total > 0 ? Math.round((processed / stats.total) * 100) : 0
+
         return (
-          <Stack gap={2}>
+          <Stack gap={4}>
+            {/* ++ ADDED: Display a progress bar and counter only when the broadcast is active. */}
+            {isProcessing && stats.total > 0 && (
+              <Box mb={4}>
+                <Text size="xs" fw={500}>
+                  Sending: {processed} of {stats.total}
+                </Text>
+                <Progress value={progress} size="sm" striped animated mt={2} />
+              </Box>
+            )}
+
             <Text size="xs">Total: {stats.total}</Text>
             {stats.success > 0 && (
               <Text size="xs" c="green">
-                {' '}
-                Success: {stats.success}{' '}
+                Success: {stats.success}
               </Text>
             )}
             {(stats.pending > 0 || stats.running > 0) && (
               <Text size="xs" c="yellow">
-                {' '}
-                In Progress: {stats.pending + stats.running}{' '}
+                In Progress: {stats.pending + stats.running}
               </Text>
             )}
             {stats.failed > 0 && (
               <Text size="xs" c="red">
-                {' '}
-                Failed: {stats.failed}{' '}
+                Failed: {stats.failed}
               </Text>
             )}
             {stats.cancelled > 0 && (
               <Text size="xs" c="gray">
-                {' '}
-                Cancelled: {stats.cancelled}{' '}
+                Cancelled: {stats.cancelled}
               </Text>
             )}
             {stats.scheduled > 0 && (
               <Text size="xs" c="blue">
-                {' '}
-                Scheduled: {stats.scheduled}{' '}
+                Scheduled: {stats.scheduled}
               </Text>
             )}
-            {/* ++ ADDED: Conditionally render the scheduled time */}
             {stats.scheduledAt && (
               <Text size="xs" c="dimmed">
                 On: {dayjs(stats.scheduledAt).format('DD MMM, HH:mm')}

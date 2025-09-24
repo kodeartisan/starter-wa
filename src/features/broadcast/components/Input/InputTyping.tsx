@@ -15,6 +15,8 @@ const InputTyping: React.FC<Props> = ({ form }: Props) => {
       label='Show "Typing..." status on the recipient to mimic messaging process'
       refProp="rootRef"
       position="top-start"
+      multiline
+      w={300}
     >
       <Switch
         label={

@@ -2,7 +2,14 @@
 import Modal from '@/components/Modal/Modal'
 import type { Broadcast } from '@/libs/db'
 import { useBroadcastForm } from '@/models/useBroadcastForm'
-import { ScrollArea, Stack, TextInput } from '@mantine/core'
+import {
+  Group,
+  NumberInput,
+  ScrollArea,
+  Stack,
+  TextInput,
+  Tooltip,
+} from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import React from 'react'
 import AntiBlockingSettings from '../Form/AntiBlockingSettings'
@@ -11,6 +18,7 @@ import BroadcastScheduler from '../Form/BroadcastScheduler'
 import RecipientManager from '../Form/RecipientManager'
 // ++ ADDED: Import the new SignatureSettings component
 import SignatureSettings from '../Form/SignatureSettings'
+import InputTyping from '../Input/InputTyping'
 import InputMessage from '../Input/Message/InputMessage'
 import ModalFirstBroadcastWarning from './ModalFirstBroadcastWarning'
 import ModalManageSources from './ModalManageSources'
@@ -30,10 +38,10 @@ const ModalCreateBroadcast: React.FC<Props> = ({
 }) => {
   const [showWarningModal, warningModalHandlers] = useDisclosure(false)
   const [showSourcesModal, sourcesModalHandlers] = useDisclosure(false)
+
   const {
     form,
     inputMessageForm,
-    estimatedTime,
     handleClose,
     handleSendBroadcast,
     handleWarningAccepted,
@@ -74,9 +82,43 @@ const ModalCreateBroadcast: React.FC<Props> = ({
               onManage={sourcesModalHandlers.open}
             />
             <InputMessage form={inputMessageForm} />
-            <AntiBlockingSettings form={form} />
-            <SignatureSettings />
-            <BroadcastScheduler form={form} estimatedTime={estimatedTime} />
+            <Group grow>
+              {/* MODIFIED: Wrapped the NumberInput in a Tooltip for clarity */}
+              <Tooltip
+                label="The shortest time to wait before sending the next message. Helps simulate human behavior."
+                position="top-start"
+                multiline
+                withArrow
+              >
+                <NumberInput
+                  label="Min Delay (sec)"
+                  description="Minimum time between messages."
+                  size="sm"
+                  min={3}
+                  {...form.getInputProps('delayMin')}
+                />
+              </Tooltip>
+              {/* MODIFIED: Wrapped the NumberInput in a Tooltip for clarity */}
+              <Tooltip
+                label="The longest time to wait before sending the next message. A random delay between Min and Max will be chosen for each message."
+                position="top-start"
+                multiline
+                withArrow
+              >
+                <NumberInput
+                  label="Max Delay (sec)"
+                  description="Maximum time between messages."
+                  min={5}
+                  size="sm"
+                  {...form.getInputProps('delayMax')}
+                />
+              </Tooltip>
+            </Group>
+            <Group grow>
+              <InputTyping form={form} />
+              <SignatureSettings />
+            </Group>
+            <BroadcastScheduler form={form} />
             <BroadcastActions
               onSend={onSendClick}
               isScheduled={form.values.scheduler.enabled}
@@ -85,12 +127,14 @@ const ModalCreateBroadcast: React.FC<Props> = ({
           </Stack>
         </ScrollArea>
       </Modal>
+
       <ModalManageSources
         opened={showSourcesModal}
         onClose={sourcesModalHandlers.close}
         onSubmit={handleUpdateRecipients}
         initialRecipients={form.values.numbers}
       />
+
       <ModalFirstBroadcastWarning
         opened={showWarningModal}
         onClose={warningModalHandlers.close}
