@@ -1,3 +1,4 @@
+import appStyle from 'data-text:@/components/App.module.css'
 import appMenuStyle from 'data-text:@/components/AppMenu.module.css'
 import layoutStyle from 'data-text:@/components/Layout/LayoutPage.module.css'
 import toastStyle from 'data-text:@/components/Toast/Toast.module.css'
@@ -16,6 +17,7 @@ const styles = [
   globalsStyle,
   layoutStyle,
   appMenuStyle,
+  appStyle,
 ]
 
 const generate = () => {
