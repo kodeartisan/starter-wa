@@ -1,0 +1,6 @@
+.tab {
+  &:hover,
+  &[data-active] {
+    background-color: var(--mantine-primary-color-filled-hover);
+  }
+}
