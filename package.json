@@ -2,7 +2,7 @@
   "name": "whats-direct",
   "shortName": "WhatsDirect",
   "displayName": "WA Direct Chat for WhatsApp",
-  "version": "1.10.0",
+  "version": "1.11.0",
   "description": "Start WhatsApp Chat Without Saving Numbers with Media and Templates",
   "author": "Extninja",
   "scripts": {

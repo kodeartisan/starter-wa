@@ -212,7 +212,7 @@ const PageDirectChat: React.FC = () => {
 
   return (
     <>
-      <LayoutPage>
+      <LayoutPage width={700}>
         <Stack>
           <TextInput
             label="WhatsApp Number"
