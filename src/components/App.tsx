@@ -1,4 +1,4 @@
-import { Action, Page } from '@/constants'
+import { Action, Page, PRIMARY_ICON } from '@/constants'
 import PageChatBackup from '@/features/tools/backup-chat/PageChatBackup'
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
@@ -93,8 +93,8 @@ const App: React.FC = () => {
       <Stack justify="space-between">
         <Box>
           <Tabs.Tab value={Page.HOME} className={classes.tab}>
-            <Tooltip label="Group Sender">
-              <Icon icon="tabler:send" color="white" fontSize={26} />
+            <Tooltip label="Backup Chat">
+              <Icon icon={PRIMARY_ICON} color="white" fontSize={26} />
             </Tooltip>
           </Tabs.Tab>
         </Box>
