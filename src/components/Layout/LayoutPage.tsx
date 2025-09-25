@@ -2,9 +2,10 @@
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
 import env from '@/utils/env'
-import { goToResourcePage, showModalPricing } from '@/utils/util'
+import { closePage, goToResourcePage, showModalPricing } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
+  ActionIcon,
   Button,
   Center,
   Group,
@@ -68,40 +69,35 @@ const LayoutPage: React.FC<Props> = ({
             <Title order={4} ml={2}>
               {title ? title : packageJson.displayName}
             </Title>
-            <When condition={license.isPro() && env.isProduction()}>
+            <When condition={env.isDevelopment()}>
               <Button
-                radius={'lg'}
-                size="compact-sm"
-                variant="outline"
-                px={'sm'}
+                variant="filled"
+                color="blue"
+                size="xs"
+                radius="md"
+                onClick={goToResourcePage}
               >
-                <Text fw={500}>Pro</Text>
+                RS
               </Button>
             </When>
           </Group>
-          <When condition={env.isDevelopment()}>
-            <Button
-              variant="filled"
-              color="blue"
-              size="xs"
-              radius="md"
-              onClick={goToResourcePage}
-            >
-              RS
-            </Button>
-          </When>
-          <When condition={license.isFree() ?? true}>
-            <Button
-              variant="filled"
-              color="yellow"
-              size="xs"
-              radius="md"
-              leftSection={<Icon icon="tabler:crown" fontSize={16} />}
-              onClick={showModalPricing}
-            >
-              Upgrade Now
-            </Button>
-          </When>
+          <Group>
+            <When condition={license.isFree() ?? true}>
+              <Button
+                variant="filled"
+                color="yellow"
+                size="xs"
+                radius="md"
+                leftSection={<Icon icon="tabler:crown" fontSize={16} />}
+                onClick={showModalPricing}
+              >
+                Upgrade Now
+              </Button>
+            </When>
+            <ActionIcon variant="transparent" color="red" onClick={closePage}>
+              <Icon icon="tabler:x" />
+            </ActionIcon>
+          </Group>
         </Group>
 
         {wa.isReady ? (
