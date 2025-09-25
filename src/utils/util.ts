@@ -28,6 +28,10 @@ export const postMessage = (action: string, body: any = null) => {
   window.postMessage({ action, body })
 }
 
+export const closePage = () => {
+  postMessage(Action.Window.CLOSE_PAGE)
+}
+
 export const showModalPricing = () => {
   postMessage(Action.Window.SHOW_MODAL_PRICING)
 }
