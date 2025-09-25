@@ -1,4 +1,5 @@
-import { Action, Page } from '@/constants'
+import { Action, Page, PRIMARY_ICON } from '@/constants'
+import PageStatus from '@/features/status/PageStatus'
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
 import useWindowMessage from '@/hooks/useWindowMessage'
@@ -10,42 +11,71 @@ import { useDisclosure } from '@mantine/hooks'
 import React, { useEffect, useState } from 'react'
 import { When } from 'react-if'
 import classes from './App.module.css'
+import ModalActivation from './Modal/ModalActivation'
+import ModalFaq from './Modal/ModalFaq'
+import ModalPricing from './Modal/ModalPricing'
+import ModalProfile from './Modal/ModalProfile'
 
 const App: React.FC = () => {
   const wa = useWa()
   const { setIsReady, setGroups, setProfile } = useAppStore()
   const license = useLicense()
-  const [showModalUpgrade, modalUpgrade] = useDisclosure(false)
   const [showModalActivation, modalActivation] = useDisclosure(false)
+  const [showModalFaq, modalFaq] = useDisclosure(false)
+  const [showModalProfile, modalProfile] = useDisclosure(false)
+  const [showModalPricing, modalPricing] = useDisclosure(false)
   const [activeTab, setActiveTab] = useState<string | null>(null)
 
   useWindowMessage(async (event: MessageEvent) => {
     const {
-      data: { action },
+      data: { action, body },
     } = event
     switch (action) {
       case Action.Window.READY:
         setIsReady(true)
         break
-      case Action.Window.SHOW_MODAL_UPGRADE:
-        modalUpgrade.toggle()
-        break
-      case Action.Window.SHOW_MODAL_ACTIVATION:
-        modalActivation.toggle()
+      case Action.Window.GO_TO_PAGE:
+        setActiveTab(body)
         break
       case Action.Window.CLOSE_PAGE:
         setActiveTab(null)
         break
+      case Action.Window.SHOW_MODAL_PRICING:
+        modalPricing.toggle()
+        break
+      case Action.Window.SHOW_MODAL_ACTIVATION:
+        modalActivation.toggle()
+        break
+      case Action.Window.SHOW_MODAL_FAQ:
+        modalFaq.toggle()
+        break
+      case Action.Window.SHOW_MODAL_PROFILE:
+        modalProfile.toggle()
+        break
+      default:
+        break
     }
   })
 
+  useEffect(() => {
+    license.init().then().catch(console.error)
+  }, [])
+
   const handleChangeTab = (value: string) => {
     if (Page.UPGRADE === value) {
-      modalUpgrade.toggle()
+      modalPricing.toggle()
       return
     }
     if (Page.ACTIVATE === value) {
       modalActivation.toggle()
+      return
+    }
+    if (Page.FAQ === value) {
+      modalFaq.toggle()
+      return
+    }
+    if (Page.PROFILE === value) {
+      modalProfile.toggle()
       return
     }
     setActiveTab(value)
@@ -63,8 +93,8 @@ const App: React.FC = () => {
       <Stack justify="space-between">
         <Box>
           <Tabs.Tab value={Page.HOME} className={classes.tab}>
-            <Tooltip label="Group Sender">
-              <Icon icon="tabler:send" color="white" fontSize={26} />
+            <Tooltip label="Status">
+              <Icon icon={PRIMARY_ICON} color="white" fontSize={26} />
             </Tooltip>
           </Tabs.Tab>
         </Box>
@@ -101,13 +131,8 @@ const App: React.FC = () => {
   const renderTabPanel = (
     <>
       <Tabs.Panel value={Page.HOME}>
-        Lorem ipsum dolor sit amet consectetur adipisicing elit. Laboriosam
-        minima quo, sed vel ea sequi architecto nulla officiis autem blanditiis
-        nesciunt odio totam a minus in eligendi ipsam repellat repellendus.
+        <PageStatus />
       </Tabs.Panel>
-
-      <Tabs.Panel value={Page.FAQ}>Faq</Tabs.Panel>
-      <Tabs.Panel value={Page.PROFILE}>Profile</Tabs.Panel>
     </>
   )
 
@@ -131,6 +156,13 @@ const App: React.FC = () => {
           </Tabs>
         </Group>
       </When>
+      <ModalActivation
+        opened={showModalActivation}
+        onClose={modalActivation.close}
+      />
+      <ModalFaq opened={showModalFaq} onClose={modalFaq.close} />
+      <ModalProfile opened={showModalProfile} onClose={modalProfile.close} />
+      <ModalPricing opened={showModalPricing} onClose={modalPricing.close} />
     </>
   )
 }

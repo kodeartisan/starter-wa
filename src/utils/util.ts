@@ -34,6 +34,9 @@ export const showModalUpgrade = (
 ) => {
   postMessage(Action.Window.SHOW_MODAL_UPGRADE, { featureName, featureBenefit })
 }
+export const closePage = () => {
+  postMessage(Action.Window.CLOSE_PAGE)
+}
 
 export const showModalPricing = () => {
   postMessage(Action.Window.SHOW_MODAL_PRICING)
