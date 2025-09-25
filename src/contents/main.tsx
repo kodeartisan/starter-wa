@@ -1,3 +1,4 @@
+import App from '@/components/App'
 import AppMenu from '@/components/AppMenu'
 import ToastProvider from '@/components/Toast/ToastProvider'
 import theme from '@/libs/theme'
@@ -31,7 +32,7 @@ const Main = () => {
           undefined
         }
       >
-        <AppMenu />
+        <App />
         <ToastProvider />
       </MantineProvider>
     </>
