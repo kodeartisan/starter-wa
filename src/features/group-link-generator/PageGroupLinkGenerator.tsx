@@ -291,7 +291,7 @@ const PageGroupLinkGenerator: React.FC = () => {
 
   return (
     <>
-      <LayoutPage>
+      <LayoutPage width={700}>
         <Stack>
           <Stack align="center" gap={4} mb="xl">
             <Icon icon="tabler:ticket" fontSize={48} />

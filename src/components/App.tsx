@@ -1,5 +1,5 @@
-import { Action, Page } from '@/constants'
-import PageChatBackup from '@/features/tools/backup-chat/PageChatBackup'
+import { Action, Page, PRIMARY_ICON } from '@/constants'
+import PageGroupLinkGenerator from '@/features/group-link-generator/PageGroupLinkGenerator'
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
 import useWindowMessage from '@/hooks/useWindowMessage'
@@ -61,6 +61,16 @@ const App: React.FC = () => {
     license.init().then().catch(console.error)
   }, [])
 
+  useEffect(() => {
+    ;(async function () {
+      if (!wa.isReady) return
+      setTimeout(async () => {
+        const groups = await wa.group.list()
+        setGroups(groups)
+      }, 3000)
+    })()
+  }, [wa.isReady])
+
   const handleChangeTab = (value: string) => {
     if (Page.UPGRADE === value) {
       modalPricing.toggle()
@@ -93,8 +103,8 @@ const App: React.FC = () => {
       <Stack justify="space-between">
         <Box>
           <Tabs.Tab value={Page.HOME} className={classes.tab}>
-            <Tooltip label="Group Sender">
-              <Icon icon="tabler:send" color="white" fontSize={26} />
+            <Tooltip label="Link Generator">
+              <Icon icon={PRIMARY_ICON} color="white" fontSize={26} />
             </Tooltip>
           </Tabs.Tab>
         </Box>
@@ -131,7 +141,7 @@ const App: React.FC = () => {
   const renderTabPanel = (
     <>
       <Tabs.Panel value={Page.HOME}>
-        <PageChatBackup />
+        <PageGroupLinkGenerator />
       </Tabs.Panel>
     </>
   )
