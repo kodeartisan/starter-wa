@@ -339,7 +339,7 @@ const PageStatus: React.FC = () => {
 
   return (
     <>
-      <LayoutPage>
+      <LayoutPage width={700}>
         <Stack style={{ height: '100%' }}>
           <Group justify="space-between" mb="md">
             <TextInput
