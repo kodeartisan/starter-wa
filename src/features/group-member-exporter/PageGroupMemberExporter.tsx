@@ -65,7 +65,7 @@ const PageGroupMemberExporter: React.FC = () => {
   }, [filteredData, selectedColumns])
 
   return (
-    <LayoutPage>
+    <LayoutPage width={800}>
       <InputSelectGroup
         value={selectedGroupIds}
         onChange={setSelectedGroupIds}
