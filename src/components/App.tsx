@@ -1,5 +1,5 @@
-import { Action, Page } from '@/constants'
-import PageChatBackup from '@/features/tools/backup-chat/PageChatBackup'
+import { Action, Page, PRIMARY_ICON } from '@/constants'
+import PageGroupChatBackup from '@/features/tools/backup-chat/PageGroupChatBackup'
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
 import useWindowMessage from '@/hooks/useWindowMessage'
@@ -93,8 +93,8 @@ const App: React.FC = () => {
       <Stack justify="space-between">
         <Box>
           <Tabs.Tab value={Page.HOME} className={classes.tab}>
-            <Tooltip label="Group Sender">
-              <Icon icon="tabler:send" color="white" fontSize={26} />
+            <Tooltip label="Group Backup">
+              <Icon icon={PRIMARY_ICON} color="white" fontSize={26} />
             </Tooltip>
           </Tabs.Tab>
         </Box>
@@ -131,7 +131,7 @@ const App: React.FC = () => {
   const renderTabPanel = (
     <>
       <Tabs.Panel value={Page.HOME}>
-        <PageChatBackup />
+        <PageGroupChatBackup />
       </Tabs.Panel>
     </>
   )

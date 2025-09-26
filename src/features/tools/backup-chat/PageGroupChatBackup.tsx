@@ -31,7 +31,7 @@ const PageGroupChatBackup: React.FC = () => {
     return <BackupOptions backupHook={backup} onStart={backup.startBackup} />
   }
 
-  return <LayoutPage width={800}>{renderContent()}</LayoutPage>
+  return <LayoutPage width={700}>{renderContent()}</LayoutPage>
 }
 
 export default PageGroupChatBackup
