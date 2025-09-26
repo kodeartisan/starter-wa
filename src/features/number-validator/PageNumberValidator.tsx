@@ -50,7 +50,7 @@ const PageNumberValidator: React.FC = () => {
   }
 
   return (
-    <LayoutPage width={800}>
+    <LayoutPage width={700}>
       <InputSection
         numbers={validator.numbers}
         setNumbers={validator.setNumbers}
