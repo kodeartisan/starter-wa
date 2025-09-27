@@ -32,7 +32,7 @@ interface Props {
 
 const LayoutPage: React.FC<Props> = ({
   width = 900,
-  height = 620,
+  height = 700,
   p = 'xl',
   children,
   title = null,

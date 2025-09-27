@@ -1,5 +1,6 @@
-import { Action, Page } from '@/constants'
-import PageChatBackup from '@/features/tools/backup-chat/PageChatBackup'
+import { Action, Page, PRIMARY_ICON } from '@/constants'
+import BroadcastListener from '@/features/broadcast/components/Listeners/BroadcastListener'
+import PageBroadcast from '@/features/broadcast/PageBroadcast'
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
 import useWindowMessage from '@/hooks/useWindowMessage'
@@ -15,6 +16,7 @@ import ModalActivation from './Modal/ModalActivation'
 import ModalFaq from './Modal/ModalFaq'
 import ModalPricing from './Modal/ModalPricing'
 import ModalProfile from './Modal/ModalProfile'
+import ModalUpgrade from './Modal/ModalUpgrade'
 
 const App: React.FC = () => {
   const wa = useWa()
@@ -25,6 +27,11 @@ const App: React.FC = () => {
   const [showModalProfile, modalProfile] = useDisclosure(false)
   const [showModalPricing, modalPricing] = useDisclosure(false)
   const [activeTab, setActiveTab] = useState<string | null>(null)
+  const [showModalUpgrade, modalUpgradeHandlers] = useDisclosure(false)
+  const [upgradeInfo, setUpgradeInfo] = useState({
+    featureName: '',
+    featureBenefit: '',
+  })
 
   useWindowMessage(async (event: MessageEvent) => {
     const {
@@ -36,6 +43,13 @@ const App: React.FC = () => {
         break
       case Action.Window.GO_TO_PAGE:
         setActiveTab(body)
+        break
+      case Action.Window.SHOW_MODAL_UPGRADE:
+        setUpgradeInfo({
+          featureName: body.featureName,
+          featureBenefit: body.featureBenefit,
+        })
+        modalUpgradeHandlers.open()
         break
       case Action.Window.CLOSE_PAGE:
         setActiveTab(null)
@@ -93,8 +107,8 @@ const App: React.FC = () => {
       <Stack justify="space-between">
         <Box>
           <Tabs.Tab value={Page.HOME} className={classes.tab}>
-            <Tooltip label="Group Sender">
-              <Icon icon="tabler:send" color="white" fontSize={26} />
+            <Tooltip label="Broadcast">
+              <Icon icon={PRIMARY_ICON} color="white" fontSize={26} />
             </Tooltip>
           </Tabs.Tab>
         </Box>
@@ -131,7 +145,7 @@ const App: React.FC = () => {
   const renderTabPanel = (
     <>
       <Tabs.Panel value={Page.HOME}>
-        <PageChatBackup />
+        <PageBroadcast />
       </Tabs.Panel>
     </>
   )
@@ -163,6 +177,13 @@ const App: React.FC = () => {
       <ModalFaq opened={showModalFaq} onClose={modalFaq.close} />
       <ModalProfile opened={showModalProfile} onClose={modalProfile.close} />
       <ModalPricing opened={showModalPricing} onClose={modalPricing.close} />
+      <ModalUpgrade
+        opened={showModalUpgrade}
+        onClose={modalUpgradeHandlers.close}
+        featureName={upgradeInfo.featureName}
+        featureBenefit={upgradeInfo.featureBenefit}
+      />
+      <BroadcastListener />
     </>
   )
 }

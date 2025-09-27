@@ -7,6 +7,8 @@ import {
   NumberInput,
   ScrollArea,
   Stack,
+  Switch,
+  Text,
   TextInput,
   Tooltip,
 } from '@mantine/core'
@@ -118,7 +120,17 @@ const ModalCreateBroadcast: React.FC<Props> = ({
               <InputTyping form={form} />
               <SignatureSettings />
             </Group>
-            <BroadcastScheduler form={form} />
+            <Group>
+              <Switch
+                label={
+                  <Group gap="xs">
+                    <Text fw={500}>Send to valid number</Text>
+                  </Group>
+                }
+              />
+              <BroadcastScheduler form={form} />
+            </Group>
+
             <BroadcastActions
               onSend={onSendClick}
               isScheduled={form.values.scheduler.enabled}

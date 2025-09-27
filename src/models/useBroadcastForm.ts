@@ -12,7 +12,8 @@ import {
   showModalUpgrade,
 } from '@/utils/util'
 import { useForm } from '@mantine/form'
-import { addMinutes, isFuture } from 'date-fns'
+// MODIFIED: Imported addMinutes, isFuture, and differenceInHours
+import { addMinutes, differenceInHours, isFuture } from 'date-fns'
 import _ from 'lodash'
 import { useEffect } from 'react'
 
@@ -58,26 +59,7 @@ export const useBroadcastForm = ({
         }
         return null
       },
-      isTyping: (value) => {
-        if (license.isFree() && value) {
-          form.setFieldValue('isTyping', false)
-          showModalUpgrade(
-            'Typing Effect',
-            'Simulate human typing to make your broadcasts appear more natural and reduce the chance of being flagged as automated.',
-          )
-          return
-        }
-        return null
-      },
       scheduler: (value) => {
-        if (license.isFree() && value.enabled) {
-          form.setFieldValue('scheduler.enabled', false)
-          showModalUpgrade(
-            'Schedule Broadcasts',
-            'Automatically send your messages at a specific date and time. Perfect for planning campaigns and reaching your audience at the right moment.',
-          )
-          return
-        }
         if (value.enabled && !value.scheduledAt) {
           return 'Scheduled date and time is required.'
         }
@@ -87,6 +69,21 @@ export const useBroadcastForm = ({
           !isFuture(new Date(value.scheduledAt))
         ) {
           return 'Scheduled time must be in the future.'
+        }
+        // ++ ADDED: Add server-side validation for free users.
+        // This rule ensures a free user cannot schedule a broadcast more than 1 hour ahead.
+        if (
+          license.isFree() &&
+          value.enabled &&
+          value.scheduledAt &&
+          differenceInHours(new Date(value.scheduledAt), new Date()) >= 1
+        ) {
+          showModalUpgrade(
+            'Schedule for Any Day',
+            'Want to plan your broadcasts for tomorrow, next week, or even next month? Upgrade to Pro and unlock the freedom to schedule messages anytime in the future!',
+          )
+          form.setFieldValue('scheduler.scheduledAt', new Date())
+          return
         }
         return null
       },
@@ -101,7 +98,8 @@ export const useBroadcastForm = ({
         return null
       },
     },
-    validateInputOnChange: ['numbers', 'scheduler.enabled', 'isTyping'],
+    // MODIFIED: Added validation on change for scheduledAt to provide instant feedback.
+    validateInputOnChange: ['numbers', 'scheduler.scheduledAt'],
   })
 
   const {
@@ -232,7 +230,6 @@ export const useBroadcastForm = ({
       message: messagePayload,
       isTyping: form.values.isTyping ? 1 : 0,
       isScheduler: form.values.scheduler.enabled ? 1 : 0,
-      // -- MODIFIED: The status is now set based on whether the scheduler is enabled.
       status: form.values.scheduler.enabled ? Status.SCHEDULER : Status.PENDING,
       delayMin: form.values.delayMin * 1000,
       delayMax: form.values.delayMax * 1000,
@@ -241,11 +238,9 @@ export const useBroadcastForm = ({
     try {
       //@ts-ignore
       const broadcastId = await db.broadcasts.add(broadcastData as Broadcast)
-
       if (isTypeMessageMedia(inputMessageForm.values.type)) {
         await insertBroadcastFile(broadcastId, Media.BROADCAST)
       }
-
       //@ts-ignore
       const contacts: BroadcastContact[] = form.values.numbers.map(
         (recipient: any) => ({
@@ -260,7 +255,6 @@ export const useBroadcastForm = ({
             : null,
         }),
       )
-
       await db.broadcastContacts.bulkAdd(contacts)
       onSuccess()
     } catch (error) {
@@ -275,7 +269,6 @@ export const useBroadcastForm = ({
     const hasAcknowledged = await storage.get(
       Setting.HAS_ACKNOWLEDGED_BROADCAST_WARNING,
     )
-
     if (!hasAcknowledged) {
       return false // Indicate that the warning modal should be shown
     }

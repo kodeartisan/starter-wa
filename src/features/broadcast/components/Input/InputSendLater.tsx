@@ -3,6 +3,7 @@ import useLicense from '@/hooks/useLicense'
 import { Badge, Group, Switch, Text, Tooltip } from '@mantine/core'
 import { DateTimePicker } from '@mantine/dates'
 import type { UseFormReturnType } from '@mantine/form'
+import { endOfDay } from 'date-fns'
 import dayjs from 'dayjs'
 import React from 'react'
 import { When } from 'react-if'
@@ -13,6 +14,7 @@ interface Props {
 
 const InputSendLater: React.FC<Props> = ({ form }: Props) => {
   const license = useLicense()
+  const maxScheduleDate = endOfDay(new Date())
   return (
     <>
       {/* MODIFIED: Wrapped the Switch component in a Tooltip to explain its function. */}

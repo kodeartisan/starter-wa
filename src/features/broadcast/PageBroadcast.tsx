@@ -242,7 +242,7 @@ const PageBroadcast: React.FC = () => {
   )
 
   return (
-    <LayoutPage title="Broadcast">
+    <LayoutPage title="Broadcast" width={800}>
       <Stack style={{ height: '100%' }}>
         <Group justify="space-between" mb="md">
           <TextInput
@@ -317,7 +317,7 @@ const PageBroadcast: React.FC = () => {
                 dataQuery.toggleSort(status.columnAccessor)
               }
             }}
-            minHeight={500}
+            minHeight={560}
             noRecordsText="No broadcasts found"
             striped
             highlightOnHover
