@@ -33,7 +33,7 @@ interface Props {
   initialRecipients: any[]
 }
 
-const PAGE_SIZE = 10 // Define page size for pagination
+const PAGE_SIZE = 10
 
 const ModalManageSources: React.FC<Props> = ({
   opened,
@@ -47,8 +47,6 @@ const ModalManageSources: React.FC<Props> = ({
   const [paginatedRecipients, setPaginatedRecipients] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState('')
   const [isSaving, setIsSaving] = useState(false)
-
-  // State for inline editing
   const [editingCell, setEditingCell] = useState<{
     recordId: string
     columnId: string
@@ -64,16 +62,14 @@ const ModalManageSources: React.FC<Props> = ({
   const [showLoadListModal, loadListModalHandlers] = useDisclosure(false)
   const fileExporter = useFile()
 
-  // Sync with initial recipients when modal opens
   useEffect(() => {
     if (opened) {
       setRecipients(_.cloneDeep(initialRecipients))
-      setPage(1) // Reset to first page on open
+      setPage(1)
       setSearchQuery('')
     }
   }, [opened, initialRecipients])
 
-  // Memoize filtered results for performance
   const filteredRecipients = useMemo(() => {
     if (!searchQuery) return recipients
     const lowerCaseQuery = searchQuery.toLowerCase()
@@ -84,14 +80,12 @@ const ModalManageSources: React.FC<Props> = ({
     )
   }, [recipients, searchQuery])
 
-  // Effect to update paginated data when filtered recipients or page changes
   useEffect(() => {
     const from = (page - 1) * PAGE_SIZE
     const to = from + PAGE_SIZE
     setPaginatedRecipients(filteredRecipients.slice(from, to))
   }, [filteredRecipients, page])
 
-  // Reset page to 1 when search query changes
   useEffect(() => {
     setPage(1)
   }, [searchQuery])
@@ -106,13 +100,16 @@ const ModalManageSources: React.FC<Props> = ({
         name: rec.name || rec.savedName || rec.publicName || 'N/A',
       }
     })
+
     const initialCount = recipients.length
     const combined = [...recipients, ...formattedNewRecipients]
     const uniqueRecipients = _.uniqBy(combined, 'number')
     const finalCount = uniqueRecipients.length
     setRecipients(uniqueRecipients)
+
     const addedCount = finalCount - initialCount
     const duplicateCount = combined.length - finalCount
+
     if (addedCount > 0 && duplicateCount > 0) {
       toast.info(
         `${addedCount} recipient(s) added. ${duplicateCount} duplicate(s) were automatically removed.`,
@@ -139,9 +136,6 @@ const ModalManageSources: React.FC<Props> = ({
     editModalHandlers.open()
   }
 
-  // MODIFIED: This handler now accepts the original number to correctly identify
-  // the recipient to update, even if the number itself has been changed.
-  // It also includes a check to prevent creating duplicate entries.
   const handleUpdateRecipientFromModal = (
     originalNumber: string,
     updatedData: { number: string; name: string },
@@ -167,21 +161,17 @@ const ModalManageSources: React.FC<Props> = ({
     editModalHandlers.close()
   }
 
-  // Function to save inline cell edits
   const handleSaveCellEdit = () => {
     if (!editingCell) return
-
     setRecipients((currentRecipients) =>
       currentRecipients.map((r) => {
         if (r.number === editingCell.recordId) {
-          // Prevent saving an empty name
           const finalValue = editValue.trim() === '' ? r.name : editValue.trim()
           return { ...r, [editingCell.columnId]: finalValue }
         }
         return r
       }),
     )
-
     setEditingCell(null)
   }
 
@@ -217,12 +207,10 @@ const ModalManageSources: React.FC<Props> = ({
       toast.info('No recipients to export.')
       return
     }
-
     const dataForExport = recipients.map((r) => ({
       number: r.number,
       name: r.name,
     }))
-
     const filename = `recipients_${new Date().toISOString().slice(0, 10)}`
     await fileExporter.saveAs(format, dataForExport, filename)
   }
@@ -244,22 +232,36 @@ const ModalManageSources: React.FC<Props> = ({
         const isEditing =
           editingCell?.recordId === recipient.number &&
           editingCell?.columnId === 'name'
+
+        // MODIFIED: Wrapped the TextInput in a Group with a save button for a better UX.
         return isEditing ? (
-          <TextInput
-            value={editValue}
-            onChange={(e) => setEditValue(e.currentTarget.value)}
-            onBlur={handleSaveCellEdit}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                handleSaveCellEdit()
-              } else if (e.key === 'Escape') {
-                setEditingCell(null)
-              }
-            }}
-            autoFocus
-            size="xs"
-          />
+          <Group gap="xs" wrap="nowrap">
+            <TextInput
+              value={editValue}
+              onChange={(e) => setEditValue(e.currentTarget.value)}
+              onBlur={handleSaveCellEdit}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  handleSaveCellEdit()
+                } else if (e.key === 'Escape') {
+                  setEditingCell(null)
+                }
+              }}
+              autoFocus
+              size="xs"
+              style={{ flexGrow: 1 }}
+            />
+            <Tooltip label="Save" withArrow position="top">
+              <ActionIcon
+                variant="subtle"
+                color="teal"
+                onClick={handleSaveCellEdit}
+              >
+                <Icon icon="tabler:check" />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
         ) : (
           <Tooltip label="Click to edit" withArrow position="top">
             <Text
@@ -465,7 +467,6 @@ const ModalManageSources: React.FC<Props> = ({
           </Group>
         </Stack>
       </Modal>
-
       <ModalEditRecipient
         opened={showEditModal}
         onClose={editModalHandlers.close}

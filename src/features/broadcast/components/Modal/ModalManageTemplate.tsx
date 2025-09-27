@@ -1,3 +1,4 @@
+// src/features/broadcast/components/Modal/ModalManageTemplate.tsx
 import Modal from '@/components/Modal/Modal'
 import { Media, Message } from '@/constants'
 import useDataQuery from '@/hooks/useDataQuery'
@@ -12,6 +13,7 @@ import {
   Center,
   Group,
   Stack,
+  Text,
   TextInput,
   Title,
   Tooltip,
@@ -32,18 +34,15 @@ const ModalManageTemplate: React.FC<Props> = ({ opened, onClose }) => {
   const dataQuery = useDataQuery<BroadcastTemplate>({
     table: db.broadcastTemplates,
   })
-  // MODIFIED: Allow state to hold a partial template object for cloning
   const [editingTemplate, setEditingTemplate] =
     useState<Partial<BroadcastTemplate> | null>(null)
   const [showModalCreateUpdate, modalCreateUpdate] = useDisclosure(false)
 
   const handleDelete = async (template: BroadcastTemplate) => {
     if (!confirm('Are you sure you want to delete this template?')) return
-    // First, delete any associated media to prevent orphaned data.
     await db.media
       .where({ type: Media.BROADCAST_TEMPLATE, parentId: template.id })
       .delete()
-    // After associated media is deleted, delete the template itself.
     await db.broadcastTemplates.delete(template.id)
   }
 
@@ -52,23 +51,22 @@ const ModalManageTemplate: React.FC<Props> = ({ opened, onClose }) => {
     modalCreateUpdate.open()
   }
 
-  // ADDED: Handler for cloning a template.
   const handleClone = (template: BroadcastTemplate) => {
-    // Create a new template object for cloning, omitting the id
-    // and appending "(Copy)" to the name. This ensures it's treated as a new entry.
     const { id, ...restOfTemplate } = template
     const clonedTemplate = {
       ...restOfTemplate,
       name: `${template.name} (Copy)`,
     }
-
     setEditingTemplate(clonedTemplate)
     modalCreateUpdate.open()
   }
 
   const handleOpenCreateModal = () => {
     if (license.isFree() && dataQuery.totalRecords >= 1) {
-      showModalUpgrade()
+      showModalUpgrade(
+        'Unlimited Templates',
+        'Upgrade to Pro to create and save an unlimited number of message templates.',
+      )
       return
     }
     setEditingTemplate(null)
@@ -81,39 +79,43 @@ const ModalManageTemplate: React.FC<Props> = ({ opened, onClose }) => {
     const typeContent = {
       [Message.TEXT]:
         typeof message === 'string' ? message : JSON.stringify(message),
-      [Message.MEDIA]: message.caption,
-      [Message.IMAGE]: message.caption,
-      [Message.VIDEO]: message.caption,
-      [Message.FILE]: typeof message === 'string' ? message : message.caption,
-      [Message.BUTTON]: message.title,
-      [Message.LIST]: message.title,
-      [Message.LOCATION]: message.name,
-      [Message.POLL]: message.name,
+      [Message.MEDIA]: (message as any).caption,
+      [Message.IMAGE]: (message as any).caption,
+      [Message.VIDEO]: (message as any).caption,
+      [Message.FILE]:
+        typeof message === 'string' ? message : (message as any).caption,
+      [Message.BUTTON]: (message as any).title,
+      [Message.LIST]: (message as any).title,
+      [Message.LOCATION]: (message as any).name,
+      [Message.POLL]: (message as any).name,
       [Message.VCARD]: '-',
     }
     return typeContent[broadcastTemplate.type] || JSON.stringify(message)
   }
+
   return (
     <Modal opened={opened} onClose={onClose} w={850} withCloseButton>
       <Stack>
         <Center>
           <Title order={3}>Manage Templates</Title>
         </Center>
-        <Stack gap={0} p={'md'}>
+        <Stack gap="md" p={'md'}>
+          {/* MODIFIED: Added a search input and grouped it with the add button */}
           <Group justify="space-between">
             <TextInput
               placeholder={`Search by ${dataQuery.searchField}...`}
               size="sm"
               value={dataQuery.search}
               onChange={(e) => dataQuery.setSearch(e.currentTarget.value)}
+              leftSection={<Icon icon="tabler:search" fontSize={16} />}
+              style={{ flex: 1 }}
             />
             <Button
-              size="xs"
-              leftSection={<Icon icon="tabler:plus" fontSize={20} />}
+              size="sm"
+              leftSection={<Icon icon="tabler:plus" fontSize={18} />}
               onClick={handleOpenCreateModal}
             >
-              {' '}
-              Add{' '}
+              Add Template
             </Button>
           </Group>
           <DataTable
@@ -122,21 +124,20 @@ const ModalManageTemplate: React.FC<Props> = ({ opened, onClose }) => {
             recordsPerPage={dataQuery?.pageSize}
             page={dataQuery?.page}
             onPageChange={dataQuery?.setPage}
+            minHeight={300}
+            noRecordsText="No templates found"
             columns={[
               { accessor: 'name' },
               {
                 accessor: 'type',
                 render: (record) => <MessageType type={record.type} />,
               },
-              {
-                accessor: 'message',
-                title: 'Message',
-                render: renderMessage,
-              },
+              { accessor: 'message', title: 'Message', render: renderMessage },
               {
                 accessor: 'actions',
-                title: '',
+                title: <Text mr="xs">Actions</Text>,
                 textAlign: 'right',
+                width: '0%',
                 render: (template: BroadcastTemplate) => (
                   <Group gap={4} justify="right" wrap="nowrap">
                     <Tooltip label="Edit Template" position="top">
@@ -148,7 +149,6 @@ const ModalManageTemplate: React.FC<Props> = ({ opened, onClose }) => {
                         <Icon icon="tabler:edit" fontSize={22} />
                       </ActionIcon>
                     </Tooltip>
-
                     <Tooltip label="Clone Template" position="top">
                       <ActionIcon
                         color="teal"

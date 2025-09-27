@@ -16,13 +16,13 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
+import dayjs from 'dayjs'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { DataTable } from 'mantine-datatable'
 import React, { useMemo, useState } from 'react'
 import { getBroadcastColumns } from './components/Datatable/BroadcastColumns'
 import ModalCreateBroadcast from './components/Modal/ModalCreateBroadcast'
 import ModalDetailHistory from './components/Modal/ModalDetailHistory'
-// ++ ADDED: Import the new modal component.
 import ModalEditSchedule from './components/Modal/ModalEditSchedule'
 import useBroadcast from './hooks/useBroadcast'
 
@@ -35,19 +35,16 @@ const PageBroadcast: React.FC = () => {
   })
   const broadcastHook = useBroadcast()
   const fileExporter = useFile()
-
   const allBroadcastContacts =
     useLiveQuery(() => db.broadcastContacts.toArray(), []) || []
 
   const [showModalCreate, modalCreateHandlers] = useDisclosure(false)
   const [showModalDetail, modalDetailHandlers] = useDisclosure(false)
-  // ++ ADDED: State management for the edit schedule modal.
   const [showEditScheduleModal, editScheduleModalHandlers] =
     useDisclosure(false)
   const [editingBroadcast, setEditingBroadcast] = useState<Broadcast | null>(
     null,
   )
-
   const [detailData, setDetailData] = useState<Broadcast | null>(null)
   const [cloneData, setCloneData] = useState<
     (Broadcast & { recipients?: any[] }) | null
@@ -141,7 +138,6 @@ const PageBroadcast: React.FC = () => {
     modalDetailHandlers.open()
   }
 
-  // ++ ADDED: Handler to open the edit schedule modal with the correct data.
   const handleEditSchedule = (broadcast: Broadcast) => {
     const stats = broadcastStatsMap.get(broadcast.id)
     if (stats && stats.scheduledAt) {
@@ -156,7 +152,6 @@ const PageBroadcast: React.FC = () => {
     }
   }
 
-  // ++ ADDED: Handler to process the schedule update in the database.
   const handleUpdateSchedule = async (
     broadcastId: number,
     newScheduledAt: Date,
@@ -165,9 +160,7 @@ const PageBroadcast: React.FC = () => {
       await db.broadcastContacts
         .where({ broadcastId: broadcastId, status: Status.SCHEDULER })
         .modify({ scheduledAt: newScheduledAt })
-
       await db.broadcasts.update(broadcastId, { status: Status.SCHEDULER })
-
       toast.success('Broadcast schedule updated successfully.')
       editScheduleModalHandlers.close()
     } catch (error) {
@@ -239,20 +232,27 @@ const PageBroadcast: React.FC = () => {
       const contacts = await db.broadcastContacts
         .where({ broadcastId: broadcast.id })
         .toArray()
+
       if (contacts.length === 0) {
         toast.info('No data to export.')
         return
       }
+
+      // MODIFIED: Added 'Sent At' and 'Error' columns to the exported data.
       const dataForExport = contacts.map((c) => ({
         Name: c.name || '-',
         'Number/ID': c.number.split('@')[0],
         Status: c.status,
-        'Sent At': c.sendAt ? new Date(c.sendAt).toLocaleString() : '-',
+        'Sent At': c.sendAt
+          ? dayjs(c.sendAt).format('YYYY-MM-DD HH:mm:ss')
+          : '-',
         Error: c.error || '-',
       }))
+
       const filename = `broadcast_${
         broadcast.name || broadcast.id
       }_${new Date().toISOString().slice(0, 10)}`
+
       await fileExporter.saveAs(format, dataForExport, filename)
     } catch (error) {
       console.error('Failed to export broadcast data:', error)
@@ -270,7 +270,6 @@ const PageBroadcast: React.FC = () => {
       onExport: handleExport,
       onCancel: broadcastHook.cancel,
       onDelete: handleDelete,
-      // ++ ADDED: Pass the new handler to the columns component.
       onEditSchedule: handleEditSchedule,
     },
     broadcastStatsMap,
@@ -377,7 +376,6 @@ const PageBroadcast: React.FC = () => {
         onClose={modalDetailHandlers.close}
         data={detailData}
       />
-      {/* ++ ADDED: Render the new modal component. */}
       <ModalEditSchedule
         opened={showEditScheduleModal}
         onClose={editScheduleModalHandlers.close}
