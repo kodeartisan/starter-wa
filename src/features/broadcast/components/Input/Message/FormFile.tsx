@@ -6,8 +6,8 @@ import Upload from './Upload'
 
 interface Props {
   form: UseFormReturnType<any>
-  // ++ ADDED: Accept variables prop.
-  variables: { label: string; variable: string }[]
+  // ++ MODIFIED: Update the variables prop type to include the optional tooltip.
+  variables: { label: string; variable: string; tooltip?: string }[]
 }
 
 const FormFile: React.FC<Props> = ({ form, variables }) => {

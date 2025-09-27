@@ -24,7 +24,8 @@ interface Props {
   onChange: (value: string) => void
   error?: any
   placeholder?: string | null
-  variables?: { label: string; variable: string }[]
+  // MODIFIED: Add an optional tooltip property to the variable object definition.
+  variables?: { label: string; variable: string; tooltip?: string }[]
 }
 
 const InputTextarea: React.FC<Props> = ({
@@ -42,6 +43,7 @@ const InputTextarea: React.FC<Props> = ({
   const applyFormat = (startTag: string, endTag: string = '') => {
     const textarea = textareaRef.current
     if (!textarea) return
+
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
     const selectedText = value.substring(start, end)
@@ -51,7 +53,9 @@ const InputTextarea: React.FC<Props> = ({
       (selectedText || '') +
       endTag +
       value.substring(end)
+
     onChange(newText)
+
     setTimeout(() => {
       if (textarea) {
         const newPosition = start + startTag.length + (selectedText.length || 0)
@@ -69,10 +73,13 @@ const InputTextarea: React.FC<Props> = ({
   const insertVariable = (variable: string) => {
     const textarea = textareaRef.current
     if (!textarea) return
+
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
+
     const newText = value.substring(0, start) + variable + value.substring(end)
     onChange(newText)
+
     setTimeout(() => {
       if (textarea) {
         const newPosition = start + variable.length
@@ -93,6 +100,7 @@ const InputTextarea: React.FC<Props> = ({
       fix_grammar:
         'Correct any spelling and grammar mistakes in the following message',
     }
+
     const prompt = prompts[rewriteType]
     if (!prompt) return
 
@@ -141,7 +149,6 @@ const InputTextarea: React.FC<Props> = ({
       </Popover>
     )
   }
-
   return (
     <Stack gap={3}>
       <Group justify="space-between">
@@ -169,35 +176,6 @@ const InputTextarea: React.FC<Props> = ({
               <Icon icon="tabler:code" width={18} />
             </ActionIcon>
           </Tooltip>
-          <Popover width={350} position="top-start" withArrow shadow="md">
-            <Popover.Target>
-              <Tooltip label="Personalization Help" position="top">
-                <ActionIcon variant="subtle">
-                  <Icon icon="tabler:help-circle" fontSize={18} />
-                </ActionIcon>
-              </Tooltip>
-            </Popover.Target>
-            <Popover.Dropdown>
-              <Stack gap="sm">
-                <Box>
-                  <Text fw={500} size="sm">
-                    Personalization
-                  </Text>
-                  <Text c="dimmed" size="xs">
-                    Use variables to automatically insert contact-specific
-                    details into your message.
-                  </Text>
-                  <Text size="xs" mt={4}>
-                    - <code>{'{name}'}</code>: Inserts the contact's saved name.
-                  </Text>
-                  <Text size="xs">
-                    - <code>{'{number}'}</code>: Inserts the contact's phone
-                    number.
-                  </Text>
-                </Box>
-              </Stack>
-            </Popover.Dropdown>
-          </Popover>
           {renderEmojiToolbar()}
         </Group>
       </Group>
@@ -226,24 +204,42 @@ const InputTextarea: React.FC<Props> = ({
               },
             }}
           />
-          {/* ++ ADDED: Render variable buttons if they are provided. */}
+          {/* ++ MODIFIED: Render variable buttons, wrapping with a Tooltip if one is provided. */}
           {variables.length > 0 && (
             <Group mb={4}>
-              {variables.map((variable, index) => (
-                <Button
-                  key={index}
-                  variant="outline"
-                  size="compact-xs"
-                  onClick={() => insertVariable(variable.variable)}
-                >
-                  {variable.label}
-                </Button>
-              ))}
+              {variables.map((variable, index) =>
+                variable.tooltip ? (
+                  <Tooltip
+                    key={index}
+                    label={variable.tooltip}
+                    withArrow
+                    position="top"
+                    multiline
+                    w={220}
+                  >
+                    <Button
+                      variant="outline"
+                      size="compact-xs"
+                      onClick={() => insertVariable(variable.variable)}
+                    >
+                      {variable.label}
+                    </Button>
+                  </Tooltip>
+                ) : (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="compact-xs"
+                    onClick={() => insertVariable(variable.variable)}
+                  >
+                    {variable.label}
+                  </Button>
+                ),
+              )}
             </Group>
           )}
         </Stack>
       </Box>
-
       {error && (
         <Text c="red" size="sm">
           {error}

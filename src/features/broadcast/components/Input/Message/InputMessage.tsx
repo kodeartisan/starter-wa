@@ -44,10 +44,16 @@ const InputMessage: React.FC<Props> = ({
   )
   const [showModalManageTemplate, modalManageTemplate] = useDisclosure(false)
 
-  // ++ ADDED: Define personalization variables in a central location.
+  // ++ MODIFIED: Define personalization variables, adding a Spintax button with a tooltip at the beginning.
   const personalizationVariables = [
-    { label: 'name', variable: '{name}' },
-    { label: 'number', variable: '{number}' },
+    {
+      label: 'Spintax',
+      variable: '{Hi|Hello}',
+      tooltip:
+        'Use Spintax to create message variations. The system will randomly pick one option. e.g., {Hi|Hello|Hola}',
+    },
+    { label: 'Name', variable: '{name}' },
+    { label: 'Number', variable: '{number}' },
   ]
 
   const labelValueTemplates = useMemo(() => {
@@ -59,6 +65,7 @@ const InputMessage: React.FC<Props> = ({
 
   const handleSelectTemplate = async (index: string) => {
     const { id, message, type } = templates![parseInt(index, 10)]
+
     const dataByMessageTypes: { [key: string]: () => any } = {
       [Message.TEXT]: () => ({ type, inputText: message }),
       [Message.IMAGE]: async () => {

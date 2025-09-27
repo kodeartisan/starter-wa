@@ -6,12 +6,13 @@ import Upload from './Upload'
 
 interface Props {
   form: UseFormReturnType<any>
-  // ++ ADDED: Accept variables prop.
-  variables: { label: string; variable: string }[]
+  // ++ MODIFIED: Update the variables prop type to include the optional tooltip.
+  variables: { label: string; variable: string; tooltip?: string }[]
 }
 
 const FormImage: React.FC<Props> = ({ form, variables }) => {
   const [preview, setPreview] = useState<string | null>(null)
+
   useEffect(() => {
     return () => {
       if (preview) {

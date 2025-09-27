@@ -5,8 +5,8 @@ import InputTextarea from '../InputTextarea'
 
 interface Props {
   form: UseFormReturnType<any>
-  // ++ ADDED: Accept variables prop.
-  variables: { label: string; variable: string }[]
+  // ++ MODIFIED: Update the variables prop type to include the optional tooltip.
+  variables: { label: string; variable: string; tooltip?: string }[]
 }
 
 const FormText: React.FC<Props> = ({ form, variables }) => {
