@@ -16,10 +16,11 @@ import { addMinutes, differenceInHours, isFuture } from 'date-fns'
 import _ from 'lodash'
 import { useEffect } from 'react'
 
-// ++ MODIFIED: Added batch and smartPause to default values.
+// ++ MODIFIED: Added `tags` to default values.
 const defaultValues = {
   name: '',
   numbers: [] as any[],
+  tags: [] as string[], // Campaign tags
   isTyping: false,
   validateNumbers: true,
   scheduler: {
@@ -105,7 +106,6 @@ export const useBroadcastForm = ({
         }
         return null
       },
-      // ++ ADDED: Validation for batch sending settings.
       batch: (value) => {
         if (!value.enabled) return null
         if (!value.size || value.size < 1) {
@@ -141,6 +141,7 @@ export const useBroadcastForm = ({
         let recipientsToSet: any[] = []
         let nameSuffix = ' (Copy)'
         const broadcastName = `${cloneData.name || 'Broadcast'}`
+
         if (cloneData.recipients && cloneData.recipients.length > 0) {
           recipientsToSet = cloneData.recipients
           nameSuffix = ' (Resend)'
@@ -153,9 +154,12 @@ export const useBroadcastForm = ({
             name: contact.name,
           }))
         }
+
         form.setValues({
           name: `${broadcastName}${nameSuffix}`,
           numbers: recipientsToSet,
+          // ++ ADDED: Populate tags when cloning.
+          tags: cloneData.tags || [],
           isTyping: !!cloneData.isTyping,
           validateNumbers: !!cloneData.validateNumbers,
           scheduler: {
@@ -167,7 +171,6 @@ export const useBroadcastForm = ({
             start: cloneData.smartPauseStart || '09:00',
             end: cloneData.smartPauseEnd || '17:00',
           },
-          // ++ ADDED: Populate batch settings when cloning.
           batch: {
             enabled: !!cloneData.batchEnabled,
             size: cloneData.batchSize || 20,
@@ -176,8 +179,10 @@ export const useBroadcastForm = ({
           delayMin: cloneData.delayMin ? cloneData.delayMin / 1000 : 3,
           delayMax: cloneData.delayMax ? cloneData.delayMax / 1000 : 6,
         })
+
         const { type, message } = cloneData
         inputMessageForm.setFieldValue('type', type)
+
         switch (type) {
           case Message.TEXT:
             inputMessageForm.setFieldValue('inputText', message as string)
@@ -217,6 +222,7 @@ export const useBroadcastForm = ({
         }
       }
     }
+
     if (cloneData) {
       populateForm().catch(console.error)
     }
@@ -233,6 +239,7 @@ export const useBroadcastForm = ({
     const signatureText = await storage.get<string>(Setting.SIGNATURE_TEXT)
     let messagePayload = getMessage()
     const messageType = inputMessageForm.values.type
+
     if (signatureEnabled && signatureText && signatureText.trim() !== '') {
       const signature = `\n\n${signatureText}`
       if (messageType === Message.TEXT) {
@@ -252,9 +259,10 @@ export const useBroadcastForm = ({
       }
     }
 
-    // ++ MODIFIED: Include batch and smartPause fields in the broadcast data object.
+    // ++ MODIFIED: Included `tags` in the broadcast data object.
     const broadcastData = {
       name: form.values.name,
+      tags: form.values.tags,
       type: messageType,
       message: messagePayload,
       isTyping: form.values.isTyping ? 1 : 0,
@@ -271,9 +279,11 @@ export const useBroadcastForm = ({
       batchDelay: form.values.batch.delay,
       resumeAt: null,
     }
+
     try {
       //@ts-ignore
       const broadcastId = await db.broadcasts.add(broadcastData as Broadcast)
+
       if (isTypeMessageMedia(inputMessageForm.values.type)) {
         await insertBroadcastFile(broadcastId, Media.BROADCAST)
       }
@@ -291,6 +301,7 @@ export const useBroadcastForm = ({
             : null,
         }),
       )
+
       await db.broadcastContacts.bulkAdd(contacts)
       onSuccess()
     } catch (error) {
@@ -301,12 +312,14 @@ export const useBroadcastForm = ({
 
   const handleSendBroadcast = async () => {
     if (formHasErrors(form, inputMessageForm)) return
+
     const hasAcknowledged = await storage.get(
       Setting.HAS_ACKNOWLEDGED_BROADCAST_WARNING,
     )
     if (!hasAcknowledged) {
       return false
     }
+
     await proceedWithBroadcast()
     return true
   }

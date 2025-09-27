@@ -12,6 +12,7 @@ import {
   Button,
   Group,
   LoadingOverlay,
+  MultiSelect,
   Stack,
   TextInput,
 } from '@mantine/core'
@@ -19,7 +20,7 @@ import { useDisclosure } from '@mantine/hooks'
 import dayjs from 'dayjs'
 import { useLiveQuery } from 'dexie-react-hooks'
 import { DataTable } from 'mantine-datatable'
-import React, { useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { getBroadcastColumns } from './components/Datatable/BroadcastColumns'
 import ModalCreateBroadcast from './components/Modal/ModalCreateBroadcast'
 import ModalDetailHistory from './components/Modal/ModalDetailHistory'
@@ -33,8 +34,22 @@ const PageBroadcast: React.FC = () => {
     searchField: 'name',
     initialSort: { field: 'id', direction: 'desc' },
   })
+
   const broadcastHook = useBroadcast()
   const fileExporter = useFile()
+
+  // ++ ADDED: State to manage the selected tags for filtering.
+  const [selectedTags, setSelectedTags] = useState<string[]>([])
+
+  // ++ ADDED: Live query to get all unique tags from the database for the filter dropdown.
+  const allTags =
+    useLiveQuery(async () => {
+      const tagArrays = await db.broadcasts.where('tags').notEqual('').toArray()
+      const tagSet = new Set<string>()
+      tagArrays.forEach((b) => b.tags?.forEach((tag) => tagSet.add(tag)))
+      return Array.from(tagSet).sort()
+    }, []) || []
+
   const allBroadcastContacts =
     useLiveQuery(() => db.broadcastContacts.toArray(), []) || []
 
@@ -51,6 +66,25 @@ const PageBroadcast: React.FC = () => {
   >(null)
   const [isExporting, setIsExporting] = useState(false)
   const [selectedRecords, setSelectedRecords] = useState<Broadcast[]>([])
+
+  // ++ ADDED: useEffect to apply the tag filter to the data query.
+  useEffect(() => {
+    // This removes any previous tag filter before applying a new one.
+    const otherFilters =
+      dataQuery.filters.filter((f) => f.field !== 'tags') || []
+    if (selectedTags.length > 0) {
+      dataQuery.setFilters([
+        ...otherFilters,
+        {
+          field: 'tags',
+          operator: 'anyOf', // Custom operator to check for any matching tag in an array
+          value: selectedTags,
+        },
+      ])
+    } else {
+      dataQuery.setFilters(otherFilters)
+    }
+  }, [selectedTags])
 
   const broadcastStatsMap = useMemo(() => {
     const statsMap = new Map<
@@ -118,19 +152,46 @@ const PageBroadcast: React.FC = () => {
     modalCreateHandlers.open()
   }
 
-  const handleResendToFailed = async (broadcast: Broadcast) => {
-    const failedRecipients = await db.broadcastContacts
-      .where({ broadcastId: broadcast.id, status: Status.FAILED })
-      .toArray()
-    if (failedRecipients.length === 0) {
-      toast.info('No failed recipients to resend to.')
+  // ++ ADDED: Handler for creating all types of follow-up campaigns.
+  const handleCreateFollowUp = async (
+    broadcast: Broadcast,
+    type: 'SUCCESS' | 'FAILED' | 'ALL',
+  ) => {
+    modalDetailHandlers.close() // Close the details modal first.
+
+    const query = db.broadcastContacts.where({ broadcastId: broadcast.id })
+    let recipientsQuery
+    let nameSuffix = ''
+
+    if (type === 'SUCCESS') {
+      recipientsQuery = query.filter((c) => c.status === Status.SUCCESS)
+      nameSuffix = ' (Follow-up: Success)'
+    } else if (type === 'FAILED') {
+      recipientsQuery = query.filter((c) => c.status === Status.FAILED)
+      nameSuffix = ' (Follow-up: Failed)'
+    } else {
+      recipientsQuery = query
+      nameSuffix = ' (Follow-up: All)'
+    }
+
+    const recipients = await recipientsQuery.toArray()
+    if (recipients.length === 0) {
+      toast.info(`No recipients found for status: ${type}`)
       return
     }
-    const recipients = failedRecipients.map((c) => ({
+
+    const newRecipients = recipients.map((c) => ({
       number: c.number,
       name: c.name,
     }))
-    handleOpenCreateModal({ ...broadcast, recipients })
+
+    const dataToClone = {
+      ...broadcast,
+      name: `${broadcast.name || 'Broadcast'}${nameSuffix}`,
+      recipients: newRecipients,
+    }
+
+    handleOpenCreateModal(dataToClone)
   }
 
   const handleViewDetails = (broadcast: Broadcast) => {
@@ -232,13 +293,10 @@ const PageBroadcast: React.FC = () => {
       const contacts = await db.broadcastContacts
         .where({ broadcastId: broadcast.id })
         .toArray()
-
       if (contacts.length === 0) {
         toast.info('No data to export.')
         return
       }
-
-      // MODIFIED: Added 'Sent At' and 'Error' columns to the exported data.
       const dataForExport = contacts.map((c) => ({
         Name: c.name || '-',
         'Number/ID': c.number.split('@')[0],
@@ -248,11 +306,9 @@ const PageBroadcast: React.FC = () => {
           : '-',
         Error: c.error || '-',
       }))
-
       const filename = `broadcast_${
         broadcast.name || broadcast.id
       }_${new Date().toISOString().slice(0, 10)}`
-
       await fileExporter.saveAs(format, dataForExport, filename)
     } catch (error) {
       console.error('Failed to export broadcast data:', error)
@@ -265,7 +321,6 @@ const PageBroadcast: React.FC = () => {
   const columns = getBroadcastColumns(
     {
       onViewDetails: handleViewDetails,
-      onResendToFailed: handleResendToFailed,
       onClone: handleOpenCreateModal,
       onExport: handleExport,
       onCancel: broadcastHook.cancel,
@@ -276,16 +331,29 @@ const PageBroadcast: React.FC = () => {
   )
 
   return (
-    <LayoutPage title="Broadcast" width={800}>
+    <LayoutPage width={860}>
       <Stack style={{ height: '100%' }}>
         <Group justify="space-between" mb="md">
-          <TextInput
-            placeholder="Search by Name"
-            value={dataQuery.search}
-            size="sm"
-            onChange={(e) => dataQuery.setSearch(e.currentTarget.value)}
-            leftSection={<Icon icon="tabler:search" fontSize={16} />}
-          />
+          <Group>
+            <TextInput
+              placeholder="Search by Name..."
+              value={dataQuery.search}
+              size="sm"
+              onChange={(e) => dataQuery.setSearch(e.currentTarget.value)}
+              leftSection={<Icon icon="tabler:search" fontSize={16} />}
+            />
+            {/* ++ ADDED: MultiSelect component for filtering by tags. */}
+            <MultiSelect
+              placeholder="Filter by tags..."
+              data={allTags}
+              value={selectedTags}
+              onChange={setSelectedTags}
+              leftSection={<Icon icon="tabler:tag" fontSize={16} />}
+              size="sm"
+              w={250}
+              clearable
+            />
+          </Group>
           <Group>
             {selectedRecords.length > 0 && (
               <Button
@@ -316,10 +384,11 @@ const PageBroadcast: React.FC = () => {
               leftSection={<Icon icon="tabler:plus" fontSize={18} />}
               onClick={() => handleOpenCreateModal()}
             >
-              Create Broadcast
+              Create
             </Button>
           </Group>
         </Group>
+
         <Box style={{ position: 'relative' }}>
           <LoadingOverlay
             visible={isExporting || dataQuery.data === undefined}
@@ -359,6 +428,7 @@ const PageBroadcast: React.FC = () => {
           />
         </Box>
       </Stack>
+
       <ModalCreateBroadcast
         opened={showModalCreate}
         onClose={() => {
@@ -375,6 +445,7 @@ const PageBroadcast: React.FC = () => {
         opened={showModalDetail}
         onClose={modalDetailHandlers.close}
         data={detailData}
+        onCreateFollowUp={handleCreateFollowUp}
       />
       <ModalEditSchedule
         opened={showEditScheduleModal}

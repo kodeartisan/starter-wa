@@ -5,6 +5,7 @@ import { truncate } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   ActionIcon,
+  Badge,
   Box,
   Group,
   Menu,
@@ -21,12 +22,10 @@ import MessageType from './MessageType'
 
 interface ColumnActions {
   onViewDetails: (broadcast: Broadcast) => void
-  onResendToFailed: (broadcast: Broadcast) => void
   onClone: (broadcast: Broadcast) => void
   onExport: (broadcast: Broadcast, format: string) => void
   onCancel: (broadcastId: number) => void
   onDelete: (broadcast: Broadcast) => void
-  // ++ ADDED: Add a handler for editing the schedule.
   onEditSchedule: (broadcast: Broadcast) => void
 }
 
@@ -87,6 +86,8 @@ export const getBroadcastColumns = (
       sortable: true,
       width: 150,
     },
+    // ++ ADDED: New column to display campaign tags.
+
     {
       accessor: 'type',
       title: 'Type',
@@ -112,6 +113,25 @@ export const getBroadcastColumns = (
         )
       },
       ellipsis: true,
+    },
+    {
+      accessor: 'tags',
+      title: 'Tags',
+      render: (broadcast) =>
+        broadcast.tags && broadcast.tags.length > 0 ? (
+          <Group gap={4}>
+            {broadcast.tags.map((tag) => (
+              <Badge key={tag} variant="light" size="sm">
+                {tag}
+              </Badge>
+            ))}
+          </Group>
+        ) : (
+          <Text c="dimmed" fs="italic" size="xs">
+            No tags
+          </Text>
+        ),
+      width: 150,
     },
     {
       accessor: 'status',
@@ -189,7 +209,6 @@ export const getBroadcastColumns = (
       textAlign: 'right',
       width: '0%',
       render: (broadcast) => {
-        const stats = broadcastStatsMap.get(broadcast.id) || defaultStats
         const isFinished = [
           Status.SUCCESS,
           Status.FAILED,
@@ -198,9 +217,7 @@ export const getBroadcastColumns = (
         const isRunning = [Status.PENDING, Status.RUNNING].includes(
           broadcast.status,
         )
-        // ++ ADDED: Determine if a broadcast is in a scheduled state.
         const isScheduled = broadcast.status === Status.SCHEDULER
-
         return (
           <Group gap={4} justify="flex-end" wrap="nowrap">
             <Tooltip label="View Details">
@@ -212,17 +229,7 @@ export const getBroadcastColumns = (
                 <Icon icon="tabler:eye" />
               </ActionIcon>
             </Tooltip>
-            {isFinished && stats.failed > 0 && (
-              <Tooltip label="Resend to Failed">
-                <ActionIcon
-                  variant="subtle"
-                  color="purple"
-                  onClick={() => actions.onResendToFailed(broadcast)}
-                >
-                  <Icon icon="tabler:send-off" />
-                </ActionIcon>
-              </Tooltip>
-            )}
+
             {!isRunning && (
               <Tooltip label="Clone Broadcast">
                 <ActionIcon
@@ -235,7 +242,6 @@ export const getBroadcastColumns = (
               </Tooltip>
             )}
 
-            {/* ++ ADDED: Show the edit button only for scheduled broadcasts. */}
             {isScheduled && (
               <Tooltip label="Edit Schedule">
                 <ActionIcon
@@ -263,6 +269,7 @@ export const getBroadcastColumns = (
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
+
             {(isRunning || isScheduled) && (
               <Tooltip label="Cancel Broadcast">
                 <ActionIcon
@@ -274,6 +281,7 @@ export const getBroadcastColumns = (
                 </ActionIcon>
               </Tooltip>
             )}
+
             {isFinished && (
               <Tooltip label="Delete Broadcast">
                 <ActionIcon

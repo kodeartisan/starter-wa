@@ -3,11 +3,11 @@ import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo, useState } from 'react'
 
 type SortDirection = 'asc' | 'desc'
+
 interface Sort {
   field: string
   direction: SortDirection
 }
-
 type SortState = Sort | null
 
 type FilterOperator =
@@ -18,8 +18,10 @@ type FilterOperator =
   | 'greaterThan'
   | 'lessThan'
   | 'between'
+  // ++ ADDED: A new operator to check for any matching item in an array.
+  | 'anyOf'
 
-interface Filter {
+export interface Filter {
   field: string
   operator: FilterOperator
   value: any
@@ -83,43 +85,55 @@ export const useDataQuery = <T>(options: useDataQueryOptions<T>) => {
           (item: any) =>
             item[field] >= value && item[field] <= (secondValue ?? value),
         )
+      // ++ ADDED: Logic for the new 'anyOf' operator to handle tag filtering.
+      case 'anyOf':
+        if (!Array.isArray(value) || value.length === 0) {
+          return query // If filter value is not a valid array, return original data.
+        }
+        return query.filter(
+          (item: any) =>
+            Array.isArray(item[field]) &&
+            item[field].some((tag: any) => value.includes(tag)),
+        )
       default:
         return query
     }
   }
 
-  const data = useLiveQuery(async () => {
-    if (pageSize <= 0) return { data: [], totalItems: 0, hasMore: false }
+  const data = useLiveQuery(
+    async () => {
+      if (pageSize <= 0) return { data: [], totalItems: 0, hasMore: false }
+      const startIndex = (page - 1) * pageSize
 
-    const startIndex = (page - 1) * pageSize
-    let query = search
-      ? table.where(searchField).startsWithIgnoreCase(search)
-      : table.toCollection()
-    let results = await query.toArray()
+      let query = search
+        ? table.where(searchField).startsWithIgnoreCase(search)
+        : table.toCollection()
 
-    filters.forEach((filter) => {
-      results = applyFilter(results, filter)
-    })
+      let results = await query.toArray()
 
-    if (sort) {
-      results.sort((a: any, b: any) => {
-        const aValue = a[sort.field]
-        const bValue = b[sort.field]
-
-        if (aValue === bValue) return 0
-        const comparison = aValue > bValue ? 1 : -1
-        return sort.direction === 'asc' ? comparison : -comparison
+      filters.forEach((filter) => {
+        results = applyFilter(results, filter)
       })
-    }
 
-    const paginatedResults = results.slice(startIndex, startIndex + pageSize)
+      if (sort) {
+        results.sort((a: any, b: any) => {
+          const aValue = a[sort.field]
+          const bValue = b[sort.field]
+          if (aValue === bValue) return 0
+          const comparison = aValue > bValue ? 1 : -1
+          return sort.direction === 'asc' ? comparison : -comparison
+        })
+      }
 
-    return {
-      data: paginatedResults,
-      totalItems: results.length,
-      hasMore: startIndex + paginatedResults.length < results.length,
-    }
-  }, [page, pageSize, search, sort, filters])
+      const paginatedResults = results.slice(startIndex, startIndex + pageSize)
+      return {
+        data: paginatedResults,
+        totalItems: results.length,
+        hasMore: startIndex + paginatedResults.length < results.length,
+      }
+    },
+    [page, pageSize, search, sort, filters], // filters is now a dependency
+  )
 
   const _delete = async (id: any) => {
     if (confirm('Are you sure?')) {
@@ -129,41 +143,17 @@ export const useDataQuery = <T>(options: useDataQueryOptions<T>) => {
 
   const toggleSort = (field: string) => {
     setSort((currentSort) => {
-      // Case 1: No current sort, or a new column is clicked. Start with 'asc'.
       if (!currentSort || currentSort.field !== field) {
         return { field, direction: 'asc' }
       }
-      // Case 2: Currently sorted 'asc'. Switch to 'desc'.
       if (currentSort.direction === 'asc') {
         return { field, direction: 'desc' }
       }
-      // Case 3: Currently sorted 'desc'. Switch to null to remove sorting.
       if (currentSort.direction === 'desc') {
         return null
       }
-      // Fallback, should not be reached.
       return currentSort
     })
-  }
-
-  const addFilter = (filter: Filter) => {
-    setFilters((prev) => [...prev, filter])
-    setPage(1)
-  }
-
-  const removeFilter = (index: number) => {
-    setFilters((prev) => prev.filter((_, i) => i !== index))
-    setPage(1)
-  }
-
-  const updateFilter = (index: number, filter: Filter) => {
-    setFilters((prev) => prev.map((f, i) => (i === index ? filter : f)))
-    setPage(1)
-  }
-
-  const clearFilters = () => {
-    setFilters([])
-    setPage(1)
   }
 
   const derivedData = useMemo(
@@ -188,10 +178,7 @@ export const useDataQuery = <T>(options: useDataQueryOptions<T>) => {
     setSelectedRecords,
     setSearch,
     toggleSort,
-    addFilter,
-    removeFilter,
-    updateFilter,
-    clearFilters,
+    setFilters, // Expose setFilters directly
     _delete,
     searchField,
   }

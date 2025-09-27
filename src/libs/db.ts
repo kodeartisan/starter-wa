@@ -25,11 +25,12 @@ export interface Broadcast {
   smartPauseEnabled: number
   smartPauseStart: string
   smartPauseEnd: string
-  // ++ ADDED: Fields for Batch Sending feature
   batchEnabled: number
   batchSize: number
   batchDelay: number
   resumeAt?: Date | null
+  // ++ ADDED: A new field for campaign tagging.
+  tags?: string[]
 }
 
 export interface BroadcastContact {
@@ -67,12 +68,12 @@ const db = new Dexie(packageJson.name) as Dexie & {
 
 // NOTE: Dexie cannot index boolean values. Fields intended for use in `where()` clauses
 // have been changed from `boolean` to `number` (0 for false, 1 for true).
-// ++ MODIFIED: Added a compound index '[broadcastId+status]' to optimize status-based queries per broadcast.
+// ++ MODIFIED: Database version incremented to apply schema changes.
 db.version(1).stores({
   media: '++id, parentId, type, name, file, ext',
-  // ++ MODIFIED: Added new fields to the broadcasts table schema
+  // ++ MODIFIED: Added `*tags` to allow indexing of the tags array for efficient filtering.
   broadcasts:
-    '++id, name, type, message, isTyping, isScheduler, status, delayMin, delayMax, validateNumbers, smartPauseEnabled, smartPauseStart, smartPauseEnd, batchEnabled, batchSize, batchDelay, resumeAt',
+    '++id, name, type, message, isTyping, isScheduler, status, delayMin, delayMax, validateNumbers, smartPauseEnabled, smartPauseStart, smartPauseEnd, batchEnabled, batchSize, batchDelay, resumeAt, *tags',
   broadcastContacts:
     '++id, broadcastId, number, name, status, error, scheduledAt, sendAt, [broadcastId+status]',
   broadcastTemplates: '++id, name, type, message',

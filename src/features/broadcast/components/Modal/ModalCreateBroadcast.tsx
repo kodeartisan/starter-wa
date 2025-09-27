@@ -8,6 +8,7 @@ import {
   ScrollArea,
   Stack,
   Switch,
+  TagsInput,
   Text,
   TextInput,
   Tooltip,
@@ -15,13 +16,10 @@ import {
 import { useDisclosure } from '@mantine/hooks'
 import React from 'react'
 import { When } from 'react-if'
-import AntiBlockingSettings from '../Form/AntiBlockingSettings'
 import BroadcastActions from '../Form/BroadcastActions'
 import BroadcastScheduler from '../Form/BroadcastScheduler'
 import RecipientManager from '../Form/RecipientManager'
-// ++ ADDED: Import the new SignatureSettings component
 import SignatureSettings from '../Form/SignatureSettings'
-// ++ ADDED: Import the new SmartPauseSettings component
 import SmartPauseSettings from '../Form/SmartPauseSettings'
 import InputTyping from '../Input/InputTyping'
 import InputMessage from '../Input/Message/InputMessage'
@@ -51,13 +49,11 @@ const ModalCreateBroadcast: React.FC<Props> = ({
     handleWarningAccepted,
   } = useBroadcastForm({ cloneData, onSuccess, onClose })
 
-  // This handler remains in the component as it deals with another modal's state.
   const handleUpdateRecipients = (newNumbers: any[]) => {
     form.setFieldValue('numbers', newNumbers)
     sourcesModalHandlers.close()
   }
 
-  // This handler orchestrates the send action, opening the warning modal if needed.
   const onSendClick = async () => {
     const result = await handleSendBroadcast()
     if (result === false) {
@@ -70,11 +66,21 @@ const ModalCreateBroadcast: React.FC<Props> = ({
       <Modal opened={opened} onClose={handleClose} w={850} withCloseButton>
         <ScrollArea h={650}>
           <Stack px={'md'}>
-            <TextInput
-              label="Name"
-              placeholder="e.g., Weekly Newsletter"
-              {...form.getInputProps('name')}
-            />
+            <Group grow>
+              <TextInput
+                label="Name (Optional)"
+                placeholder="e.g., Weekly Newsletter"
+                {...form.getInputProps('name')}
+              />
+
+              <TagsInput
+                label="Tags (Optional)"
+                placeholder="Add tags and press Enter"
+                {...form.getInputProps('tags')}
+                clearable
+              />
+            </Group>
+
             <RecipientManager
               recipientCount={form.values.numbers.length}
               error={form.errors.numbers}
@@ -82,8 +88,8 @@ const ModalCreateBroadcast: React.FC<Props> = ({
               onManage={sourcesModalHandlers.open}
             />
             <InputMessage form={inputMessageForm} />
+
             <Group grow>
-              {/* MODIFIED: Wrapped the NumberInput in a Tooltip for clarity */}
               <Tooltip
                 label="The shortest time to wait before sending the next message. Helps simulate human behavior."
                 position="top-start"
@@ -98,7 +104,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                   {...form.getInputProps('delayMin')}
                 />
               </Tooltip>
-              {/* MODIFIED: Wrapped the NumberInput in a Tooltip for clarity */}
               <Tooltip
                 label="The longest time to wait before sending the next message. A random delay between Min and Max will be chosen for each message."
                 position="top-start"
@@ -119,7 +124,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
               <SignatureSettings />
             </Group>
             <Group grow>
-              {/* ++ MODIFIED: Implement "Send to valid number" functionality */}
               <Tooltip
                 label="Before sending, check if each number is a valid WhatsApp account and reduce the risk of being flagged."
                 position="top-start"
@@ -155,7 +159,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                     })}
                   />
                 </Tooltip>
-
                 <When condition={form.values.batch.enabled}>
                   <Group grow align="flex-start">
                     <Tooltip
