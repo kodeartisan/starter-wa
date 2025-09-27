@@ -12,7 +12,6 @@ import {
   showModalUpgrade,
 } from '@/utils/util'
 import { useForm } from '@mantine/form'
-// MODIFIED: Imported addMinutes, isFuture, and differenceInHours
 import { addMinutes, differenceInHours, isFuture } from 'date-fns'
 import _ from 'lodash'
 import { useEffect } from 'react'
@@ -21,6 +20,7 @@ const defaultValues = {
   name: '',
   numbers: [] as any[],
   isTyping: false,
+  validateNumbers: true,
   scheduler: {
     enabled: false,
     scheduledAt: addMinutes(new Date(), 5),
@@ -47,7 +47,6 @@ export const useBroadcastForm = ({
 }: useBroadcastFormProps) => {
   const license = useLicense()
   const { profile } = useAppStore()
-
   const form = useForm({
     initialValues: defaultValues,
     validate: {
@@ -70,8 +69,6 @@ export const useBroadcastForm = ({
         ) {
           return 'Scheduled time must be in the future.'
         }
-        // ++ ADDED: Add server-side validation for free users.
-        // This rule ensures a free user cannot schedule a broadcast more than 1 hour ahead.
         if (
           license.isFree() &&
           value.enabled &&
@@ -98,17 +95,17 @@ export const useBroadcastForm = ({
         return null
       },
     },
-    // MODIFIED: Added validation on change for scheduledAt to provide instant feedback.
     validateInputOnChange: ['numbers', 'scheduler.scheduledAt'],
   })
-
   const {
     form: inputMessageForm,
     getMessage,
     insertBroadcastFile,
   } = useInputMessage()
 
-  // Effect for populating form when cloning data
+  // MODIFIED: This hook now *only* handles populating the form when cloneData is provided.
+  // The reset logic has been centralized in the `handleClose` function to avoid
+  // redundancy and ensure a clean state reset every time the modal is closed.
   useEffect(() => {
     const populateForm = async () => {
       if (cloneData) {
@@ -133,6 +130,7 @@ export const useBroadcastForm = ({
           name: `${broadcastName}${nameSuffix}`,
           numbers: recipientsToSet,
           isTyping: !!cloneData.isTyping,
+          validateNumbers: !!cloneData.validateNumbers,
           scheduler: {
             enabled: false,
             scheduledAt: addMinutes(new Date(), 5),
@@ -186,17 +184,15 @@ export const useBroadcastForm = ({
 
     if (cloneData) {
       populateForm().catch(console.error)
-    } else {
-      form.reset()
-      inputMessageForm.reset()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cloneData])
 
+  // MODIFIED: This function is now the single source of truth for resetting the modal's state.
+  // It explicitly resets both forms to their initial default values upon closing.
   const handleClose = () => {
     form.reset()
     inputMessageForm.reset()
-    onClose()
+    onClose() // This calls the parent's onClose (e.g., to set visibility and clear cloneData).
   }
 
   const proceedWithBroadcast = async () => {
@@ -230,6 +226,7 @@ export const useBroadcastForm = ({
       message: messagePayload,
       isTyping: form.values.isTyping ? 1 : 0,
       isScheduler: form.values.scheduler.enabled ? 1 : 0,
+      validateNumbers: form.values.validateNumbers ? 1 : 0,
       status: form.values.scheduler.enabled ? Status.SCHEDULER : Status.PENDING,
       delayMin: form.values.delayMin * 1000,
       delayMax: form.values.delayMax * 1000,
@@ -241,6 +238,7 @@ export const useBroadcastForm = ({
       if (isTypeMessageMedia(inputMessageForm.values.type)) {
         await insertBroadcastFile(broadcastId, Media.BROADCAST)
       }
+
       //@ts-ignore
       const contacts: BroadcastContact[] = form.values.numbers.map(
         (recipient: any) => ({
@@ -269,10 +267,10 @@ export const useBroadcastForm = ({
     const hasAcknowledged = await storage.get(
       Setting.HAS_ACKNOWLEDGED_BROADCAST_WARNING,
     )
+
     if (!hasAcknowledged) {
       return false // Indicate that the warning modal should be shown
     }
-
     await proceedWithBroadcast()
     return true // Indicate that the action was performed
   }

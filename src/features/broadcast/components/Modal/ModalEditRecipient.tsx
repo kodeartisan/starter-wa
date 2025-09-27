@@ -1,3 +1,4 @@
+// src/features/broadcast/components/Modal/ModalEditRecipient.tsx
 import Modal from '@/components/Modal/Modal'
 import { Button, Center, Group, Stack, TextInput, Title } from '@mantine/core'
 import { useForm } from '@mantine/form'
@@ -6,7 +7,12 @@ import React, { useEffect } from 'react'
 interface Props {
   opened: boolean
   onClose: () => void
-  onSubmit: (recipient: { number: string; name: string }) => void
+  // MODIFIED: The onSubmit signature is updated to pass the original number
+  // along with the new data, allowing the parent to identify the correct record.
+  onSubmit: (
+    originalNumber: string,
+    updatedData: { name: string; number: string },
+  ) => void
   recipientData: { number: string; name: string } | null
 }
 
@@ -24,6 +30,9 @@ const ModalEditRecipient: React.FC<Props> = ({
     validate: {
       name: (value) =>
         value.trim().length > 0 ? null : 'Name cannot be empty',
+      // ADDED: Validation to ensure the number field is not empty.
+      number: (value) =>
+        value.trim().length > 0 ? null : 'Number cannot be empty',
     },
   })
 
@@ -40,7 +49,11 @@ const ModalEditRecipient: React.FC<Props> = ({
   }, [recipientData, opened])
 
   const handleSubmit = (values: { name: string; number: string }) => {
-    onSubmit(values)
+    // MODIFIED: Passes the original recipient's number to the submit handler
+    // to ensure the correct record is updated, even if the number itself was changed.
+    if (recipientData) {
+      onSubmit(recipientData.number, values)
+    }
     onClose()
   }
 
@@ -57,9 +70,10 @@ const ModalEditRecipient: React.FC<Props> = ({
             {...form.getInputProps('name')}
             data-autofocus
           />
+          {/* MODIFIED: The `readOnly` prop has been removed to allow editing of the recipient's number. */}
           <TextInput
             label="Number"
-            readOnly
+            placeholder="Enter number with country code"
             {...form.getInputProps('number')}
           />
           <Group justify="flex-end" mt="md">

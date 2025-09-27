@@ -106,17 +106,13 @@ const ModalManageSources: React.FC<Props> = ({
         name: rec.name || rec.savedName || rec.publicName || 'N/A',
       }
     })
-
     const initialCount = recipients.length
     const combined = [...recipients, ...formattedNewRecipients]
     const uniqueRecipients = _.uniqBy(combined, 'number')
     const finalCount = uniqueRecipients.length
-
     setRecipients(uniqueRecipients)
-
     const addedCount = finalCount - initialCount
     const duplicateCount = combined.length - finalCount
-
     if (addedCount > 0 && duplicateCount > 0) {
       toast.info(
         `${addedCount} recipient(s) added. ${duplicateCount} duplicate(s) were automatically removed.`,
@@ -143,13 +139,29 @@ const ModalManageSources: React.FC<Props> = ({
     editModalHandlers.open()
   }
 
-  const handleUpdateRecipientFromModal = (updatedData: {
-    number: string
-    name: string
-  }) => {
+  // MODIFIED: This handler now accepts the original number to correctly identify
+  // the recipient to update, even if the number itself has been changed.
+  // It also includes a check to prevent creating duplicate entries.
+  const handleUpdateRecipientFromModal = (
+    originalNumber: string,
+    updatedData: { number: string; name: string },
+  ) => {
+    const isDuplicate = recipients.some(
+      (r) => r.number === updatedData.number && r.number !== originalNumber,
+    )
+
+    if (isDuplicate) {
+      toast.error(
+        `The number ${updatedData.number} already exists in the list.`,
+      )
+      return
+    }
+
     setRecipients((currentRecipients) =>
       currentRecipients.map((r) =>
-        r.number === updatedData.number ? { ...r, name: updatedData.name } : r,
+        r.number === originalNumber
+          ? { ...r, name: updatedData.name, number: updatedData.number }
+          : r,
       ),
     )
     editModalHandlers.close()
@@ -169,6 +181,7 @@ const ModalManageSources: React.FC<Props> = ({
         return r
       }),
     )
+
     setEditingCell(null)
   }
 
@@ -204,10 +217,12 @@ const ModalManageSources: React.FC<Props> = ({
       toast.info('No recipients to export.')
       return
     }
+
     const dataForExport = recipients.map((r) => ({
       number: r.number,
       name: r.name,
     }))
+
     const filename = `recipients_${new Date().toISOString().slice(0, 10)}`
     await fileExporter.saveAs(format, dataForExport, filename)
   }
@@ -229,7 +244,6 @@ const ModalManageSources: React.FC<Props> = ({
         const isEditing =
           editingCell?.recordId === recipient.number &&
           editingCell?.columnId === 'name'
-
         return isEditing ? (
           <TextInput
             value={editValue}
@@ -247,11 +261,13 @@ const ModalManageSources: React.FC<Props> = ({
             size="xs"
           />
         ) : (
-          // ++ MODIFIED: Wrapped the Text component with a Tooltip
           <Tooltip label="Click to edit" withArrow position="top">
             <Text
               onClick={() => {
-                setEditingCell({ recordId: recipient.number, columnId: 'name' })
+                setEditingCell({
+                  recordId: recipient.number,
+                  columnId: 'name',
+                })
                 setEditValue(recipient.name)
               }}
               style={{
@@ -456,7 +472,6 @@ const ModalManageSources: React.FC<Props> = ({
         onSubmit={handleUpdateRecipientFromModal}
         recipientData={editingRecipient}
       />
-
       <ModalSourceManual
         opened={showManualModal}
         onClose={manualModalHandlers.close}

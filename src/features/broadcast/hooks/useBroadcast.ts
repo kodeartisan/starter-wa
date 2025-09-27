@@ -30,12 +30,19 @@ const useBroadcast = () => {
     broadcast: Broadcast,
     contact: BroadcastContact,
   ) => {
+    // ++ ADDED: Check if the contact exists on WhatsApp before sending.
+    if (broadcast.validateNumbers) {
+      const isValid = await wa.contact.isExist(contact.number)
+      if (!isValid) {
+        throw new Error('Contact does not exist on WhatsApp.')
+      }
+    }
+
     const randomDelay =
       Math.floor(
         Math.random() * (broadcast.delayMax - broadcast.delayMin + 1),
       ) + broadcast.delayMin
     await delay(randomDelay)
-
     const action = getBroadcastAction(broadcast, contact)
     if (action) {
       await action()
@@ -56,7 +63,6 @@ const useBroadcast = () => {
     const runningCount = await db.broadcastContacts
       .where({ broadcastId: broadcast.id, status: Status.RUNNING })
       .count()
-
     if (pendingCount === 0 && runningCount === 0) {
       await BroadcastModel.success(broadcast.id)
       toast.success(
@@ -71,7 +77,6 @@ const useBroadcast = () => {
    */
   const processBroadcastQueue = async () => {
     if (processingState.current === 'PROCESSING') return
-
     processingState.current = 'PROCESSING'
 
     try {
@@ -90,6 +95,7 @@ const useBroadcast = () => {
 
           // 4. Fetch the parent broadcast object ONCE per group.
           const broadcast = await BroadcastModel.get(broadcastId)
+
           if (!broadcast) {
             // Mark contacts as failed if their parent broadcast is missing.
             const contactIds = contactGroup.map((c) => c.id)
@@ -106,7 +112,6 @@ const useBroadcast = () => {
               .catch(console.error)
             continue // Skip to the next group.
           }
-
           if (broadcast.status !== Status.RUNNING) {
             await BroadcastModel.running(broadcast.id)
           }
@@ -114,7 +119,6 @@ const useBroadcast = () => {
           // 5. Process each contact within the group.
           for (const contact of contactGroup) {
             if (!validationRef.current) return // Allow cancellation mid-batch
-
             try {
               await BroadcastContactModel.running(contact.id)
               await runBroadcast(broadcast, contact)
@@ -154,11 +158,13 @@ const useBroadcast = () => {
   }
 
   const validationRef = useRef(true) // Added for cancellation logic
+
   /**
    * Cancels a running or scheduled broadcast.
    */
   const cancel = async (broadcastId: number) => {
     validationRef.current = false // Stop processing loop
+
     while (processingState.current === 'PROCESSING') {
       await delay(200) // Wait for current message to finish
     }

@@ -8,7 +8,6 @@ import {
   ScrollArea,
   Stack,
   Switch,
-  Text,
   TextInput,
   Tooltip,
 } from '@mantine/core'
@@ -40,7 +39,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
 }) => {
   const [showWarningModal, warningModalHandlers] = useDisclosure(false)
   const [showSourcesModal, sourcesModalHandlers] = useDisclosure(false)
-
   const {
     form,
     inputMessageForm,
@@ -77,13 +75,16 @@ const ModalCreateBroadcast: React.FC<Props> = ({
               placeholder="e.g., Weekly Newsletter"
               {...form.getInputProps('name')}
             />
+
             <RecipientManager
               recipientCount={form.values.numbers.length}
               error={form.errors.numbers}
               onClear={() => form.setFieldValue('numbers', [])}
               onManage={sourcesModalHandlers.open}
             />
+
             <InputMessage form={inputMessageForm} />
+
             <Group grow>
               {/* MODIFIED: Wrapped the NumberInput in a Tooltip for clarity */}
               <Tooltip
@@ -116,18 +117,29 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 />
               </Tooltip>
             </Group>
+
             <Group grow>
               <InputTyping form={form} />
               <SignatureSettings />
             </Group>
-            <Group>
-              <Switch
-                label={
-                  <Group gap="xs">
-                    <Text fw={500}>Send to valid number</Text>
-                  </Group>
-                }
-              />
+
+            <Group grow>
+              {/* ++ MODIFIED: Implement "Send to valid number" functionality */}
+              <Tooltip
+                label="Before sending, check if each number is a valid WhatsApp account. This reduces failed messages but may slightly slow down the broadcast."
+                position="top-start"
+                multiline
+                w={300}
+                withArrow
+                refProp="rootRef"
+              >
+                <Switch
+                  label="Only send to valid numbers"
+                  {...form.getInputProps('validateNumbers', {
+                    type: 'checkbox',
+                  })}
+                />
+              </Tooltip>
               <BroadcastScheduler form={form} />
             </Group>
 
@@ -139,14 +151,12 @@ const ModalCreateBroadcast: React.FC<Props> = ({
           </Stack>
         </ScrollArea>
       </Modal>
-
       <ModalManageSources
         opened={showSourcesModal}
         onClose={sourcesModalHandlers.close}
         onSubmit={handleUpdateRecipients}
         initialRecipients={form.values.numbers}
       />
-
       <ModalFirstBroadcastWarning
         opened={showWarningModal}
         onClose={warningModalHandlers.close}
