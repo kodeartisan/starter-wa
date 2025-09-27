@@ -19,6 +19,8 @@ import BroadcastScheduler from '../Form/BroadcastScheduler'
 import RecipientManager from '../Form/RecipientManager'
 // ++ ADDED: Import the new SignatureSettings component
 import SignatureSettings from '../Form/SignatureSettings'
+// ++ ADDED: Import the new SmartPauseSettings component
+import SmartPauseSettings from '../Form/SmartPauseSettings'
 import InputTyping from '../Input/InputTyping'
 import InputMessage from '../Input/Message/InputMessage'
 import ModalFirstBroadcastWarning from './ModalFirstBroadcastWarning'
@@ -45,11 +47,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
     handleClose,
     handleSendBroadcast,
     handleWarningAccepted,
-  } = useBroadcastForm({
-    cloneData,
-    onSuccess,
-    onClose,
-  })
+  } = useBroadcastForm({ cloneData, onSuccess, onClose })
 
   // This handler remains in the component as it deals with another modal's state.
   const handleUpdateRecipients = (newNumbers: any[]) => {
@@ -75,16 +73,13 @@ const ModalCreateBroadcast: React.FC<Props> = ({
               placeholder="e.g., Weekly Newsletter"
               {...form.getInputProps('name')}
             />
-
             <RecipientManager
               recipientCount={form.values.numbers.length}
               error={form.errors.numbers}
               onClear={() => form.setFieldValue('numbers', [])}
               onManage={sourcesModalHandlers.open}
             />
-
             <InputMessage form={inputMessageForm} />
-
             <Group grow>
               {/* MODIFIED: Wrapped the NumberInput in a Tooltip for clarity */}
               <Tooltip
@@ -117,12 +112,10 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 />
               </Tooltip>
             </Group>
-
             <Group grow>
               <InputTyping form={form} />
               <SignatureSettings />
             </Group>
-
             <Group grow>
               {/* ++ MODIFIED: Implement "Send to valid number" functionality */}
               <Tooltip
@@ -142,6 +135,9 @@ const ModalCreateBroadcast: React.FC<Props> = ({
               </Tooltip>
               <BroadcastScheduler form={form} />
             </Group>
+
+            {/* ++ ADDED: Render the SmartPauseSettings component */}
+            <SmartPauseSettings form={form} />
 
             <BroadcastActions
               onSend={onSendClick}

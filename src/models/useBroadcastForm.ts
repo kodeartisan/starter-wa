@@ -16,6 +16,7 @@ import { addMinutes, differenceInHours, isFuture } from 'date-fns'
 import _ from 'lodash'
 import { useEffect } from 'react'
 
+// ++ MODIFIED: Added smartPause to default values.
 const defaultValues = {
   name: '',
   numbers: [] as any[],
@@ -24,6 +25,11 @@ const defaultValues = {
   scheduler: {
     enabled: false,
     scheduledAt: addMinutes(new Date(), 5),
+  },
+  smartPause: {
+    enabled: false,
+    start: '09:00',
+    end: '17:00',
   },
   delayMin: 3,
   delayMax: 6,
@@ -84,6 +90,17 @@ export const useBroadcastForm = ({
         }
         return null
       },
+      // ++ ADDED: Validation for smart pause time range.
+      smartPause: (value) => {
+        if (!value.enabled) return null
+        if (!value.start || !value.end) {
+          return 'Start and end times are required for Smart Pause.'
+        }
+        if (value.start >= value.end) {
+          return 'Start time must be before end time.'
+        }
+        return null
+      },
       delayMin: (value) =>
         !value || value < 1 ? 'Minimum delay must be at least 1 second.' : null,
       delayMax: (value, values) => {
@@ -135,13 +152,18 @@ export const useBroadcastForm = ({
             enabled: false,
             scheduledAt: addMinutes(new Date(), 5),
           },
+          // ++ ADDED: Populate smart pause settings when cloning.
+          smartPause: {
+            enabled: !!cloneData.smartPauseEnabled,
+            start: cloneData.smartPauseStart || '09:00',
+            end: cloneData.smartPauseEnd || '17:00',
+          },
           delayMin: cloneData.delayMin ? cloneData.delayMin / 1000 : 3,
           delayMax: cloneData.delayMax ? cloneData.delayMax / 1000 : 6,
         })
 
         const { type, message } = cloneData
         inputMessageForm.setFieldValue('type', type)
-
         switch (type) {
           case Message.TEXT:
             inputMessageForm.setFieldValue('inputText', message as string)
@@ -181,7 +203,6 @@ export const useBroadcastForm = ({
         }
       }
     }
-
     if (cloneData) {
       populateForm().catch(console.error)
     }
@@ -220,8 +241,9 @@ export const useBroadcastForm = ({
       }
     }
 
+    // ++ MODIFIED: Include smartPause fields in the broadcast data object.
     const broadcastData = {
-      ...form.values,
+      name: form.values.name,
       type: messageType,
       message: messagePayload,
       isTyping: form.values.isTyping ? 1 : 0,
@@ -230,11 +252,15 @@ export const useBroadcastForm = ({
       status: form.values.scheduler.enabled ? Status.SCHEDULER : Status.PENDING,
       delayMin: form.values.delayMin * 1000,
       delayMax: form.values.delayMax * 1000,
+      smartPauseEnabled: form.values.smartPause.enabled ? 1 : 0,
+      smartPauseStart: form.values.smartPause.start,
+      smartPauseEnd: form.values.smartPause.end,
     }
 
     try {
       //@ts-ignore
       const broadcastId = await db.broadcasts.add(broadcastData as Broadcast)
+
       if (isTypeMessageMedia(inputMessageForm.values.type)) {
         await insertBroadcastFile(broadcastId, Media.BROADCAST)
       }
@@ -254,6 +280,7 @@ export const useBroadcastForm = ({
         }),
       )
       await db.broadcastContacts.bulkAdd(contacts)
+
       onSuccess()
     } catch (error) {
       console.error('Failed to save broadcast:', error)
@@ -267,7 +294,6 @@ export const useBroadcastForm = ({
     const hasAcknowledged = await storage.get(
       Setting.HAS_ACKNOWLEDGED_BROADCAST_WARNING,
     )
-
     if (!hasAcknowledged) {
       return false // Indicate that the warning modal should be shown
     }

@@ -15,7 +15,8 @@ const MessageStatus: React.FC<Props> = ({ status, error = null }: Props) => {
       <Group gap={2}>
         <Loader color="yellow" size={16} />
         <Text fw={500} c={'yellow'}>
-          Running
+          {' '}
+          Running{' '}
         </Text>
       </Group>
     ),
@@ -33,7 +34,8 @@ const MessageStatus: React.FC<Props> = ({ status, error = null }: Props) => {
           <Icon icon="tabler:checks" fontSize={18} />
         </ActionIcon>
         <Text fw={500} c={'green'}>
-          Done
+          {' '}
+          Done{' '}
         </Text>
       </Group>
     ),
@@ -43,7 +45,8 @@ const MessageStatus: React.FC<Props> = ({ status, error = null }: Props) => {
           <Icon icon="tabler:cancel" fontSize={18} />
         </ActionIcon>
         <Text fw={500} c={'red'}>
-          Cancelled
+          {' '}
+          Cancelled{' '}
         </Text>
       </Group>
     ),
@@ -54,10 +57,22 @@ const MessageStatus: React.FC<Props> = ({ status, error = null }: Props) => {
             <Icon icon="tabler:x" fontSize={18} />
           </ActionIcon>
           <Text fw={500} c={'red'}>
-            Failed
+            {' '}
+            Failed{' '}
           </Text>
         </Group>
       </Tooltip>
+    ),
+    // ++ ADDED: A new status for PAUSED broadcasts.
+    [Status.PAUSED]: (
+      <Group gap={2}>
+        <ActionIcon variant="transparent" color="gray">
+          <Icon icon="tabler:player-pause" fontSize={18} />
+        </ActionIcon>
+        <Text fw={500} c={'gray'}>
+          Paused
+        </Text>
+      </Group>
     ),
     [Status.SCHEDULER]: (
       <Group gap={0}>
@@ -65,7 +80,6 @@ const MessageStatus: React.FC<Props> = ({ status, error = null }: Props) => {
       </Group>
     ),
   }
-
   return statuses[status]
 }
 

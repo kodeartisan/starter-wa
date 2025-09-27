@@ -63,6 +63,7 @@ const useBroadcast = () => {
     const runningCount = await db.broadcastContacts
       .where({ broadcastId: broadcast.id, status: Status.RUNNING })
       .count()
+
     if (pendingCount === 0 && runningCount === 0) {
       await BroadcastModel.success(broadcast.id)
       toast.success(
@@ -95,7 +96,6 @@ const useBroadcast = () => {
 
           // 4. Fetch the parent broadcast object ONCE per group.
           const broadcast = await BroadcastModel.get(broadcastId)
-
           if (!broadcast) {
             // Mark contacts as failed if their parent broadcast is missing.
             const contactIds = contactGroup.map((c) => c.id)
@@ -112,6 +112,28 @@ const useBroadcast = () => {
               .catch(console.error)
             continue // Skip to the next group.
           }
+
+          // ++ ADDED: Smart Pause Check.
+          // Before processing, check if the broadcast should be paused.
+          if (broadcast.smartPauseEnabled) {
+            const now = new Date()
+            const currentTime = now.getHours() * 60 + now.getMinutes()
+            const [startH, startM] = broadcast.smartPauseStart
+              .split(':')
+              .map(Number)
+            const [endH, endM] = broadcast.smartPauseEnd.split(':').map(Number)
+            const startTime = startH * 60 + startM
+            const endTime = endH * 60 + endM
+
+            // Check if the current time is outside the allowed window.
+            if (currentTime < startTime || currentTime > endTime) {
+              if (broadcast.status !== Status.PAUSED) {
+                await BroadcastModel.pause(broadcast.id)
+              }
+              continue // Skip this broadcast group for now.
+            }
+          }
+
           if (broadcast.status !== Status.RUNNING) {
             await BroadcastModel.running(broadcast.id)
           }
@@ -127,7 +149,6 @@ const useBroadcast = () => {
               await BroadcastContactModel.failed(contact.id, error.message)
             }
           }
-
           // 6. Check if the entire broadcast is done after processing a batch.
           await checkAllContactsDone(broadcast)
         }
@@ -143,9 +164,9 @@ const useBroadcast = () => {
   }
 
   /**
-   * Checks for scheduled items.
+   * Checks for scheduled items and resumes paused broadcasts.
    */
-  const checkScheduled = async () => {
+  const checkScheduledAndPaused = async () => {
     const now = new Date()
     // Mark scheduled contacts as 'PENDING'
     await db.broadcastContacts
@@ -153,6 +174,29 @@ const useBroadcast = () => {
       .equals(Status.SCHEDULER)
       .and((contact) => dayjs(contact.scheduledAt).isBefore(now))
       .modify({ status: Status.PENDING })
+
+    // ++ ADDED: Resume Logic for Paused Broadcasts
+    const pausedBroadcasts = await db.broadcasts
+      .where('status')
+      .equals(Status.PAUSED)
+      .toArray()
+
+    for (const broadcast of pausedBroadcasts) {
+      if (broadcast.smartPauseEnabled) {
+        const currentTime = now.getHours() * 60 + now.getMinutes()
+        const [startH, startM] = broadcast.smartPauseStart
+          .split(':')
+          .map(Number)
+        const [endH, endM] = broadcast.smartPauseEnd.split(':').map(Number)
+        const startTime = startH * 60 + startM
+        const endTime = endH * 60 + endM
+
+        // Check if we are now inside the allowed time window
+        if (currentTime >= startTime && currentTime <= endTime) {
+          await BroadcastModel.pending(broadcast.id)
+        }
+      }
+    }
 
     await processBroadcastQueue()
   }
@@ -164,7 +208,6 @@ const useBroadcast = () => {
    */
   const cancel = async (broadcastId: number) => {
     validationRef.current = false // Stop processing loop
-
     while (processingState.current === 'PROCESSING') {
       await delay(200) // Wait for current message to finish
     }
@@ -174,6 +217,7 @@ const useBroadcast = () => {
         .where({ broadcastId })
         .and((c) => [Status.PENDING, Status.SCHEDULER].includes(c.status))
         .modify({ status: Status.CANCELLED, error: 'Cancelled by user' })
+
       await BroadcastModel.cancel(broadcastId)
       toast.info('Broadcast has been cancelled.')
     } catch (e) {
@@ -190,7 +234,11 @@ const useBroadcast = () => {
     await processBroadcastQueue()
   }
 
-  return { init: initializeBroadcaster, checkScheduled, cancel }
+  return {
+    init: initializeBroadcaster,
+    checkScheduled: checkScheduledAndPaused,
+    cancel,
+  }
 }
 
 export default useBroadcast

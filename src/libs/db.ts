@@ -22,6 +22,10 @@ export interface Broadcast {
   delayMin?: number
   delayMax?: number
   validateNumbers: number // ++ ADDED
+  // ++ ADDED: Fields for Smart Pause feature
+  smartPauseEnabled: number
+  smartPauseStart: string
+  smartPauseEnd: string
 }
 
 export interface BroadcastContact {
@@ -62,8 +66,9 @@ const db = new Dexie(packageJson.name) as Dexie & {
 // ++ MODIFIED: Added a compound index '[broadcastId+status]' to optimize status-based queries per broadcast.
 db.version(1).stores({
   media: '++id, parentId, type, name, file, ext',
+  // ++ MODIFIED: Added new fields to the broadcasts table schema
   broadcasts:
-    '++id, name, type, message, isTyping, isScheduler, status, delayMin, delayMax, validateNumbers', // ++ MODIFIED
+    '++id, name, type, message, isTyping, isScheduler, status, delayMin, delayMax, validateNumbers, smartPauseEnabled, smartPauseStart, smartPauseEnd',
   broadcastContacts:
     '++id, broadcastId, number, name, status, error, scheduledAt, sendAt, [broadcastId+status]',
   broadcastTemplates: '++id, name, type, message',
