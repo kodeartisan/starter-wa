@@ -26,6 +26,8 @@ interface ColumnActions {
   onExport: (broadcast: Broadcast, format: string) => void
   onCancel: (broadcastId: number) => void
   onDelete: (broadcast: Broadcast) => void
+  // ++ ADDED: Add a handler for editing the schedule.
+  onEditSchedule: (broadcast: Broadcast) => void
 }
 
 type BroadcastStatsMap = Map<
@@ -46,7 +48,6 @@ type BroadcastStatsMap = Map<
 const renderMessagePreview = (broadcast: Broadcast) => {
   const { type, message } = broadcast
   if (!message) return 'N/A'
-
   switch (type) {
     case Message.TEXT:
       return typeof message === 'string' ? message : JSON.stringify(message)
@@ -78,7 +79,6 @@ export const getBroadcastColumns = (
     scheduled: 0,
     cancelled: 0,
   }
-
   return [
     {
       accessor: 'name',
@@ -133,15 +133,12 @@ export const getBroadcastColumns = (
       title: 'Recipients',
       render: (broadcast) => {
         const stats: any = broadcastStatsMap.get(broadcast.id) || defaultStats
-        // ++ MODIFIED: Calculate real-time progress for running broadcasts.
         const isProcessing = broadcast.status === Status.RUNNING
         const processed = stats.success + stats.failed + stats.cancelled
         const progress =
           stats.total > 0 ? Math.round((processed / stats.total) * 100) : 0
-
         return (
           <Stack gap={4}>
-            {/* ++ ADDED: Display a progress bar and counter only when the broadcast is active. */}
             {isProcessing && stats.total > 0 && (
               <Box mb={4}>
                 <Text size="xs" fw={500}>
@@ -150,7 +147,6 @@ export const getBroadcastColumns = (
                 <Progress value={progress} size="sm" striped animated mt={2} />
               </Box>
             )}
-
             <Text size="xs">Total: {stats.total}</Text>
             {stats.success > 0 && (
               <Text size="xs" c="green">
@@ -199,11 +195,11 @@ export const getBroadcastColumns = (
           Status.FAILED,
           Status.CANCELLED,
         ].includes(broadcast.status)
-        const isRunning = [
-          Status.PENDING,
-          Status.RUNNING,
-          Status.SCHEDULER,
-        ].includes(broadcast.status)
+        const isRunning = [Status.PENDING, Status.RUNNING].includes(
+          broadcast.status,
+        )
+        // ++ ADDED: Determine if a broadcast is in a scheduled state.
+        const isScheduled = broadcast.status === Status.SCHEDULER
 
         return (
           <Group gap={4} justify="flex-end" wrap="nowrap">
@@ -238,6 +234,20 @@ export const getBroadcastColumns = (
                 </ActionIcon>
               </Tooltip>
             )}
+
+            {/* ++ ADDED: Show the edit button only for scheduled broadcasts. */}
+            {isScheduled && (
+              <Tooltip label="Edit Schedule">
+                <ActionIcon
+                  variant="subtle"
+                  color="cyan"
+                  onClick={() => actions.onEditSchedule(broadcast)}
+                >
+                  <Icon icon="tabler:clock-edit" />
+                </ActionIcon>
+              </Tooltip>
+            )}
+
             <Menu shadow="md" position="left" withArrow>
               <Menu.Target>
                 <ActionIcon variant="subtle">
@@ -253,7 +263,7 @@ export const getBroadcastColumns = (
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
-            {isRunning && (
+            {(isRunning || isScheduled) && (
               <Tooltip label="Cancel Broadcast">
                 <ActionIcon
                   variant="subtle"

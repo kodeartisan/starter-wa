@@ -46,11 +46,7 @@ const ModalEditSchedule: React.FC<Props> = ({
   useEffect(() => {
     // Populate form with existing scheduled time when the modal opens
     if (broadcastData && opened) {
-      // Since the data comes from a map, we need to find the actual scheduledAt
-      // This part will be handled by passing the correct date to the modal.
-      // For now, let's assume `broadcastData` has a `scheduledAt` property.
-      // We will adjust this in PageBroadcast.tsx.
-      // @ts-ignore
+      // @ts-ignore - scheduledAt is added dynamically in PageBroadcast
       if (broadcastData.scheduledAt) {
         // @ts-ignore
         form.setValues({ scheduledAt: new Date(broadcastData.scheduledAt) })

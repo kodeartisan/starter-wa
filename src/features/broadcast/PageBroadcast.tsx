@@ -3,7 +3,6 @@ import LayoutPage from '@/components/Layout/LayoutPage'
 import { Media, Status } from '@/constants'
 import useDataQuery from '@/hooks/useDataQuery'
 import useFile from '@/hooks/useFile'
-import useLicense from '@/hooks/useLicense'
 import type { Broadcast } from '@/libs/db'
 import db from '@/libs/db'
 import toast from '@/utils/toast'
@@ -23,6 +22,8 @@ import React, { useMemo, useState } from 'react'
 import { getBroadcastColumns } from './components/Datatable/BroadcastColumns'
 import ModalCreateBroadcast from './components/Modal/ModalCreateBroadcast'
 import ModalDetailHistory from './components/Modal/ModalDetailHistory'
+// ++ ADDED: Import the new modal component.
+import ModalEditSchedule from './components/Modal/ModalEditSchedule'
 import useBroadcast from './hooks/useBroadcast'
 
 const PageBroadcast: React.FC = () => {
@@ -34,12 +35,19 @@ const PageBroadcast: React.FC = () => {
   })
   const broadcastHook = useBroadcast()
   const fileExporter = useFile()
-  const license = useLicense()
+
   const allBroadcastContacts =
     useLiveQuery(() => db.broadcastContacts.toArray(), []) || []
 
   const [showModalCreate, modalCreateHandlers] = useDisclosure(false)
   const [showModalDetail, modalDetailHandlers] = useDisclosure(false)
+  // ++ ADDED: State management for the edit schedule modal.
+  const [showEditScheduleModal, editScheduleModalHandlers] =
+    useDisclosure(false)
+  const [editingBroadcast, setEditingBroadcast] = useState<Broadcast | null>(
+    null,
+  )
+
   const [detailData, setDetailData] = useState<Broadcast | null>(null)
   const [cloneData, setCloneData] = useState<
     (Broadcast & { recipients?: any[] }) | null
@@ -59,10 +67,9 @@ const PageBroadcast: React.FC = () => {
         scheduled: number
         cancelled: number
         firstError?: string
-        scheduledAt?: Date // ++ ADDED: Add optional scheduledAt property
+        scheduledAt?: Date
       }
     >()
-
     for (const contact of allBroadcastContacts) {
       if (!statsMap.has(contact.broadcastId)) {
         statsMap.set(contact.broadcastId, {
@@ -75,10 +82,8 @@ const PageBroadcast: React.FC = () => {
           cancelled: 0,
         })
       }
-
       const stats = statsMap.get(contact.broadcastId)!
       stats.total++
-
       switch (contact.status) {
         case Status.SUCCESS:
           stats.success++
@@ -97,7 +102,6 @@ const PageBroadcast: React.FC = () => {
           break
         case Status.SCHEDULER:
           stats.scheduled++
-          // ++ ADDED: Capture the scheduled date from the first relevant contact found.
           if (!stats.scheduledAt && contact.scheduledAt) {
             stats.scheduledAt = contact.scheduledAt
           }
@@ -137,18 +141,51 @@ const PageBroadcast: React.FC = () => {
     modalDetailHandlers.open()
   }
 
+  // ++ ADDED: Handler to open the edit schedule modal with the correct data.
+  const handleEditSchedule = (broadcast: Broadcast) => {
+    const stats = broadcastStatsMap.get(broadcast.id)
+    if (stats && stats.scheduledAt) {
+      const broadcastWithSchedule = {
+        ...broadcast,
+        scheduledAt: stats.scheduledAt,
+      }
+      setEditingBroadcast(broadcastWithSchedule as Broadcast)
+      editScheduleModalHandlers.open()
+    } else {
+      toast.error('Could not find schedule information for this broadcast.')
+    }
+  }
+
+  // ++ ADDED: Handler to process the schedule update in the database.
+  const handleUpdateSchedule = async (
+    broadcastId: number,
+    newScheduledAt: Date,
+  ) => {
+    try {
+      await db.broadcastContacts
+        .where({ broadcastId: broadcastId, status: Status.SCHEDULER })
+        .modify({ scheduledAt: newScheduledAt })
+
+      await db.broadcasts.update(broadcastId, { status: Status.SCHEDULER })
+
+      toast.success('Broadcast schedule updated successfully.')
+      editScheduleModalHandlers.close()
+    } catch (error) {
+      console.error('Failed to update schedule:', error)
+      toast.error('Failed to update the schedule.')
+    }
+  }
+
   const deleteBroadcasts = async (broadcastsToDelete: Broadcast[]) => {
     if (broadcastsToDelete.length === 0) return
     const isPlural = broadcastsToDelete.length > 1
     const confirmationMessage = `Are you sure you want to delete ${
       broadcastsToDelete.length
     } broadcast${isPlural ? 's' : ''}? This action is irreversible.`
-
     if (!confirm(confirmationMessage)) return
 
     try {
       const broadcastIds = broadcastsToDelete.map((b) => b.id)
-
       await db.transaction(
         'rw',
         db.broadcasts,
@@ -159,13 +196,11 @@ const PageBroadcast: React.FC = () => {
             .where('broadcastId')
             .anyOf(broadcastIds)
             .delete()
-
           await db.media
             .where('parentId')
             .anyOf(broadcastIds)
             .and((item) => item.type === Media.BROADCAST)
             .delete()
-
           await db.broadcasts.bulkDelete(broadcastIds)
         },
       )
@@ -204,12 +239,10 @@ const PageBroadcast: React.FC = () => {
       const contacts = await db.broadcastContacts
         .where({ broadcastId: broadcast.id })
         .toArray()
-
       if (contacts.length === 0) {
         toast.info('No data to export.')
         return
       }
-
       const dataForExport = contacts.map((c) => ({
         Name: c.name || '-',
         'Number/ID': c.number.split('@')[0],
@@ -237,6 +270,8 @@ const PageBroadcast: React.FC = () => {
       onExport: handleExport,
       onCancel: broadcastHook.cancel,
       onDelete: handleDelete,
+      // ++ ADDED: Pass the new handler to the columns component.
+      onEditSchedule: handleEditSchedule,
     },
     broadcastStatsMap,
   )
@@ -252,7 +287,6 @@ const PageBroadcast: React.FC = () => {
             onChange={(e) => dataQuery.setSearch(e.currentTarget.value)}
             leftSection={<Icon icon="tabler:search" fontSize={16} />}
           />
-
           <Group>
             {selectedRecords.length > 0 && (
               <Button
@@ -265,7 +299,6 @@ const PageBroadcast: React.FC = () => {
                 Delete Selected ({selectedRecords.length})
               </Button>
             )}
-
             {dataQuery.data &&
               dataQuery.data.length > 0 &&
               selectedRecords.length === 0 && (
@@ -288,7 +321,6 @@ const PageBroadcast: React.FC = () => {
             </Button>
           </Group>
         </Group>
-
         <Box style={{ position: 'relative' }}>
           <LoadingOverlay
             visible={isExporting || dataQuery.data === undefined}
@@ -328,7 +360,6 @@ const PageBroadcast: React.FC = () => {
           />
         </Box>
       </Stack>
-
       <ModalCreateBroadcast
         opened={showModalCreate}
         onClose={() => {
@@ -345,6 +376,13 @@ const PageBroadcast: React.FC = () => {
         opened={showModalDetail}
         onClose={modalDetailHandlers.close}
         data={detailData}
+      />
+      {/* ++ ADDED: Render the new modal component. */}
+      <ModalEditSchedule
+        opened={showEditScheduleModal}
+        onClose={editScheduleModalHandlers.close}
+        onSubmit={handleUpdateSchedule}
+        broadcastData={editingBroadcast}
       />
     </LayoutPage>
   )
