@@ -21,16 +21,10 @@ import { getBroadcastAction } from '../helpers/broadcastActions'
 const useBroadcast = () => {
   const processingState = useRef<'IDLE' | 'PROCESSING'>('IDLE')
 
-  /**
-   * Executes the sending logic for a single contact.
-   * @param {Broadcast} broadcast - The parent broadcast.
-   * @param {BroadcastContact} contact - The recipient contact.
-   */
   const runBroadcast = async (
     broadcast: Broadcast,
     contact: BroadcastContact,
   ) => {
-    // ++ ADDED: Check if the contact exists on WhatsApp before sending.
     if (broadcast.validateNumbers) {
       const isValid = await wa.contact.isExist(contact.number)
       if (!isValid) {
@@ -51,12 +45,7 @@ const useBroadcast = () => {
     }
   }
 
-  /**
-   * Checks if all contacts for a broadcast are done and updates the status.
-   * @param {Broadcast} broadcast - The broadcast to check.
-   */
   const checkAllContactsDone = async (broadcast: Broadcast) => {
-    // This query is now more efficient due to the compound index.
     const pendingCount = await db.broadcastContacts
       .where({ broadcastId: broadcast.id, status: Status.PENDING })
       .count()
@@ -65,6 +54,11 @@ const useBroadcast = () => {
       .count()
 
     if (pendingCount === 0 && runningCount === 0) {
+      // Check if the broadcast is paused for batching; if so, it's not "SUCCESS" yet.
+      const freshBroadcast = await BroadcastModel.get(broadcast.id)
+      if (freshBroadcast.status === Status.PAUSED) {
+        return
+      }
       await BroadcastModel.success(broadcast.id)
       toast.success(
         `Broadcast "${broadcast.name || 'Untitled'}" has been completed.`,
@@ -72,32 +66,23 @@ const useBroadcast = () => {
     }
   }
 
-  // ++ MODIFIED: The main processing loop is heavily refactored for performance.
-  /**
-   * The main processing loop for the broadcast queue.
-   */
   const processBroadcastQueue = async () => {
     if (processingState.current === 'PROCESSING') return
     processingState.current = 'PROCESSING'
 
     try {
       while (true) {
-        // 1. Fetch contacts in a batch instead of one by one.
         const contacts = await BroadcastContactModel.getStatusPendingBatch(20)
-        if (!contacts.length) break // No more pending contacts, exit the loop.
+        if (!contacts.length) break
 
-        // 2. Group contacts by their parent broadcast ID.
         const contactsByBroadcast = _.groupBy(contacts, 'broadcastId')
 
-        // 3. Process each group.
         for (const broadcastIdStr in contactsByBroadcast) {
           const broadcastId = parseInt(broadcastIdStr, 10)
           const contactGroup = contactsByBroadcast[broadcastId]
 
-          // 4. Fetch the parent broadcast object ONCE per group.
           const broadcast = await BroadcastModel.get(broadcastId)
           if (!broadcast) {
-            // Mark contacts as failed if their parent broadcast is missing.
             const contactIds = contactGroup.map((c) => c.id)
             await db.broadcastContacts
               .bulkUpdate(
@@ -110,11 +95,9 @@ const useBroadcast = () => {
                 })),
               )
               .catch(console.error)
-            continue // Skip to the next group.
+            continue
           }
 
-          // ++ ADDED: Smart Pause Check.
-          // Before processing, check if the broadcast should be paused.
           if (broadcast.smartPauseEnabled) {
             const now = new Date()
             const currentTime = now.getHours() * 60 + now.getMinutes()
@@ -124,13 +107,11 @@ const useBroadcast = () => {
             const [endH, endM] = broadcast.smartPauseEnd.split(':').map(Number)
             const startTime = startH * 60 + startM
             const endTime = endH * 60 + endM
-
-            // Check if the current time is outside the allowed window.
             if (currentTime < startTime || currentTime > endTime) {
               if (broadcast.status !== Status.PAUSED) {
                 await BroadcastModel.pause(broadcast.id)
               }
-              continue // Skip this broadcast group for now.
+              continue
             }
           }
 
@@ -138,9 +119,8 @@ const useBroadcast = () => {
             await BroadcastModel.running(broadcast.id)
           }
 
-          // 5. Process each contact within the group.
           for (const contact of contactGroup) {
-            if (!validationRef.current) return // Allow cancellation mid-batch
+            if (!validationRef.current) return
             try {
               await BroadcastContactModel.running(contact.id)
               await runBroadcast(broadcast, contact)
@@ -149,7 +129,34 @@ const useBroadcast = () => {
               await BroadcastContactModel.failed(contact.id, error.message)
             }
           }
-          // 6. Check if the entire broadcast is done after processing a batch.
+
+          // ++ ADDED: Batch Sending Logic
+          if (broadcast.batchEnabled) {
+            const successfulCount = await db.broadcastContacts
+              .where({ broadcastId: broadcast.id, status: Status.SUCCESS })
+              .count()
+            const pendingCount = await db.broadcastContacts
+              .where({ broadcastId: broadcast.id, status: Status.PENDING })
+              .count()
+
+            // If a batch is complete and more messages are pending, pause the broadcast.
+            if (
+              successfulCount > 0 &&
+              successfulCount % broadcast.batchSize === 0 &&
+              pendingCount > 0
+            ) {
+              const resumeAt = dayjs()
+                .add(broadcast.batchDelay, 'minutes')
+                .toDate()
+              await db.broadcasts.update(broadcast.id, {
+                status: Status.PAUSED,
+                resumeAt: resumeAt,
+              })
+              // Continue to the next broadcast group instead of checking if this one is done.
+              continue
+            }
+          }
+
           await checkAllContactsDone(broadcast)
         }
       }
@@ -163,11 +170,9 @@ const useBroadcast = () => {
     }
   }
 
-  /**
-   * Checks for scheduled items and resumes paused broadcasts.
-   */
   const checkScheduledAndPaused = async () => {
     const now = new Date()
+
     // Mark scheduled contacts as 'PENDING'
     await db.broadcastContacts
       .where('status')
@@ -175,14 +180,14 @@ const useBroadcast = () => {
       .and((contact) => dayjs(contact.scheduledAt).isBefore(now))
       .modify({ status: Status.PENDING })
 
-    // ++ ADDED: Resume Logic for Paused Broadcasts
+    // Resume Smart Pause broadcasts
     const pausedBroadcasts = await db.broadcasts
       .where('status')
       .equals(Status.PAUSED)
       .toArray()
-
     for (const broadcast of pausedBroadcasts) {
-      if (broadcast.smartPauseEnabled) {
+      // Smart Pause resume logic
+      if (broadcast.smartPauseEnabled && !broadcast.resumeAt) {
         const currentTime = now.getHours() * 60 + now.getMinutes()
         const [startH, startM] = broadcast.smartPauseStart
           .split(':')
@@ -190,41 +195,48 @@ const useBroadcast = () => {
         const [endH, endM] = broadcast.smartPauseEnd.split(':').map(Number)
         const startTime = startH * 60 + startM
         const endTime = endH * 60 + endM
-
-        // Check if we are now inside the allowed time window
         if (currentTime >= startTime && currentTime <= endTime) {
           await BroadcastModel.pending(broadcast.id)
         }
+      }
+      // ++ ADDED: Batch Sending resume logic
+      if (
+        broadcast.batchEnabled &&
+        broadcast.resumeAt &&
+        dayjs(broadcast.resumeAt).isBefore(now)
+      ) {
+        await db.broadcasts.update(broadcast.id, {
+          status: Status.PENDING,
+          resumeAt: null,
+        })
       }
     }
 
     await processBroadcastQueue()
   }
 
-  const validationRef = useRef(true) // Added for cancellation logic
+  const validationRef = useRef(true)
 
-  /**
-   * Cancels a running or scheduled broadcast.
-   */
   const cancel = async (broadcastId: number) => {
-    validationRef.current = false // Stop processing loop
+    validationRef.current = false
     while (processingState.current === 'PROCESSING') {
-      await delay(200) // Wait for current message to finish
+      await delay(200)
     }
     processingState.current = 'PROCESSING'
     try {
       await db.broadcastContacts
         .where({ broadcastId })
-        .and((c) => [Status.PENDING, Status.SCHEDULER].includes(c.status))
+        .and((c) =>
+          [Status.PENDING, Status.SCHEDULER, Status.RUNNING].includes(c.status),
+        )
         .modify({ status: Status.CANCELLED, error: 'Cancelled by user' })
-
       await BroadcastModel.cancel(broadcastId)
       toast.info('Broadcast has been cancelled.')
     } catch (e) {
       console.error(`Error during cancellation of broadcast ${broadcastId}:`, e)
       toast.error('Failed to cancel broadcast.')
     } finally {
-      validationRef.current = true // Reset for next run
+      validationRef.current = true
       processingState.current = 'IDLE'
     }
   }

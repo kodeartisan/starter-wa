@@ -26,7 +26,7 @@ const SmartPauseSettings: React.FC<Props> = ({ form }) => {
         refProp="rootRef"
       >
         <Switch
-          label={<Text fw={500}>Enable Smart Pause</Text>}
+          label={<Text fw={500}>Smart Pause</Text>}
           {...form.getInputProps('smartPause.enabled', { type: 'checkbox' })}
         />
       </Tooltip>

@@ -8,11 +8,13 @@ import {
   ScrollArea,
   Stack,
   Switch,
+  Text,
   TextInput,
   Tooltip,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import React from 'react'
+import { When } from 'react-if'
 import AntiBlockingSettings from '../Form/AntiBlockingSettings'
 import BroadcastActions from '../Form/BroadcastActions'
 import BroadcastScheduler from '../Form/BroadcastScheduler'
@@ -65,7 +67,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
 
   return (
     <>
-      <Modal opened={opened} onClose={handleClose} w={700} withCloseButton>
+      <Modal opened={opened} onClose={handleClose} w={850} withCloseButton>
         <ScrollArea h={650}>
           <Stack px={'md'}>
             <TextInput
@@ -119,7 +121,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
             <Group grow>
               {/* ++ MODIFIED: Implement "Send to valid number" functionality */}
               <Tooltip
-                label="Before sending, check if each number is a valid WhatsApp account. This reduces failed messages but may slightly slow down the broadcast."
+                label="Before sending, check if each number is a valid WhatsApp account and reduce the risk of being flagged."
                 position="top-start"
                 multiline
                 w={300}
@@ -127,7 +129,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 refProp="rootRef"
               >
                 <Switch
-                  label="Only send to valid numbers"
+                  label={<Text fw={500}>Only send to valid numbers</Text>}
                   {...form.getInputProps('validateNumbers', {
                     type: 'checkbox',
                   })}
@@ -135,9 +137,59 @@ const ModalCreateBroadcast: React.FC<Props> = ({
               </Tooltip>
               <BroadcastScheduler form={form} />
             </Group>
+            <Group grow>
+              <SmartPauseSettings form={form} />
+              <Stack>
+                <Tooltip
+                  label="Split a large broadcast into smaller batches to simulate human behavior and reduce the risk of being flagged."
+                  position="top-start"
+                  multiline
+                  w={300}
+                  withArrow
+                  refProp="rootRef"
+                >
+                  <Switch
+                    label={<Text fw={500}>Batch sending</Text>}
+                    {...form.getInputProps('batch.enabled', {
+                      type: 'checkbox',
+                    })}
+                  />
+                </Tooltip>
 
-            {/* ++ ADDED: Render the SmartPauseSettings component */}
-            <SmartPauseSettings form={form} />
+                <When condition={form.values.batch.enabled}>
+                  <Group grow align="flex-start">
+                    <Tooltip
+                      label="The number of messages to send in each batch before pausing."
+                      position="top-start"
+                      withArrow
+                    >
+                      <NumberInput
+                        label="Messages per batch"
+                        min={1}
+                        {...form.getInputProps('batch.size')}
+                      />
+                    </Tooltip>
+                    <Tooltip
+                      label="The amount of time to wait before starting the next batch."
+                      position="top-start"
+                      withArrow
+                    >
+                      <NumberInput
+                        label="Wait time (minutes)"
+                        description="Delay between batches."
+                        min={1}
+                        {...form.getInputProps('batch.delay')}
+                      />
+                    </Tooltip>
+                  </Group>
+                  {form.errors['batch'] && (
+                    <Text c="red" size="xs">
+                      {form.errors['batch']}
+                    </Text>
+                  )}
+                </When>
+              </Stack>
+            </Group>
 
             <BroadcastActions
               onSend={onSendClick}

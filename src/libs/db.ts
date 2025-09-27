@@ -21,11 +21,15 @@ export interface Broadcast {
   status: string
   delayMin?: number
   delayMax?: number
-  validateNumbers: number // ++ ADDED
-  // ++ ADDED: Fields for Smart Pause feature
+  validateNumbers: number
   smartPauseEnabled: number
   smartPauseStart: string
   smartPauseEnd: string
+  // ++ ADDED: Fields for Batch Sending feature
+  batchEnabled: number
+  batchSize: number
+  batchDelay: number
+  resumeAt?: Date | null
 }
 
 export interface BroadcastContact {
@@ -68,7 +72,7 @@ db.version(1).stores({
   media: '++id, parentId, type, name, file, ext',
   // ++ MODIFIED: Added new fields to the broadcasts table schema
   broadcasts:
-    '++id, name, type, message, isTyping, isScheduler, status, delayMin, delayMax, validateNumbers, smartPauseEnabled, smartPauseStart, smartPauseEnd',
+    '++id, name, type, message, isTyping, isScheduler, status, delayMin, delayMax, validateNumbers, smartPauseEnabled, smartPauseStart, smartPauseEnd, batchEnabled, batchSize, batchDelay, resumeAt',
   broadcastContacts:
     '++id, broadcastId, number, name, status, error, scheduledAt, sendAt, [broadcastId+status]',
   broadcastTemplates: '++id, name, type, message',

@@ -16,7 +16,7 @@ import { addMinutes, differenceInHours, isFuture } from 'date-fns'
 import _ from 'lodash'
 import { useEffect } from 'react'
 
-// ++ MODIFIED: Added smartPause to default values.
+// ++ MODIFIED: Added batch and smartPause to default values.
 const defaultValues = {
   name: '',
   numbers: [] as any[],
@@ -30,6 +30,11 @@ const defaultValues = {
     enabled: false,
     start: '09:00',
     end: '17:00',
+  },
+  batch: {
+    enabled: false,
+    size: 20,
+    delay: 15,
   },
   delayMin: 3,
   delayMax: 6,
@@ -90,7 +95,6 @@ export const useBroadcastForm = ({
         }
         return null
       },
-      // ++ ADDED: Validation for smart pause time range.
       smartPause: (value) => {
         if (!value.enabled) return null
         if (!value.start || !value.end) {
@@ -98,6 +102,17 @@ export const useBroadcastForm = ({
         }
         if (value.start >= value.end) {
           return 'Start time must be before end time.'
+        }
+        return null
+      },
+      // ++ ADDED: Validation for batch sending settings.
+      batch: (value) => {
+        if (!value.enabled) return null
+        if (!value.size || value.size < 1) {
+          return 'Batch size must be at least 1.'
+        }
+        if (!value.delay || value.delay < 1) {
+          return 'Batch delay must be at least 1 minute.'
         }
         return null
       },
@@ -120,16 +135,12 @@ export const useBroadcastForm = ({
     insertBroadcastFile,
   } = useInputMessage()
 
-  // MODIFIED: This hook now *only* handles populating the form when cloneData is provided.
-  // The reset logic has been centralized in the `handleClose` function to avoid
-  // redundancy and ensure a clean state reset every time the modal is closed.
   useEffect(() => {
     const populateForm = async () => {
       if (cloneData) {
         let recipientsToSet: any[] = []
         let nameSuffix = ' (Copy)'
         const broadcastName = `${cloneData.name || 'Broadcast'}`
-
         if (cloneData.recipients && cloneData.recipients.length > 0) {
           recipientsToSet = cloneData.recipients
           nameSuffix = ' (Resend)'
@@ -142,7 +153,6 @@ export const useBroadcastForm = ({
             name: contact.name,
           }))
         }
-
         form.setValues({
           name: `${broadcastName}${nameSuffix}`,
           numbers: recipientsToSet,
@@ -152,16 +162,20 @@ export const useBroadcastForm = ({
             enabled: false,
             scheduledAt: addMinutes(new Date(), 5),
           },
-          // ++ ADDED: Populate smart pause settings when cloning.
           smartPause: {
             enabled: !!cloneData.smartPauseEnabled,
             start: cloneData.smartPauseStart || '09:00',
             end: cloneData.smartPauseEnd || '17:00',
           },
+          // ++ ADDED: Populate batch settings when cloning.
+          batch: {
+            enabled: !!cloneData.batchEnabled,
+            size: cloneData.batchSize || 20,
+            delay: cloneData.batchDelay || 15,
+          },
           delayMin: cloneData.delayMin ? cloneData.delayMin / 1000 : 3,
           delayMax: cloneData.delayMax ? cloneData.delayMax / 1000 : 6,
         })
-
         const { type, message } = cloneData
         inputMessageForm.setFieldValue('type', type)
         switch (type) {
@@ -208,12 +222,10 @@ export const useBroadcastForm = ({
     }
   }, [cloneData])
 
-  // MODIFIED: This function is now the single source of truth for resetting the modal's state.
-  // It explicitly resets both forms to their initial default values upon closing.
   const handleClose = () => {
     form.reset()
     inputMessageForm.reset()
-    onClose() // This calls the parent's onClose (e.g., to set visibility and clear cloneData).
+    onClose()
   }
 
   const proceedWithBroadcast = async () => {
@@ -221,7 +233,6 @@ export const useBroadcastForm = ({
     const signatureText = await storage.get<string>(Setting.SIGNATURE_TEXT)
     let messagePayload = getMessage()
     const messageType = inputMessageForm.values.type
-
     if (signatureEnabled && signatureText && signatureText.trim() !== '') {
       const signature = `\n\n${signatureText}`
       if (messageType === Message.TEXT) {
@@ -241,7 +252,7 @@ export const useBroadcastForm = ({
       }
     }
 
-    // ++ MODIFIED: Include smartPause fields in the broadcast data object.
+    // ++ MODIFIED: Include batch and smartPause fields in the broadcast data object.
     const broadcastData = {
       name: form.values.name,
       type: messageType,
@@ -255,16 +266,17 @@ export const useBroadcastForm = ({
       smartPauseEnabled: form.values.smartPause.enabled ? 1 : 0,
       smartPauseStart: form.values.smartPause.start,
       smartPauseEnd: form.values.smartPause.end,
+      batchEnabled: form.values.batch.enabled ? 1 : 0,
+      batchSize: form.values.batch.size,
+      batchDelay: form.values.batch.delay,
+      resumeAt: null,
     }
-
     try {
       //@ts-ignore
       const broadcastId = await db.broadcasts.add(broadcastData as Broadcast)
-
       if (isTypeMessageMedia(inputMessageForm.values.type)) {
         await insertBroadcastFile(broadcastId, Media.BROADCAST)
       }
-
       //@ts-ignore
       const contacts: BroadcastContact[] = form.values.numbers.map(
         (recipient: any) => ({
@@ -280,7 +292,6 @@ export const useBroadcastForm = ({
         }),
       )
       await db.broadcastContacts.bulkAdd(contacts)
-
       onSuccess()
     } catch (error) {
       console.error('Failed to save broadcast:', error)
@@ -290,15 +301,14 @@ export const useBroadcastForm = ({
 
   const handleSendBroadcast = async () => {
     if (formHasErrors(form, inputMessageForm)) return
-
     const hasAcknowledged = await storage.get(
       Setting.HAS_ACKNOWLEDGED_BROADCAST_WARNING,
     )
     if (!hasAcknowledged) {
-      return false // Indicate that the warning modal should be shown
+      return false
     }
     await proceedWithBroadcast()
-    return true // Indicate that the action was performed
+    return true
   }
 
   const handleWarningAccepted = async () => {

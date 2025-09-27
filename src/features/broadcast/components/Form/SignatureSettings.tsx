@@ -38,7 +38,7 @@ const SignatureSettings: React.FC = () => {
         position="top-start"
       >
         <Switch
-          label={<Text fw={500}>Enable signature</Text>}
+          label={<Text fw={500}>Signature</Text>}
           checked={signatureEnabled}
           onChange={(event) => setSignatureEnabled(event.currentTarget.checked)}
         />

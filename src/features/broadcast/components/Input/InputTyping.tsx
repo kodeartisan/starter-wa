@@ -12,7 +12,7 @@ const InputTyping: React.FC<Props> = ({ form }: Props) => {
   const license = useLicense()
   return (
     <Tooltip
-      label='Show "Typing..." status on the recipient to mimic messaging process'
+      label='Show "Typing..." status on the recipient to mimic messaging process to simulate human behavior and reduce the risk of being flagged.'
       refProp="rootRef"
       position="top-start"
       multiline
