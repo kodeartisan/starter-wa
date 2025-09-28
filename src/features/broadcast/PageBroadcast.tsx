@@ -38,10 +38,7 @@ const PageBroadcast: React.FC = () => {
   const broadcastHook = useBroadcast()
   const fileExporter = useFile()
 
-  // ++ ADDED: State to manage the selected tags for filtering.
   const [selectedTags, setSelectedTags] = useState<string[]>([])
-
-  // ++ ADDED: Live query to get all unique tags from the database for the filter dropdown.
   const allTags =
     useLiveQuery(async () => {
       const tagArrays = await db.broadcasts.where('tags').notEqual('').toArray()
@@ -57,6 +54,7 @@ const PageBroadcast: React.FC = () => {
   const [showModalDetail, modalDetailHandlers] = useDisclosure(false)
   const [showEditScheduleModal, editScheduleModalHandlers] =
     useDisclosure(false)
+
   const [editingBroadcast, setEditingBroadcast] = useState<Broadcast | null>(
     null,
   )
@@ -67,17 +65,16 @@ const PageBroadcast: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false)
   const [selectedRecords, setSelectedRecords] = useState<Broadcast[]>([])
 
-  // ++ ADDED: useEffect to apply the tag filter to the data query.
   useEffect(() => {
-    // This removes any previous tag filter before applying a new one.
     const otherFilters =
       dataQuery.filters.filter((f) => f.field !== 'tags') || []
+
     if (selectedTags.length > 0) {
       dataQuery.setFilters([
         ...otherFilters,
         {
           field: 'tags',
-          operator: 'anyOf', // Custom operator to check for any matching tag in an array
+          operator: 'anyOf',
           value: selectedTags,
         },
       ])
@@ -101,6 +98,7 @@ const PageBroadcast: React.FC = () => {
         scheduledAt?: Date
       }
     >()
+
     for (const contact of allBroadcastContacts) {
       if (!statsMap.has(contact.broadcastId)) {
         statsMap.set(contact.broadcastId, {
@@ -152,13 +150,11 @@ const PageBroadcast: React.FC = () => {
     modalCreateHandlers.open()
   }
 
-  // ++ ADDED: Handler for creating all types of follow-up campaigns.
   const handleCreateFollowUp = async (
     broadcast: Broadcast,
     type: 'SUCCESS' | 'FAILED' | 'ALL',
   ) => {
-    modalDetailHandlers.close() // Close the details modal first.
-
+    modalDetailHandlers.close()
     const query = db.broadcastContacts.where({ broadcastId: broadcast.id })
     let recipientsQuery
     let nameSuffix = ''
@@ -190,7 +186,6 @@ const PageBroadcast: React.FC = () => {
       name: `${broadcast.name || 'Broadcast'}${nameSuffix}`,
       recipients: newRecipients,
     }
-
     handleOpenCreateModal(dataToClone)
   }
 
@@ -232,10 +227,12 @@ const PageBroadcast: React.FC = () => {
 
   const deleteBroadcasts = async (broadcastsToDelete: Broadcast[]) => {
     if (broadcastsToDelete.length === 0) return
+
     const isPlural = broadcastsToDelete.length > 1
     const confirmationMessage = `Are you sure you want to delete ${
       broadcastsToDelete.length
     } broadcast${isPlural ? 's' : ''}? This action is irreversible.`
+
     if (!confirm(confirmationMessage)) return
 
     try {
@@ -342,7 +339,6 @@ const PageBroadcast: React.FC = () => {
               onChange={(e) => dataQuery.setSearch(e.currentTarget.value)}
               leftSection={<Icon icon="tabler:search" fontSize={16} />}
             />
-            {/* ++ ADDED: MultiSelect component for filtering by tags. */}
             <MultiSelect
               placeholder="Filter by tags..."
               data={allTags}
@@ -441,12 +437,14 @@ const PageBroadcast: React.FC = () => {
         }}
         cloneData={cloneData}
       />
+
       <ModalDetailHistory
         opened={showModalDetail}
         onClose={modalDetailHandlers.close}
         data={detailData}
         onCreateFollowUp={handleCreateFollowUp}
       />
+
       <ModalEditSchedule
         opened={showEditScheduleModal}
         onClose={editScheduleModalHandlers.close}

@@ -78,16 +78,15 @@ export const getBroadcastColumns = (
     scheduled: 0,
     cancelled: 0,
   }
+
   return [
     {
       accessor: 'name',
       title: 'Name',
-      render: (broadcast) => <Text truncate>{broadcast.name || 'N/A'}</Text>,
       sortable: true,
       width: 150,
+      render: (broadcast) => <Text truncate>{broadcast.name || 'N/A'}</Text>,
     },
-    // ++ ADDED: New column to display campaign tags.
-
     {
       accessor: 'type',
       title: 'Type',
@@ -117,8 +116,9 @@ export const getBroadcastColumns = (
     {
       accessor: 'tags',
       title: 'Tags',
-      render: (broadcast) =>
-        broadcast.tags && broadcast.tags.length > 0 ? (
+      width: 150,
+      render: (broadcast) => {
+        return broadcast.tags && broadcast.tags.length > 0 ? (
           <Group gap={4}>
             {broadcast.tags.map((tag) => (
               <Badge key={tag} variant="light" size="sm">
@@ -130,8 +130,8 @@ export const getBroadcastColumns = (
           <Text c="dimmed" fs="italic" size="xs">
             No tags
           </Text>
-        ),
-      width: 150,
+        )
+      },
     },
     {
       accessor: 'status',
@@ -218,6 +218,7 @@ export const getBroadcastColumns = (
           broadcast.status,
         )
         const isScheduled = broadcast.status === Status.SCHEDULER
+
         return (
           <Group gap={4} justify="flex-end" wrap="nowrap">
             <Tooltip label="View Details">

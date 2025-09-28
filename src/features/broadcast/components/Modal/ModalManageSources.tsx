@@ -16,7 +16,11 @@ import {
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import _ from 'lodash'
-import { DataTable, type DataTableColumn } from 'mantine-datatable'
+import {
+  DataTable,
+  type DataTableColumn,
+  type DataTableSortStatus,
+} from 'mantine-datatable'
 import React, { useEffect, useMemo, useState } from 'react'
 import ModalEditRecipient from './ModalEditRecipient'
 import ModalLoadRecipientList from './ModalLoadRecipientList'
@@ -42,7 +46,6 @@ const ModalManageSources: React.FC<Props> = ({
   initialRecipients,
 }) => {
   const [recipients, setRecipients] = useState<any[]>([])
-  // ADDED: State to manage selected records for bulk actions.
   const [selectedRecords, setSelectedRecords] = useState<any[]>([])
   const [editingRecipient, setEditingRecipient] = useState<any | null>(null)
   const [page, setPage] = useState(1)
@@ -55,6 +58,12 @@ const ModalManageSources: React.FC<Props> = ({
   } | null>(null)
   const [editValue, setEditValue] = useState('')
 
+  // ++ ADDED: State to manage table sorting
+  const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({
+    columnAccessor: 'name',
+    direction: 'asc',
+  })
+
   const [showManualModal, manualModalHandlers] = useDisclosure(false)
   const [showExcelModal, excelModalHandlers] = useDisclosure(false)
   const [showGroupsModal, groupsModalHandlers] = useDisclosure(false)
@@ -62,38 +71,50 @@ const ModalManageSources: React.FC<Props> = ({
   const [showMyContactsModal, myContactsModalHandlers] = useDisclosure(false)
   const [showSaveListModal, saveListModalHandlers] = useDisclosure(false)
   const [showLoadListModal, loadListModalHandlers] = useDisclosure(false)
-
   const fileExporter = useFile()
 
   useEffect(() => {
     if (opened) {
       setRecipients(_.cloneDeep(initialRecipients))
-      // MODIFIED: Reset selection when modal opens
       setSelectedRecords([])
       setPage(1)
       setSearchQuery('')
+      // Reset sort status when modal opens
+      setSortStatus({ columnAccessor: 'name', direction: 'asc' })
     }
   }, [opened, initialRecipients])
 
-  const filteredRecipients = useMemo(() => {
-    if (!searchQuery) return recipients
-    const lowerCaseQuery = searchQuery.toLowerCase()
-    return recipients.filter(
-      (r) =>
-        r.name?.toLowerCase().includes(lowerCaseQuery) ||
-        r.number?.toLowerCase().includes(lowerCaseQuery),
-    )
-  }, [recipients, searchQuery])
+  const filteredAndSortedRecipients = useMemo(() => {
+    let data = [...recipients]
+
+    // Filtering logic
+    if (searchQuery) {
+      const lowerCaseQuery = searchQuery.toLowerCase()
+      data = data.filter(
+        (r) =>
+          r.name?.toLowerCase().includes(lowerCaseQuery) ||
+          r.number?.toLowerCase().includes(lowerCaseQuery),
+      )
+    }
+
+    // ++ ADDED: Sorting logic using lodash
+    const { columnAccessor, direction } = sortStatus
+    if (columnAccessor) {
+      data = _.orderBy(data, [columnAccessor], [direction])
+    }
+
+    return data
+  }, [recipients, searchQuery, sortStatus])
 
   useEffect(() => {
     const from = (page - 1) * PAGE_SIZE
     const to = from + PAGE_SIZE
-    setPaginatedRecipients(filteredRecipients.slice(from, to))
-  }, [filteredRecipients, page])
+    setPaginatedRecipients(filteredAndSortedRecipients.slice(from, to))
+  }, [filteredAndSortedRecipients, page])
 
   useEffect(() => {
     setPage(1)
-  }, [searchQuery])
+  }, [searchQuery, sortStatus])
 
   const handleAddRecipients = (newRecipients: any[]) => {
     const formattedNewRecipients = newRecipients.map((rec) => {
@@ -105,14 +126,15 @@ const ModalManageSources: React.FC<Props> = ({
         name: rec.name || rec.savedName || rec.publicName || 'N/A',
       }
     })
+
     const initialCount = recipients.length
     const combined = [...recipients, ...formattedNewRecipients]
     const uniqueRecipients = _.uniqBy(combined, 'number')
     const finalCount = uniqueRecipients.length
     setRecipients(uniqueRecipients)
+
     const addedCount = finalCount - initialCount
     const duplicateCount = combined.length - finalCount
-
     if (addedCount > 0 && duplicateCount > 0) {
       toast.info(
         `${addedCount} recipient(s) added. ${duplicateCount} duplicate(s) were automatically removed.`,
@@ -134,13 +156,11 @@ const ModalManageSources: React.FC<Props> = ({
     )
   }
 
-  // ADDED: Handler for bulk deletion of selected recipients.
   const handleBulkDelete = () => {
     const numbersToDelete = new Set(selectedRecords.map((r) => r.number))
     setRecipients((current) =>
       current.filter((r) => !numbersToDelete.has(r.number)),
     )
-    // Clear selection after deletion
     setSelectedRecords([])
     toast.success(`${numbersToDelete.size} recipient(s) deleted.`)
   }
@@ -240,6 +260,7 @@ const ModalManageSources: React.FC<Props> = ({
     {
       accessor: 'name',
       title: 'Name',
+      sortable: true, // ++ ADDED: Make column sortable
       render: (recipient) => {
         const isEditing =
           editingCell?.recordId === recipient.number &&
@@ -296,7 +317,12 @@ const ModalManageSources: React.FC<Props> = ({
         )
       },
     },
-    { accessor: 'number', title: 'Number', ellipsis: true },
+    {
+      accessor: 'number',
+      title: 'Number',
+      sortable: true, // ++ ADDED: Make column sortable
+      ellipsis: true,
+    },
     {
       accessor: 'actions',
       title: <Text>Actions</Text>,
@@ -335,7 +361,6 @@ const ModalManageSources: React.FC<Props> = ({
         <Stack justify="space-between" h={'calc(80vh)'} p="sm">
           <Stack>
             <Group justify="space-between">
-              {/* MODIFIED: Group title and delete button together */}
               <Group>
                 <Text fw={500}>Current Recipients ({recipients.length})</Text>
                 {selectedRecords.length > 0 && (
@@ -402,7 +427,6 @@ const ModalManageSources: React.FC<Props> = ({
                     </Menu.Item>
                   </Menu.Dropdown>
                 </Menu>
-
                 <Menu shadow="md" withArrow>
                   <Menu.Target>
                     <Button
@@ -466,16 +490,16 @@ const ModalManageSources: React.FC<Props> = ({
               onChange={(e) => setSearchQuery(e.currentTarget.value)}
               disabled={recipients.length === 0}
             />
-            {/* MODIFIED: Added selection props to the DataTable. */}
+            {/* ++ MODIFIED: Added sorting props to the DataTable. */}
             <DataTable
               height={'calc(70vh - 160px)'}
               records={paginatedRecipients}
               columns={columns}
-              totalRecords={filteredRecipients.length}
+              totalRecords={filteredAndSortedRecipients.length}
               recordsPerPage={PAGE_SIZE}
               page={page}
               onPageChange={(p) => setPage(p)}
-              minHeight={filteredRecipients.length === 0 ? 150 : 0}
+              minHeight={filteredAndSortedRecipients.length === 0 ? 150 : 0}
               noRecordsText={
                 searchQuery
                   ? 'No recipients match your search'
@@ -485,7 +509,9 @@ const ModalManageSources: React.FC<Props> = ({
               striped
               selectedRecords={selectedRecords}
               onSelectedRecordsChange={setSelectedRecords}
-              idAccessor="number" // Use 'number' as the unique ID for rows.
+              idAccessor="number"
+              sortStatus={sortStatus}
+              onSortStatusChange={setSortStatus}
             />
           </Stack>
           <Group justify="flex-end">
@@ -496,6 +522,7 @@ const ModalManageSources: React.FC<Props> = ({
           </Group>
         </Stack>
       </Modal>
+
       <ModalEditRecipient
         opened={showEditModal}
         onClose={editModalHandlers.close}
