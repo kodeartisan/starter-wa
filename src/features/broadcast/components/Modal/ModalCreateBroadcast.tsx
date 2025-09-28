@@ -19,7 +19,6 @@ import { When } from 'react-if'
 import BroadcastActions from '../Form/BroadcastActions'
 import BroadcastScheduler from '../Form/BroadcastScheduler'
 import RecipientManager from '../Form/RecipientManager'
-import SignatureSettings from '../Form/SignatureSettings'
 import SmartPauseSettings from '../Form/SmartPauseSettings'
 import InputTyping from '../Input/InputTyping'
 import InputMessage from '../Input/Message/InputMessage'
@@ -45,7 +44,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
   const [showSourcesModal, sourcesModalHandlers] = useDisclosure(false)
   // ++ ADDED: State management for the new duplicate warning modal.
   const [showDuplicateWarning, duplicateWarningHandlers] = useDisclosure(false)
-
   const {
     form,
     inputMessageForm,
@@ -126,11 +124,9 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 />
               </Tooltip>
             </Group>
+            {/* MODIFIED: Removed SignatureSettings from this group */}
             <Group grow>
               <InputTyping form={form} />
-              <SignatureSettings />
-            </Group>
-            <Group grow>
               <Tooltip
                 label="Before sending, check if each number is a valid WhatsApp account and reduce the risk of being flagged."
                 position="top-start"
@@ -146,8 +142,8 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                   })}
                 />
               </Tooltip>
-              <BroadcastScheduler form={form} />
             </Group>
+
             <Group grow>
               <SmartPauseSettings form={form} />
               <Stack>
@@ -194,13 +190,16 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                   </Group>
                   {form.errors['batch'] && (
                     <Text c="red" size="xs">
-                      {form.errors['batch']}
+                      {' '}
+                      {form.errors['batch']}{' '}
                     </Text>
                   )}
                 </When>
               </Stack>
             </Group>
-
+            <Group grow>
+              <BroadcastScheduler form={form} />
+            </Group>
             <BroadcastActions
               onSend={onSendClick}
               isScheduled={form.values.scheduler.enabled}
@@ -209,14 +208,12 @@ const ModalCreateBroadcast: React.FC<Props> = ({
           </Stack>
         </ScrollArea>
       </Modal>
-
       <ModalManageSources
         opened={showSourcesModal}
         onClose={sourcesModalHandlers.close}
         onSubmit={handleUpdateRecipients}
         initialRecipients={form.values.numbers}
       />
-
       <ModalFirstBroadcastWarning
         opened={showWarningModal}
         onClose={warningModalHandlers.close}
@@ -225,7 +222,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
           await handleWarningAccepted()
         }}
       />
-
       {/* ++ ADDED: The new duplicate warning modal is included here. */}
       <ModalDuplicateWarning
         opened={showDuplicateWarning}

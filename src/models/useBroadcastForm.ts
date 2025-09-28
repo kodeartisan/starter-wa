@@ -54,6 +54,7 @@ interface useBroadcastFormProps {
 const hashMessage = (obj: any): string => {
   const str = JSON.stringify(obj)
   if (str.length === 0) return '0'
+
   const hash = str
     .split('')
     .reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0)
@@ -72,6 +73,7 @@ export const useBroadcastForm = ({
 }: useBroadcastFormProps) => {
   const license = useLicense()
   const { profile } = useAppStore()
+
   const form = useForm({
     initialValues: defaultValues,
     validate: {
@@ -142,6 +144,7 @@ export const useBroadcastForm = ({
     },
     validateInputOnChange: ['numbers', 'scheduler.scheduledAt'],
   })
+
   const {
     form: inputMessageForm,
     getMessage,
@@ -154,6 +157,7 @@ export const useBroadcastForm = ({
         let recipientsToSet: any[] = []
         let nameSuffix = ' (Copy)'
         const broadcastName = `${cloneData.name || 'Broadcast'}`
+
         if (cloneData.recipients && cloneData.recipients.length > 0) {
           recipientsToSet = cloneData.recipients
           nameSuffix = ' (Resend)'
@@ -166,6 +170,7 @@ export const useBroadcastForm = ({
             name: contact.name,
           }))
         }
+
         form.setValues({
           name: `${broadcastName}${nameSuffix}`,
           numbers: recipientsToSet,
@@ -189,8 +194,10 @@ export const useBroadcastForm = ({
           delayMin: cloneData.delayMin ? cloneData.delayMin / 1000 : 3,
           delayMax: cloneData.delayMax ? cloneData.delayMax / 1000 : 6,
         })
+
         const { type, message } = cloneData
         inputMessageForm.setFieldValue('type', type)
+
         switch (type) {
           case Message.TEXT:
             inputMessageForm.setFieldValue('inputText', message as string)
@@ -204,6 +211,7 @@ export const useBroadcastForm = ({
             const caption =
               (message as any)?.caption ||
               (typeof message === 'string' ? message : '')
+
             if (type === Message.IMAGE) {
               inputMessageForm.setFieldValue('inputImage', {
                 file: mediaFile?.file || null,
@@ -230,6 +238,7 @@ export const useBroadcastForm = ({
         }
       }
     }
+
     if (cloneData) {
       populateForm().catch(console.error)
     }
@@ -243,28 +252,10 @@ export const useBroadcastForm = ({
 
   // -- MODIFIED: This function now contains the core logic for saving the broadcast to the database.
   const saveAndDispatchBroadcast = async () => {
-    const signatureEnabled = await storage.get(Setting.SIGNATURE_ENABLED)
-    const signatureText = await storage.get<string>(Setting.SIGNATURE_TEXT)
-    let messagePayload = getMessage()
+    // MODIFIED: Removed signature logic
+    const messagePayload = getMessage()
     const messageType = inputMessageForm.values.type
-    if (signatureEnabled && signatureText && signatureText.trim() !== '') {
-      const signature = `\n\n${signatureText}`
-      if (messageType === Message.TEXT) {
-        messagePayload += signature
-      } else if (
-        (messageType === Message.IMAGE ||
-          messageType === Message.VIDEO ||
-          messageType === Message.FILE) &&
-        typeof messagePayload === 'object' &&
-        messagePayload !== null
-      ) {
-        if ('caption' in messagePayload) {
-          messagePayload.caption = (messagePayload.caption || '') + signature
-        } else {
-          messagePayload = (messagePayload || '') + signature
-        }
-      }
-    }
+
     const broadcastData = {
       name: form.values.name,
       tags: form.values.tags,
@@ -285,11 +276,14 @@ export const useBroadcastForm = ({
       batchDelay: form.values.batch.delay,
       resumeAt: null,
     }
+
     try {
       const broadcastId = await db.broadcasts.add(broadcastData as Broadcast)
+
       if (isTypeMessageMedia(inputMessageForm.values.type)) {
         await insertBroadcastFile(broadcastId, Media.BROADCAST)
       }
+
       //@ts-ignore
       const contacts: BroadcastContact[] = form.values.numbers.map(
         (recipient: any) => ({
@@ -305,6 +299,7 @@ export const useBroadcastForm = ({
         }),
       )
       await db.broadcastContacts.bulkAdd(contacts)
+
       onSuccess()
     } catch (error) {
       console.error('Failed to save broadcast:', error)
@@ -320,6 +315,7 @@ export const useBroadcastForm = ({
     const messagePayload = getMessage()
     const contentHash = hashMessage(messagePayload)
     const lastBroadcast = await db.broadcasts.orderBy('id').last()
+
     if (lastBroadcast && lastBroadcast.contentHash === contentHash) {
       return 'DUPLICATE'
     }
@@ -327,9 +323,11 @@ export const useBroadcastForm = ({
     const hasAcknowledged = await storage.get(
       Setting.HAS_ACKNOWLEDGED_BROADCAST_WARNING,
     )
+
     if (!hasAcknowledged) {
       return 'NEEDS_WARNING'
     }
+
     await saveAndDispatchBroadcast()
     return 'SUCCESS'
   }
