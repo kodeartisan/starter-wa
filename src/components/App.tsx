@@ -75,6 +75,16 @@ const App: React.FC = () => {
     license.init().then().catch(console.error)
   }, [])
 
+  useEffect(() => {
+    ;(async function () {
+      if (!wa.isReady) return
+      setTimeout(async () => {
+        const groups = await wa.group.list()
+        setGroups(groups)
+      }, 3000)
+    })()
+  }, [wa.isReady])
+
   const handleChangeTab = (value: string) => {
     if (Page.UPGRADE === value) {
       modalPricing.toggle()

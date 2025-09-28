@@ -16,11 +16,10 @@ import { addMinutes, differenceInHours, isFuture } from 'date-fns'
 import _ from 'lodash'
 import { useEffect } from 'react'
 
-// ++ MODIFIED: Added `tags` to default values.
 const defaultValues = {
   name: '',
   numbers: [] as any[],
-  tags: [] as string[], // Campaign tags
+  tags: [] as string[],
   isTyping: false,
   validateNumbers: true,
   scheduler: {
@@ -45,6 +44,20 @@ interface useBroadcastFormProps {
   cloneData?: (Broadcast & { recipients?: any[] }) | null
   onSuccess: () => void
   onClose: () => void
+}
+
+/**
+ * @description A simple hashing function for an object.
+ * @param obj The object to hash.
+ * @returns A numeric string representing the hash.
+ */
+const hashMessage = (obj: any): string => {
+  const str = JSON.stringify(obj)
+  if (str.length === 0) return '0'
+  const hash = str
+    .split('')
+    .reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0)
+  return hash.toString()
 }
 
 /**
@@ -141,7 +154,6 @@ export const useBroadcastForm = ({
         let recipientsToSet: any[] = []
         let nameSuffix = ' (Copy)'
         const broadcastName = `${cloneData.name || 'Broadcast'}`
-
         if (cloneData.recipients && cloneData.recipients.length > 0) {
           recipientsToSet = cloneData.recipients
           nameSuffix = ' (Resend)'
@@ -154,11 +166,9 @@ export const useBroadcastForm = ({
             name: contact.name,
           }))
         }
-
         form.setValues({
           name: `${broadcastName}${nameSuffix}`,
           numbers: recipientsToSet,
-          // ++ ADDED: Populate tags when cloning.
           tags: cloneData.tags || [],
           isTyping: !!cloneData.isTyping,
           validateNumbers: !!cloneData.validateNumbers,
@@ -179,10 +189,8 @@ export const useBroadcastForm = ({
           delayMin: cloneData.delayMin ? cloneData.delayMin / 1000 : 3,
           delayMax: cloneData.delayMax ? cloneData.delayMax / 1000 : 6,
         })
-
         const { type, message } = cloneData
         inputMessageForm.setFieldValue('type', type)
-
         switch (type) {
           case Message.TEXT:
             inputMessageForm.setFieldValue('inputText', message as string)
@@ -222,7 +230,6 @@ export const useBroadcastForm = ({
         }
       }
     }
-
     if (cloneData) {
       populateForm().catch(console.error)
     }
@@ -234,12 +241,12 @@ export const useBroadcastForm = ({
     onClose()
   }
 
-  const proceedWithBroadcast = async () => {
+  // -- MODIFIED: This function now contains the core logic for saving the broadcast to the database.
+  const saveAndDispatchBroadcast = async () => {
     const signatureEnabled = await storage.get(Setting.SIGNATURE_ENABLED)
     const signatureText = await storage.get<string>(Setting.SIGNATURE_TEXT)
     let messagePayload = getMessage()
     const messageType = inputMessageForm.values.type
-
     if (signatureEnabled && signatureText && signatureText.trim() !== '') {
       const signature = `\n\n${signatureText}`
       if (messageType === Message.TEXT) {
@@ -258,13 +265,12 @@ export const useBroadcastForm = ({
         }
       }
     }
-
-    // ++ MODIFIED: Included `tags` in the broadcast data object.
     const broadcastData = {
       name: form.values.name,
       tags: form.values.tags,
       type: messageType,
       message: messagePayload,
+      contentHash: hashMessage(messagePayload), // ++ ADDED: Store the content hash.
       isTyping: form.values.isTyping ? 1 : 0,
       isScheduler: form.values.scheduler.enabled ? 1 : 0,
       validateNumbers: form.values.validateNumbers ? 1 : 0,
@@ -279,11 +285,8 @@ export const useBroadcastForm = ({
       batchDelay: form.values.batch.delay,
       resumeAt: null,
     }
-
     try {
-      //@ts-ignore
       const broadcastId = await db.broadcasts.add(broadcastData as Broadcast)
-
       if (isTypeMessageMedia(inputMessageForm.values.type)) {
         await insertBroadcastFile(broadcastId, Media.BROADCAST)
       }
@@ -301,7 +304,6 @@ export const useBroadcastForm = ({
             : null,
         }),
       )
-
       await db.broadcastContacts.bulkAdd(contacts)
       onSuccess()
     } catch (error) {
@@ -310,23 +312,31 @@ export const useBroadcastForm = ({
     }
   }
 
+  // -- MODIFIED: This function now serves as a validation gateway before sending.
   const handleSendBroadcast = async () => {
-    if (formHasErrors(form, inputMessageForm)) return
+    if (formHasErrors(form, inputMessageForm)) return 'VALIDATION_ERROR'
+
+    // ++ ADDED: Duplicate content check.
+    const messagePayload = getMessage()
+    const contentHash = hashMessage(messagePayload)
+    const lastBroadcast = await db.broadcasts.orderBy('id').last()
+    if (lastBroadcast && lastBroadcast.contentHash === contentHash) {
+      return 'DUPLICATE'
+    }
 
     const hasAcknowledged = await storage.get(
       Setting.HAS_ACKNOWLEDGED_BROADCAST_WARNING,
     )
     if (!hasAcknowledged) {
-      return false
+      return 'NEEDS_WARNING'
     }
-
-    await proceedWithBroadcast()
-    return true
+    await saveAndDispatchBroadcast()
+    return 'SUCCESS'
   }
 
   const handleWarningAccepted = async () => {
     await storage.set(Setting.HAS_ACKNOWLEDGED_BROADCAST_WARNING, true)
-    await proceedWithBroadcast()
+    await saveAndDispatchBroadcast()
   }
 
   return {
@@ -335,5 +345,6 @@ export const useBroadcastForm = ({
     handleClose,
     handleSendBroadcast,
     handleWarningAccepted,
+    forceSendBroadcast: saveAndDispatchBroadcast, // ++ ADDED: Expose the raw send function for the duplicate warning modal.
   }
 }

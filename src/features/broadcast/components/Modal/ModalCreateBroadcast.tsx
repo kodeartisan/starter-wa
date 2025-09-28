@@ -23,6 +23,8 @@ import SignatureSettings from '../Form/SignatureSettings'
 import SmartPauseSettings from '../Form/SmartPauseSettings'
 import InputTyping from '../Input/InputTyping'
 import InputMessage from '../Input/Message/InputMessage'
+// ++ ADDED: Import the new duplicate warning modal.
+import ModalDuplicateWarning from './ModalDuplicateWarning'
 import ModalFirstBroadcastWarning from './ModalFirstBroadcastWarning'
 import ModalManageSources from './ModalManageSources'
 
@@ -41,12 +43,17 @@ const ModalCreateBroadcast: React.FC<Props> = ({
 }) => {
   const [showWarningModal, warningModalHandlers] = useDisclosure(false)
   const [showSourcesModal, sourcesModalHandlers] = useDisclosure(false)
+  // ++ ADDED: State management for the new duplicate warning modal.
+  const [showDuplicateWarning, duplicateWarningHandlers] = useDisclosure(false)
+
   const {
     form,
     inputMessageForm,
     handleClose,
     handleSendBroadcast,
     handleWarningAccepted,
+    // ++ ADDED: Destructure the function to bypass the duplicate check.
+    forceSendBroadcast,
   } = useBroadcastForm({ cloneData, onSuccess, onClose })
 
   const handleUpdateRecipients = (newNumbers: any[]) => {
@@ -54,10 +61,13 @@ const ModalCreateBroadcast: React.FC<Props> = ({
     sourcesModalHandlers.close()
   }
 
+  // -- MODIFIED: This handler now checks for different validation results.
   const onSendClick = async () => {
     const result = await handleSendBroadcast()
-    if (result === false) {
+    if (result === 'NEEDS_WARNING') {
       warningModalHandlers.open()
+    } else if (result === 'DUPLICATE') {
+      duplicateWarningHandlers.open()
     }
   }
 
@@ -72,7 +82,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 placeholder="e.g., Weekly Newsletter"
                 {...form.getInputProps('name')}
               />
-
               <TagsInput
                 label="Tags (Optional)"
                 placeholder="Add tags and press Enter"
@@ -80,7 +89,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 clearable
               />
             </Group>
-
             <RecipientManager
               recipientCount={form.values.numbers.length}
               error={form.errors.numbers}
@@ -88,7 +96,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
               onManage={sourcesModalHandlers.open}
             />
             <InputMessage form={inputMessageForm} />
-
             <Group grow>
               <Tooltip
                 label="The shortest time to wait before sending the next message. Helps simulate human behavior."
@@ -202,18 +209,30 @@ const ModalCreateBroadcast: React.FC<Props> = ({
           </Stack>
         </ScrollArea>
       </Modal>
+
       <ModalManageSources
         opened={showSourcesModal}
         onClose={sourcesModalHandlers.close}
         onSubmit={handleUpdateRecipients}
         initialRecipients={form.values.numbers}
       />
+
       <ModalFirstBroadcastWarning
         opened={showWarningModal}
         onClose={warningModalHandlers.close}
         onConfirm={async () => {
           warningModalHandlers.close()
           await handleWarningAccepted()
+        }}
+      />
+
+      {/* ++ ADDED: The new duplicate warning modal is included here. */}
+      <ModalDuplicateWarning
+        opened={showDuplicateWarning}
+        onClose={duplicateWarningHandlers.close}
+        onConfirm={async () => {
+          duplicateWarningHandlers.close()
+          await forceSendBroadcast()
         }}
       />
     </>
