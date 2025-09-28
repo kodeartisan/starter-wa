@@ -42,6 +42,8 @@ const ModalManageSources: React.FC<Props> = ({
   initialRecipients,
 }) => {
   const [recipients, setRecipients] = useState<any[]>([])
+  // ADDED: State to manage selected records for bulk actions.
+  const [selectedRecords, setSelectedRecords] = useState<any[]>([])
   const [editingRecipient, setEditingRecipient] = useState<any | null>(null)
   const [page, setPage] = useState(1)
   const [paginatedRecipients, setPaginatedRecipients] = useState<any[]>([])
@@ -60,11 +62,14 @@ const ModalManageSources: React.FC<Props> = ({
   const [showMyContactsModal, myContactsModalHandlers] = useDisclosure(false)
   const [showSaveListModal, saveListModalHandlers] = useDisclosure(false)
   const [showLoadListModal, loadListModalHandlers] = useDisclosure(false)
+
   const fileExporter = useFile()
 
   useEffect(() => {
     if (opened) {
       setRecipients(_.cloneDeep(initialRecipients))
+      // MODIFIED: Reset selection when modal opens
+      setSelectedRecords([])
       setPage(1)
       setSearchQuery('')
     }
@@ -100,13 +105,11 @@ const ModalManageSources: React.FC<Props> = ({
         name: rec.name || rec.savedName || rec.publicName || 'N/A',
       }
     })
-
     const initialCount = recipients.length
     const combined = [...recipients, ...formattedNewRecipients]
     const uniqueRecipients = _.uniqBy(combined, 'number')
     const finalCount = uniqueRecipients.length
     setRecipients(uniqueRecipients)
-
     const addedCount = finalCount - initialCount
     const duplicateCount = combined.length - finalCount
 
@@ -131,6 +134,17 @@ const ModalManageSources: React.FC<Props> = ({
     )
   }
 
+  // ADDED: Handler for bulk deletion of selected recipients.
+  const handleBulkDelete = () => {
+    const numbersToDelete = new Set(selectedRecords.map((r) => r.number))
+    setRecipients((current) =>
+      current.filter((r) => !numbersToDelete.has(r.number)),
+    )
+    // Clear selection after deletion
+    setSelectedRecords([])
+    toast.success(`${numbersToDelete.size} recipient(s) deleted.`)
+  }
+
   const handleOpenEditModal = (recipient: any) => {
     setEditingRecipient(recipient)
     editModalHandlers.open()
@@ -143,14 +157,12 @@ const ModalManageSources: React.FC<Props> = ({
     const isDuplicate = recipients.some(
       (r) => r.number === updatedData.number && r.number !== originalNumber,
     )
-
     if (isDuplicate) {
       toast.error(
         `The number ${updatedData.number} already exists in the list.`,
       )
       return
     }
-
     setRecipients((currentRecipients) =>
       currentRecipients.map((r) =>
         r.number === originalNumber
@@ -232,8 +244,6 @@ const ModalManageSources: React.FC<Props> = ({
         const isEditing =
           editingCell?.recordId === recipient.number &&
           editingCell?.columnId === 'name'
-
-        // MODIFIED: Wrapped the TextInput in a Group with a save button for a better UX.
         return isEditing ? (
           <Group gap="xs" wrap="nowrap">
             <TextInput
@@ -325,7 +335,21 @@ const ModalManageSources: React.FC<Props> = ({
         <Stack justify="space-between" h={'calc(80vh)'} p="sm">
           <Stack>
             <Group justify="space-between">
-              <Text fw={500}>Current Recipients ({recipients.length})</Text>
+              {/* MODIFIED: Group title and delete button together */}
+              <Group>
+                <Text fw={500}>Current Recipients ({recipients.length})</Text>
+                {selectedRecords.length > 0 && (
+                  <Button
+                    size="xs"
+                    variant="light"
+                    color="red"
+                    leftSection={<Icon icon="tabler:trash" fontSize={16} />}
+                    onClick={handleBulkDelete}
+                  >
+                    Delete Selected ({selectedRecords.length})
+                  </Button>
+                )}
+              </Group>
               <Group>
                 <Menu shadow="md">
                   <Menu.Target>
@@ -378,6 +402,7 @@ const ModalManageSources: React.FC<Props> = ({
                     </Menu.Item>
                   </Menu.Dropdown>
                 </Menu>
+
                 <Menu shadow="md" withArrow>
                   <Menu.Target>
                     <Button
@@ -441,6 +466,7 @@ const ModalManageSources: React.FC<Props> = ({
               onChange={(e) => setSearchQuery(e.currentTarget.value)}
               disabled={recipients.length === 0}
             />
+            {/* MODIFIED: Added selection props to the DataTable. */}
             <DataTable
               height={'calc(70vh - 160px)'}
               records={paginatedRecipients}
@@ -457,6 +483,9 @@ const ModalManageSources: React.FC<Props> = ({
               }
               withTableBorder={false}
               striped
+              selectedRecords={selectedRecords}
+              onSelectedRecordsChange={setSelectedRecords}
+              idAccessor="number" // Use 'number' as the unique ID for rows.
             />
           </Stack>
           <Group justify="flex-end">

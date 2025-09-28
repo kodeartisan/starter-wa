@@ -1,4 +1,5 @@
 // src/features/broadcast/components/Form/SmartPauseSettings.tsx
+import { Icon } from '@iconify/react'
 import { Group, Stack, Switch, Text, Tooltip } from '@mantine/core'
 import { TimeInput } from '@mantine/dates'
 import type { UseFormReturnType } from '@mantine/form'
@@ -17,20 +18,23 @@ interface Props {
 const SmartPauseSettings: React.FC<Props> = ({ form }) => {
   return (
     <Stack>
-      <Tooltip
-        label="Automatically pause the broadcast outside of specified hours and resume the next day. This helps simulate human behavior and avoid sending messages at inappropriate times."
-        position="top-start"
-        multiline
-        w={300}
-        withArrow
-        refProp="rootRef"
-      >
-        <Switch
-          label={<Text fw={500}>Smart Pause</Text>}
-          {...form.getInputProps('smartPause.enabled', { type: 'checkbox' })}
-        />
-      </Tooltip>
-
+      <Switch
+        label={
+          <Group gap={4} wrap="nowrap">
+            <Text fw={500}>Smart Pause</Text>
+            <Tooltip
+              label="Automatically pause the broadcast outside of specified hours and resume the next day. This helps simulate human behavior and avoid sending messages at inappropriate times."
+              position="top-start"
+              multiline
+              w={300}
+              withArrow
+            >
+              <Icon icon="tabler:info-circle" style={{ display: 'block' }} />
+            </Tooltip>
+          </Group>
+        }
+        {...form.getInputProps('smartPause.enabled', { type: 'checkbox' })}
+      />
       <When condition={form.values.smartPause.enabled}>
         <Stack gap={4}>
           <Group grow align="flex-start">
@@ -47,7 +51,8 @@ const SmartPauseSettings: React.FC<Props> = ({ form }) => {
           </Group>
           {form.errors['smartPause'] && (
             <Text c="red" size="xs">
-              {form.errors['smartPause']}
+              {' '}
+              {form.errors['smartPause']}{' '}
             </Text>
           )}
         </Stack>

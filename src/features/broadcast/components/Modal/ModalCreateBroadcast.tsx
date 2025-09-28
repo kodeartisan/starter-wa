@@ -2,6 +2,8 @@
 import Modal from '@/components/Modal/Modal'
 import type { Broadcast } from '@/libs/db'
 import { useBroadcastForm } from '@/models/useBroadcastForm'
+import toast from '@/utils/toast'
+import { Icon } from '@iconify/react'
 import {
   Group,
   NumberInput,
@@ -22,9 +24,9 @@ import RecipientManager from '../Form/RecipientManager'
 import SmartPauseSettings from '../Form/SmartPauseSettings'
 import InputTyping from '../Input/InputTyping'
 import InputMessage from '../Input/Message/InputMessage'
-// ++ ADDED: Import the new duplicate warning modal.
 import ModalDuplicateWarning from './ModalDuplicateWarning'
 import ModalFirstBroadcastWarning from './ModalFirstBroadcastWarning'
+import ModalLoadRecipientList from './ModalLoadRecipientList'
 import ModalManageSources from './ModalManageSources'
 
 interface Props {
@@ -42,15 +44,15 @@ const ModalCreateBroadcast: React.FC<Props> = ({
 }) => {
   const [showWarningModal, warningModalHandlers] = useDisclosure(false)
   const [showSourcesModal, sourcesModalHandlers] = useDisclosure(false)
-  // ++ ADDED: State management for the new duplicate warning modal.
   const [showDuplicateWarning, duplicateWarningHandlers] = useDisclosure(false)
+  const [showLoadListModal, loadListModalHandlers] = useDisclosure(false)
+
   const {
     form,
     inputMessageForm,
     handleClose,
     handleSendBroadcast,
     handleWarningAccepted,
-    // ++ ADDED: Destructure the function to bypass the duplicate check.
     forceSendBroadcast,
   } = useBroadcastForm({ cloneData, onSuccess, onClose })
 
@@ -59,7 +61,12 @@ const ModalCreateBroadcast: React.FC<Props> = ({
     sourcesModalHandlers.close()
   }
 
-  // -- MODIFIED: This handler now checks for different validation results.
+  const handleLoadRecipients = (loadedRecipients: any[]) => {
+    form.setFieldValue('numbers', loadedRecipients)
+    loadListModalHandlers.close()
+    toast.success(`Loaded ${loadedRecipients.length} recipients successfully.`)
+  }
+
   const onSendClick = async () => {
     const result = await handleSendBroadcast()
     if (result === 'NEEDS_WARNING') {
@@ -87,106 +94,116 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 clearable
               />
             </Group>
+
             <RecipientManager
               recipientCount={form.values.numbers.length}
               error={form.errors.numbers}
               onClear={() => form.setFieldValue('numbers', [])}
               onManage={sourcesModalHandlers.open}
+              onLoad={loadListModalHandlers.open}
             />
+
             <InputMessage form={inputMessageForm} />
+
             <Group grow>
-              <Tooltip
-                label="The shortest time to wait before sending the next message. Helps simulate human behavior."
-                position="top-start"
-                multiline
-                withArrow
-              >
-                <NumberInput
-                  label="Min Delay (sec)"
-                  description="Minimum time between messages."
-                  size="sm"
-                  min={3}
-                  {...form.getInputProps('delayMin')}
-                />
-              </Tooltip>
-              <Tooltip
-                label="The longest time to wait before sending the next message. A random delay between Min and Max will be chosen for each message."
-                position="top-start"
-                multiline
-                withArrow
-              >
-                <NumberInput
-                  label="Max Delay (sec)"
-                  description="Maximum time between messages."
-                  min={5}
-                  size="sm"
-                  {...form.getInputProps('delayMax')}
-                />
-              </Tooltip>
+              <NumberInput
+                label={
+                  <Group gap={4} wrap="nowrap">
+                    <Text size="sm" fw={500}>
+                      Min Delay (sec)
+                    </Text>
+                    <Tooltip
+                      label="Pausing between messages mimics human behavior and significantly reduces the risk of your account being flagged as spam by WhatsApp."
+                      position="top-start"
+                      multiline
+                      withArrow
+                      w={300}
+                    >
+                      <Icon
+                        icon="tabler:info-circle"
+                        style={{ display: 'block' }}
+                      />
+                    </Tooltip>
+                  </Group>
+                }
+                description="Minimum time between messages."
+                size="sm"
+                min={3}
+                {...form.getInputProps('delayMin')}
+              />
+              <NumberInput
+                label="Max Delay (sec)"
+                description="Maximum time between messages."
+                min={5}
+                size="sm"
+                {...form.getInputProps('delayMax')}
+              />
             </Group>
-            {/* MODIFIED: Removed SignatureSettings from this group */}
+
             <Group grow>
               <InputTyping form={form} />
-              <Tooltip
-                label="Before sending, check if each number is a valid WhatsApp account and reduce the risk of being flagged."
-                position="top-start"
-                multiline
-                w={300}
-                withArrow
-                refProp="rootRef"
-              >
-                <Switch
-                  label={<Text fw={500}>Only send to valid numbers</Text>}
-                  {...form.getInputProps('validateNumbers', {
-                    type: 'checkbox',
-                  })}
-                />
-              </Tooltip>
+              <Switch
+                label={
+                  <Group gap={4} wrap="nowrap">
+                    <Text fw={500}>Only send to valid numbers</Text>
+                    <Tooltip
+                      label="Before sending, check if each number is a valid WhatsApp account and reduce the risk of being flagged."
+                      position="top-start"
+                      multiline
+                      w={300}
+                      withArrow
+                    >
+                      <Icon
+                        icon="tabler:info-circle"
+                        style={{ display: 'block' }}
+                      />
+                    </Tooltip>
+                  </Group>
+                }
+                {...form.getInputProps('validateNumbers', {
+                  type: 'checkbox',
+                })}
+              />
             </Group>
 
             <Group grow>
               <SmartPauseSettings form={form} />
               <Stack>
-                <Tooltip
-                  label="Split a large broadcast into smaller batches to simulate human behavior and reduce the risk of being flagged."
-                  position="top-start"
-                  multiline
-                  w={300}
-                  withArrow
-                  refProp="rootRef"
-                >
-                  <Switch
-                    label={<Text fw={500}>Batch sending</Text>}
-                    {...form.getInputProps('batch.enabled', {
-                      type: 'checkbox',
-                    })}
-                  />
-                </Tooltip>
+                <Switch
+                  label={
+                    <Group gap={4} wrap="nowrap">
+                      <Text fw={500}>Batch sending</Text>
+                      <Tooltip
+                        label="Splitting a large broadcast into smaller batches with a pause in between simulates human behavior, reducing the risk of being flagged for spam."
+                        position="top-start"
+                        multiline
+                        withArrow
+                        w={300}
+                      >
+                        <Icon
+                          icon="tabler:info-circle"
+                          style={{ display: 'block' }}
+                        />
+                      </Tooltip>
+                    </Group>
+                  }
+                  {...form.getInputProps('batch.enabled', {
+                    type: 'checkbox',
+                  })}
+                />
                 <When condition={form.values.batch.enabled}>
                   <Group grow align="flex-start">
-                    <Tooltip
-                      label="The number of messages to send in each batch before pausing."
-                      position="top-start"
-                      withArrow
-                    >
-                      <NumberInput
-                        label="Messages per batch"
-                        min={1}
-                        {...form.getInputProps('batch.size')}
-                      />
-                    </Tooltip>
-                    <Tooltip
-                      label="The amount of time to wait before starting the next batch."
-                      position="top-start"
-                      withArrow
-                    >
-                      <NumberInput
-                        label="Wait time (minutes)"
-                        description="Delay between batches."
-                        min={1}
-                        {...form.getInputProps('batch.delay')}
-                      />
-                    </Tooltip>
+                    <NumberInput
+                      label="Messages per batch"
+                      min={1}
+                      {...form.getInputProps('batch.size')}
+                    />
+                    <NumberInput
+                      label="Wait time (minutes)"
+                      description="Delay between batches."
+                      min={1}
+                      {...form.getInputProps('batch.delay')}
+                    />
                   </Group>
                   {form.errors['batch'] && (
                     <Text c="red" size="xs">
@@ -197,9 +214,11 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 </When>
               </Stack>
             </Group>
+
             <Group grow>
               <BroadcastScheduler form={form} />
             </Group>
+
             <BroadcastActions
               onSend={onSendClick}
               isScheduled={form.values.scheduler.enabled}
@@ -214,6 +233,11 @@ const ModalCreateBroadcast: React.FC<Props> = ({
         onSubmit={handleUpdateRecipients}
         initialRecipients={form.values.numbers}
       />
+      <ModalLoadRecipientList
+        opened={showLoadListModal}
+        onClose={loadListModalHandlers.close}
+        onLoad={handleLoadRecipients}
+      />
       <ModalFirstBroadcastWarning
         opened={showWarningModal}
         onClose={warningModalHandlers.close}
@@ -222,7 +246,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
           await handleWarningAccepted()
         }}
       />
-      {/* ++ ADDED: The new duplicate warning modal is included here. */}
       <ModalDuplicateWarning
         opened={showDuplicateWarning}
         onClose={duplicateWarningHandlers.close}

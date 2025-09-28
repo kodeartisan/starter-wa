@@ -1,3 +1,4 @@
+// src/features/broadcast/components/Form/RecipientManager.tsx
 import { Icon } from '@iconify/react'
 import { Button, Group, Stack, Text } from '@mantine/core'
 import React from 'react'
@@ -7,6 +8,8 @@ interface Props {
   error?: string | any
   onClear: () => void
   onManage: () => void
+  // ADDED: New prop for the "Load List" button handler.
+  onLoad: () => void
 }
 
 /**
@@ -19,6 +22,8 @@ const RecipientManager: React.FC<Props> = ({
   error,
   onClear,
   onManage,
+  // ADDED: Destructure the new prop.
+  onLoad,
 }) => {
   return (
     <Stack gap="xs">
@@ -34,6 +39,15 @@ const RecipientManager: React.FC<Props> = ({
             leftSection={<Icon icon="tabler:x" fontSize={16} />}
           >
             Clear
+          </Button>
+          {/* ADDED: "Load List" button to quickly load a saved recipient list. */}
+          <Button
+            variant="outline"
+            size="compact-sm"
+            onClick={onLoad}
+            leftSection={<Icon icon="tabler:database-import" fontSize={16} />}
+          >
+            Load List
           </Button>
           <Button
             variant="outline"
