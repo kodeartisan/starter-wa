@@ -6,7 +6,6 @@ import Upload from './Upload'
 
 interface Props {
   form: UseFormReturnType<any>
-  // ++ MODIFIED: Update the variables prop type to include the optional tooltip.
   variables: { label: string; variable: string; tooltip?: string }[]
 }
 
@@ -24,8 +23,10 @@ const FormVideo: React.FC<Props> = ({ form, variables }) => {
         value={form.values.inputVideo.caption}
         onChange={(data) => form.setFieldValue('inputVideo.caption', data)}
         placeholder="Enter your caption here"
-        // ++ MODIFIED: Pass variables to the InputTextarea component.
         variables={variables}
+        // ++ ADDED: Pass props for live preview.
+        messageType={form.values.type}
+        message={{ caption: form.values.inputVideo.caption }}
       />
     </>
   )

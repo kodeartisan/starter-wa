@@ -15,10 +15,13 @@ import {
   Tooltip,
 } from '@mantine/core'
 import dayjs from 'dayjs'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import type { DataTableColumn } from 'mantine-datatable'
 import React from 'react'
 import MessageStatus from './MessageStatus'
 import MessageType from './MessageType'
+
+dayjs.extend(relativeTime)
 
 interface ColumnActions {
   onViewDetails: (broadcast: Broadcast) => void
@@ -47,6 +50,7 @@ type BroadcastStatsMap = Map<
 const renderMessagePreview = (broadcast: Broadcast) => {
   const { type, message } = broadcast
   if (!message) return 'N/A'
+
   switch (type) {
     case Message.TEXT:
       return typeof message === 'string' ? message : JSON.stringify(message)
@@ -143,9 +147,30 @@ export const getBroadcastColumns = (
         if (!overallError && stats?.failed > 0) {
           overallError = stats.firstError || 'Some recipients failed'
         }
-        return <MessageStatus status={broadcast.status} error={overallError} />
+
+        let overrideText: string | null = null
+        let tooltip: string | null = null
+
+        if (broadcast.status === Status.PAUSED) {
+          if (broadcast.resumeAt) {
+            overrideText = 'Paused (Batching)'
+            tooltip = `Resuming ${dayjs(broadcast.resumeAt).fromNow()}`
+          } else if (broadcast.smartPauseEnabled) {
+            overrideText = 'Paused (Working Hours)'
+            tooltip = `Will resume at ${broadcast.smartPauseStart} on the next working day.`
+          }
+        }
+
+        return (
+          <MessageStatus
+            status={broadcast.status}
+            error={overallError}
+            overrideText={overrideText}
+            tooltip={tooltip}
+          />
+        )
       },
-      width: 150,
+      width: 180,
       sortable: true,
     },
     {
@@ -157,6 +182,7 @@ export const getBroadcastColumns = (
         const processed = stats.success + stats.failed + stats.cancelled
         const progress =
           stats.total > 0 ? Math.round((processed / stats.total) * 100) : 0
+
         return (
           <Stack gap={4}>
             {isProcessing && stats.total > 0 && (
@@ -230,7 +256,6 @@ export const getBroadcastColumns = (
                 <Icon icon="tabler:eye" />
               </ActionIcon>
             </Tooltip>
-
             {!isRunning && (
               <Tooltip label="Clone Broadcast">
                 <ActionIcon
@@ -242,7 +267,6 @@ export const getBroadcastColumns = (
                 </ActionIcon>
               </Tooltip>
             )}
-
             {isScheduled && (
               <Tooltip label="Edit Schedule">
                 <ActionIcon
@@ -254,7 +278,6 @@ export const getBroadcastColumns = (
                 </ActionIcon>
               </Tooltip>
             )}
-
             <Menu shadow="md" position="left" withArrow>
               <Menu.Target>
                 <ActionIcon variant="subtle">
@@ -270,7 +293,6 @@ export const getBroadcastColumns = (
                 </Menu.Item>
               </Menu.Dropdown>
             </Menu>
-
             {(isRunning || isScheduled) && (
               <Tooltip label="Cancel Broadcast">
                 <ActionIcon
@@ -282,7 +304,6 @@ export const getBroadcastColumns = (
                 </ActionIcon>
               </Tooltip>
             )}
-
             {isFinished && (
               <Tooltip label="Delete Broadcast">
                 <ActionIcon

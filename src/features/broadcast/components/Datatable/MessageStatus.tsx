@@ -1,15 +1,22 @@
 // src/features/broadcast/components/Datatable/MessageStatus.tsx
 import { Status } from '@/constants'
 import { Icon } from '@iconify/react'
-import { Box, Group, Loader, Text, Tooltip } from '@mantine/core'
+import { Group, Loader, Text, Tooltip } from '@mantine/core'
 import React from 'react'
 
 interface Props {
   status: string
   error?: string | null
+  overrideText?: string | null
+  tooltip?: string | null
 }
 
-const MessageStatus: React.FC<Props> = ({ status, error = null }: Props) => {
+const MessageStatus: React.FC<Props> = ({
+  status,
+  error = null,
+  overrideText = null,
+  tooltip = null,
+}: Props) => {
   const statusConfig: {
     [key: string]: { color: string; icon: React.ReactNode; text: string }
   } = {
@@ -51,23 +58,34 @@ const MessageStatus: React.FC<Props> = ({ status, error = null }: Props) => {
   }
 
   const config = statusConfig[status]
+
   if (!config) {
     return <Text size="sm">{status}</Text>
   }
+
+  const displayText = overrideText || config.text
 
   const content = (
     <Group gap="xs" wrap="nowrap" align="center">
       <Group gap={4} wrap="nowrap" align="center">
         {config.icon}
         <Text size="sm" c={config.color} fw={500}>
-          {config.text}
+          {displayText}
         </Text>
       </Group>
     </Group>
   )
 
-  return error ? (
-    <Tooltip label={error} position="top-start" multiline w={220} withArrow>
+  const tooltipContent = error || tooltip
+
+  return tooltipContent ? (
+    <Tooltip
+      label={tooltipContent}
+      position="top-start"
+      multiline
+      w={220}
+      withArrow
+    >
       {content}
     </Tooltip>
   ) : (

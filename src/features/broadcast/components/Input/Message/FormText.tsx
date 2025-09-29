@@ -5,7 +5,6 @@ import InputTextarea from '../InputTextarea'
 
 interface Props {
   form: UseFormReturnType<any>
-  // ++ MODIFIED: Update the variables prop type to include the optional tooltip.
   variables: { label: string; variable: string; tooltip?: string }[]
 }
 
@@ -15,8 +14,10 @@ const FormText: React.FC<Props> = ({ form, variables }) => {
       value={form.values.inputText}
       onChange={(data) => form.setFieldValue('inputText', data)}
       error={form.errors.inputText}
-      // ++ MODIFIED: Pass variables to the InputTextarea component.
       variables={variables}
+      // ++ ADDED: Pass props for live preview.
+      messageType={form.values.type}
+      message={form.values.inputText}
     />
   )
 }

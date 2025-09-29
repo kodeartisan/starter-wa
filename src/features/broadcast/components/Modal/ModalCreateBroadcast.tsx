@@ -5,6 +5,7 @@ import { useBroadcastForm } from '@/models/useBroadcastForm'
 import toast from '@/utils/toast'
 import { Icon } from '@iconify/react'
 import {
+  Grid,
   Group,
   NumberInput,
   ScrollArea,
@@ -78,7 +79,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
 
   return (
     <>
-      <Modal opened={opened} onClose={handleClose} w={850} withCloseButton>
+      <Modal opened={opened} onClose={handleClose} w={800} withCloseButton>
         <ScrollArea h={650}>
           <Stack px={'md'}>
             <Group grow>
@@ -94,7 +95,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 clearable
               />
             </Group>
-
             <RecipientManager
               recipientCount={form.values.numbers.length}
               error={form.errors.numbers}
@@ -102,9 +102,12 @@ const ModalCreateBroadcast: React.FC<Props> = ({
               onManage={sourcesModalHandlers.open}
               onLoad={loadListModalHandlers.open}
             />
-
-            <InputMessage form={inputMessageForm} />
-
+            {/* -- MODIFIED: Removed the static preview and gave the input full width. -- */}
+            <Grid>
+              <Grid.Col span={12}>
+                <InputMessage form={inputMessageForm} />
+              </Grid.Col>
+            </Grid>
             <Group grow>
               <NumberInput
                 label={
@@ -139,7 +142,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 {...form.getInputProps('delayMax')}
               />
             </Group>
-
             <Group grow>
               <InputTyping form={form} />
               <Switch
@@ -165,7 +167,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 })}
               />
             </Group>
-
             <Group grow>
               <SmartPauseSettings form={form} />
               <Stack>
@@ -214,11 +215,9 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 </When>
               </Stack>
             </Group>
-
             <Group grow>
               <BroadcastScheduler form={form} />
             </Group>
-
             <BroadcastActions
               onSend={onSendClick}
               isScheduled={form.values.scheduler.enabled}
@@ -227,6 +226,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
           </Stack>
         </ScrollArea>
       </Modal>
+
       <ModalManageSources
         opened={showSourcesModal}
         onClose={sourcesModalHandlers.close}

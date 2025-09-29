@@ -179,7 +179,7 @@ const InputMessage: React.FC<Props> = ({
             <Popover width={300} position="top-end" withArrow shadow="md">
               <Popover.Target>
                 <Tooltip label="Get template" position="top">
-                  <Button size={'compact-sm'} variant="outline">
+                  <Button size={'compact-sm'} variant="outline" mb={'sm'}>
                     <Icon icon={'tabler:template'} fontSize={26} />
                   </Button>
                 </Tooltip>

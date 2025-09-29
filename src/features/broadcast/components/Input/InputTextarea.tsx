@@ -18,14 +18,17 @@ import {
 } from '@mantine/core'
 import EmojiPicker from 'emoji-picker-react'
 import React, { useRef, useState } from 'react'
+import MessagePreview from '../Preview/MessagePreview'
 
 interface Props {
   value: string
   onChange: (value: string) => void
   error?: any
   placeholder?: string | null
-  // MODIFIED: Add an optional tooltip property to the variable object definition.
   variables?: { label: string; variable: string; tooltip?: string }[]
+  // ++ ADDED: Props to handle the live preview within the popover.
+  messageType: string
+  message: any
 }
 
 const InputTextarea: React.FC<Props> = ({
@@ -34,6 +37,9 @@ const InputTextarea: React.FC<Props> = ({
   error = null,
   placeholder = 'Enter your message here',
   variables = [],
+  // ++ ADDED: Destructure the new props for the live preview.
+  messageType,
+  message,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [emojiPickerOpened, setEmojiPickerOpened] = useState<boolean>(false)
@@ -43,7 +49,6 @@ const InputTextarea: React.FC<Props> = ({
   const applyFormat = (startTag: string, endTag: string = '') => {
     const textarea = textareaRef.current
     if (!textarea) return
-
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
     const selectedText = value.substring(start, end)
@@ -53,7 +58,6 @@ const InputTextarea: React.FC<Props> = ({
       (selectedText || '') +
       endTag +
       value.substring(end)
-
     onChange(newText)
 
     setTimeout(() => {
@@ -73,10 +77,8 @@ const InputTextarea: React.FC<Props> = ({
   const insertVariable = (variable: string) => {
     const textarea = textareaRef.current
     if (!textarea) return
-
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
-
     const newText = value.substring(0, start) + variable + value.substring(end)
     onChange(newText)
 
@@ -94,6 +96,7 @@ const InputTextarea: React.FC<Props> = ({
       toast.error('Please enter a message to rewrite.')
       return
     }
+
     const prompts: Record<string, string> = {
       professional: 'Rewrite the following message to be more professional',
       friendly: 'Rewrite the following message to be more friendly and casual',
@@ -149,8 +152,9 @@ const InputTextarea: React.FC<Props> = ({
       </Popover>
     )
   }
+
   return (
-    <Stack gap={3}>
+    <Stack gap={3} mt={'sm'}>
       <Group justify="space-between">
         <Group gap={6}>
           <Tooltip label="Italic" position="top">
@@ -178,14 +182,27 @@ const InputTextarea: React.FC<Props> = ({
           </Tooltip>
           {renderEmojiToolbar()}
         </Group>
+        {/* ++ MODIFIED: Replaced the simple ActionIcon with a Popover for the live preview. */}
+        <Popover position="left-start" withArrow shadow="md">
+          <Popover.Target>
+            <Tooltip label="Live Preview" position="top">
+              <ActionIcon variant="subtle">
+                <Icon icon="tabler:eye" fontSize={18} />
+              </ActionIcon>
+            </Tooltip>
+          </Popover.Target>
+          <Popover.Dropdown p={0} w={350}>
+            <MessagePreview type={messageType} message={message} />
+          </Popover.Dropdown>
+        </Popover>
       </Group>
+
       <Box style={{ position: 'relative' }}>
         <LoadingOverlay
           visible={isRewriting}
           zIndex={1000}
           overlayProps={{ radius: 'sm', blur: 1 }}
         />
-        {/* ++ MODIFIED: Wrapped Textarea and buttons in a Stack for proper layout. */}
         <Stack gap={8}>
           <Textarea
             ref={textareaRef}
@@ -204,7 +221,6 @@ const InputTextarea: React.FC<Props> = ({
               },
             }}
           />
-          {/* ++ MODIFIED: Render variable buttons, wrapping with a Tooltip if one is provided. */}
           {variables.length > 0 && (
             <Group mb={4}>
               {variables.map((variable, index) =>
