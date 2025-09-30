@@ -47,7 +47,7 @@ const RecipientManager: React.FC<Props> = ({
             onClick={onLoad}
             leftSection={<Icon icon="tabler:database-import" fontSize={16} />}
           >
-            Load List
+            Load
           </Button>
           <Button
             variant="outline"
@@ -55,7 +55,7 @@ const RecipientManager: React.FC<Props> = ({
             onClick={onManage}
             leftSection={<Icon icon="tabler:users-plus" fontSize={16} />}
           >
-            Manage Recipients
+            Manage
           </Button>
         </Group>
       </Group>

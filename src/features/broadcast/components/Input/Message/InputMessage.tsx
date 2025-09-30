@@ -1,10 +1,11 @@
 // src/features/broadcast/components/Input/Message/InputMessage.tsx
-import { Media, Message } from '@/constants'
+import { Media, Message, Setting } from '@/constants'
 import useLicense from '@/hooks/useLicense'
 import db, { type BroadcastTemplate } from '@/libs/db'
 import { Icon } from '@iconify/react'
 import {
   ActionIcon,
+  Alert,
   Button,
   Group,
   Popover,
@@ -16,6 +17,7 @@ import {
 } from '@mantine/core'
 import type { UseFormReturnType } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
+import { useStorage } from '@plasmohq/storage/hook'
 import { useLiveQuery } from 'dexie-react-hooks'
 import React, { useMemo } from 'react'
 import { When } from 'react-if'
@@ -43,6 +45,11 @@ const InputMessage: React.FC<Props> = ({
     async () => await db.broadcastTemplates.toArray(),
   )
   const [showModalManageTemplate, modalManageTemplate] = useDisclosure(false)
+  // ADDED: Logic for dismissible Spintax tip.
+  const [isSpintaxTipDismissed, setIsSpintaxTipDismissed] = useStorage(
+    Setting.SPINTAX_TIP_DISMISSED,
+    false,
+  )
 
   // ++ MODIFIED: Define personalization variables, adding a Spintax button with a tooltip at the beginning.
   const personalizationVariables = [
@@ -65,7 +72,6 @@ const InputMessage: React.FC<Props> = ({
 
   const handleSelectTemplate = async (index: string) => {
     const { id, message, type } = templates![parseInt(index, 10)]
-
     const dataByMessageTypes: { [key: string]: () => any } = {
       [Message.TEXT]: () => ({ type, inputText: message }),
       [Message.IMAGE]: async () => {
@@ -129,7 +135,6 @@ const InputMessage: React.FC<Props> = ({
         return null
     }
   }
-
   const renderMenuMessage = () => {
     return (
       <SimpleGrid cols={5}>
@@ -178,8 +183,8 @@ const InputMessage: React.FC<Props> = ({
           <When condition={!disabledTemplateButton}>
             <Popover width={300} position="top-end" withArrow shadow="md">
               <Popover.Target>
-                <Tooltip label="Get template" position="top">
-                  <Button size={'compact-sm'} variant="outline" mb={'sm'}>
+                <Tooltip label="Load template" position="top">
+                  <Button size={'compact-sm'} variant="outline">
                     <Icon icon={'tabler:template'} fontSize={26} />
                   </Button>
                 </Tooltip>
@@ -212,6 +217,22 @@ const InputMessage: React.FC<Props> = ({
           </When>
         </Group>
       </Stack>
+      {/* ADDED: Dismissible alert for Spintax education. */}
+      {!isSpintaxTipDismissed && (
+        <Alert
+          icon={<Icon icon="tabler:info-circle" />}
+          title="Pro Tip"
+          color="teal"
+          withCloseButton
+          onClose={() => setIsSpintaxTipDismissed(true)}
+          mt="xs"
+          mb="sm"
+          radius="md"
+        >
+          Use Spintax format like `{'{Hi|Hello|Hola}'}` to create message
+          variations. This helps reduce the risk of being blocked.
+        </Alert>
+      )}
       {renderMenuMessage()}
       {renderInputMessage()}
       <ModalManageTemplate

@@ -5,6 +5,7 @@ import type { Broadcast } from '@/libs/db'
 import { useBroadcastForm } from '@/models/useBroadcastForm'
 import toast from '@/utils/toast'
 import {
+  Box,
   Grid,
   Group,
   ScrollArea,
@@ -13,7 +14,7 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import React from 'react'
+import React, { useState } from 'react'
 import AntiBlockingSettings from '../Form/AntiBlockingSettings' // Import the new component
 import BroadcastActions from '../Form/BroadcastActions'
 import BroadcastScheduler from '../Form/BroadcastScheduler'
@@ -42,6 +43,8 @@ const ModalCreateBroadcast: React.FC<Props> = ({
   const [showSourcesModal, sourcesModalHandlers] = useDisclosure(false)
   const [showDuplicateWarning, duplicateWarningHandlers] = useDisclosure(false)
   const [showLoadListModal, loadListModalHandlers] = useDisclosure(false)
+  // ADDED: State to manage the loading status of the submission button.
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
     form,
@@ -64,7 +67,15 @@ const ModalCreateBroadcast: React.FC<Props> = ({
   }
 
   const onSendClick = async () => {
+    setIsSubmitting(true)
     const result = await handleSendBroadcast()
+
+    // If the process isn't immediately successful (e.g., requires a warning or failed validation),
+    // stop the loading indicator. On direct success, the modal closes, resetting the state naturally.
+    if (result !== 'SUCCESS') {
+      setIsSubmitting(false)
+    }
+
     if (result === 'NEEDS_WARNING') {
       warningModalHandlers.open()
     } else if (result === 'DUPLICATE') {
@@ -92,10 +103,9 @@ const ModalCreateBroadcast: React.FC<Props> = ({
     default:
       messageForPreview = null
   }
-
   return (
     <>
-      <Modal opened={opened} onClose={handleClose} w={900} withCloseButton>
+      <Modal opened={opened} onClose={handleClose} w={950} withCloseButton>
         <ScrollArea h={650}>
           <Stack px={'md'}>
             <Group grow>
@@ -112,37 +122,35 @@ const ModalCreateBroadcast: React.FC<Props> = ({
               />
             </Group>
 
-            <RecipientManager
-              recipientCount={form.values.numbers.length}
-              error={form.errors.numbers}
-              onClear={() => form.setFieldValue('numbers', [])}
-              onManage={sourcesModalHandlers.open}
-              onLoad={loadListModalHandlers.open}
-            />
-
             <Grid>
               <Grid.Col span={6}>
-                <InputMessage form={inputMessageForm} />
+                <Stack>
+                  <RecipientManager
+                    recipientCount={form.values.numbers.length}
+                    error={form.errors.numbers}
+                    onClear={() => form.setFieldValue('numbers', [])}
+                    onManage={sourcesModalHandlers.open}
+                    onLoad={loadListModalHandlers.open}
+                  />
+                  <InputMessage form={inputMessageForm} />
+                </Stack>
               </Grid.Col>
               <Grid.Col span={6}>
                 <MessagePreview type={type} message={messageForPreview} />
               </Grid.Col>
             </Grid>
-
             {/* MODIFIED: Replaced individual settings with the single AntiBlockingSettings component */}
             <AntiBlockingSettings form={form} />
-
             <BroadcastScheduler form={form} />
-
             <BroadcastActions
               onSend={onSendClick}
               isScheduled={form.values.scheduler.enabled}
               scheduledAt={form.values.scheduler.scheduledAt}
+              isLoading={isSubmitting}
             />
           </Stack>
         </ScrollArea>
       </Modal>
-
       <ModalManageSources
         opened={showSourcesModal}
         onClose={sourcesModalHandlers.close}
@@ -159,6 +167,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
         onClose={warningModalHandlers.close}
         onConfirm={async () => {
           warningModalHandlers.close()
+          setIsSubmitting(true) // Re-enable loading before final submission.
           await handleWarningAccepted()
         }}
       />
@@ -167,6 +176,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
         onClose={duplicateWarningHandlers.close}
         onConfirm={async () => {
           duplicateWarningHandlers.close()
+          setIsSubmitting(true) // Re-enable loading before final submission.
           await forceSendBroadcast()
         }}
       />
