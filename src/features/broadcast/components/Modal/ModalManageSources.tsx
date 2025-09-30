@@ -14,13 +14,10 @@ import {
   TextInput,
   Tooltip,
 } from '@mantine/core'
-import { useDisclosure } from '@mantine/hooks'
+// ++ ADDED: Import useDebouncedValue for search input debouncing
+import { useDebouncedValue, useDisclosure } from '@mantine/hooks'
 import _ from 'lodash'
-import {
-  DataTable,
-  type DataTableColumn,
-  type DataTableSortStatus,
-} from 'mantine-datatable'
+import { DataTable, type DataTableSortStatus } from 'mantine-datatable'
 import React, { useEffect, useMemo, useState } from 'react'
 import ModalEditRecipient from './ModalEditRecipient'
 import ModalLoadRecipientList from './ModalLoadRecipientList'
@@ -51,14 +48,14 @@ const ModalManageSources: React.FC<Props> = ({
   const [page, setPage] = useState(1)
   const [paginatedRecipients, setPaginatedRecipients] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState('')
+  // ++ ADDED: Debounce the search query with a 300ms delay to improve performance.
+  const [debouncedSearchQuery] = useDebouncedValue(searchQuery, 300)
   const [isSaving, setIsSaving] = useState(false)
   const [editingCell, setEditingCell] = useState<{
     recordId: string
     columnId: string
   } | null>(null)
   const [editValue, setEditValue] = useState('')
-
-  // ++ ADDED: State to manage table sorting
   const [sortStatus, setSortStatus] = useState<DataTableSortStatus>({
     columnAccessor: 'name',
     direction: 'asc',
@@ -79,17 +76,15 @@ const ModalManageSources: React.FC<Props> = ({
       setSelectedRecords([])
       setPage(1)
       setSearchQuery('')
-      // Reset sort status when modal opens
       setSortStatus({ columnAccessor: 'name', direction: 'asc' })
     }
   }, [opened, initialRecipients])
 
+  // -- MODIFIED: This improves performance by re-computing the list only when recipients or the debounced search query change.
   const filteredAndSortedRecipients = useMemo(() => {
     let data = [...recipients]
-
-    // Filtering logic
-    if (searchQuery) {
-      const lowerCaseQuery = searchQuery.toLowerCase()
+    if (debouncedSearchQuery) {
+      const lowerCaseQuery = debouncedSearchQuery.toLowerCase()
       data = data.filter(
         (r) =>
           r.name?.toLowerCase().includes(lowerCaseQuery) ||
@@ -97,14 +92,12 @@ const ModalManageSources: React.FC<Props> = ({
       )
     }
 
-    // ++ ADDED: Sorting logic using lodash
     const { columnAccessor, direction } = sortStatus
     if (columnAccessor) {
       data = _.orderBy(data, [columnAccessor], [direction])
     }
-
     return data
-  }, [recipients, searchQuery, sortStatus])
+  }, [recipients, debouncedSearchQuery, sortStatus])
 
   useEffect(() => {
     const from = (page - 1) * PAGE_SIZE
@@ -126,15 +119,14 @@ const ModalManageSources: React.FC<Props> = ({
         name: rec.name || rec.savedName || rec.publicName || 'N/A',
       }
     })
-
     const initialCount = recipients.length
     const combined = [...recipients, ...formattedNewRecipients]
     const uniqueRecipients = _.uniqBy(combined, 'number')
     const finalCount = uniqueRecipients.length
     setRecipients(uniqueRecipients)
-
     const addedCount = finalCount - initialCount
     const duplicateCount = combined.length - finalCount
+
     if (addedCount > 0 && duplicateCount > 0) {
       toast.info(
         `${addedCount} recipient(s) added. ${duplicateCount} duplicate(s) were automatically removed.`,
@@ -193,13 +185,35 @@ const ModalManageSources: React.FC<Props> = ({
     editModalHandlers.close()
   }
 
+  // ++ MODIFIED: Enhanced cell edit handler with validation for the 'number' field.
   const handleSaveCellEdit = () => {
     if (!editingCell) return
+    const { recordId, columnId } = editingCell
+    const finalValue = editValue.trim()
+
+    // When editing a number, validate it's not empty and not a duplicate.
+    if (columnId === 'number') {
+      if (finalValue === '') {
+        toast.error('Number cannot be empty.')
+        return
+      }
+      const isDuplicate = recipients.some(
+        (r) => r.number === finalValue && r.number !== recordId,
+      )
+      if (isDuplicate) {
+        toast.error(`The number ${finalValue} already exists in the list.`)
+        return
+      }
+    }
+
     setRecipients((currentRecipients) =>
       currentRecipients.map((r) => {
-        if (r.number === editingCell.recordId) {
-          const finalValue = editValue.trim() === '' ? r.name : editValue.trim()
-          return { ...r, [editingCell.columnId]: finalValue }
+        if (r.number === recordId) {
+          // For 'name', if the edit value is empty, revert to the original name.
+          // For 'number', empty value is blocked by validation above.
+          const valueToSet =
+            finalValue === '' && columnId === 'name' ? r.name : finalValue
+          return { ...r, [columnId]: valueToSet }
         }
         return r
       }),
@@ -256,11 +270,11 @@ const ModalManageSources: React.FC<Props> = ({
     onClose()
   }
 
-  const columns: DataTableColumn<any>[] = [
+  const columns: any[] = [
     {
       accessor: 'name',
       title: 'Name',
-      sortable: true, // ++ ADDED: Make column sortable
+      sortable: true,
       render: (recipient) => {
         const isEditing =
           editingCell?.recordId === recipient.number &&
@@ -317,11 +331,67 @@ const ModalManageSources: React.FC<Props> = ({
         )
       },
     },
+    // ++ MODIFIED: Added render function to the 'number' column for inline editing.
     {
       accessor: 'number',
       title: 'Number',
-      sortable: true, // ++ ADDED: Make column sortable
+      sortable: true,
       ellipsis: true,
+      render: (recipient) => {
+        const isEditing =
+          editingCell?.recordId === recipient.number &&
+          editingCell?.columnId === 'number'
+        return isEditing ? (
+          <Group gap="xs" wrap="nowrap">
+            <TextInput
+              value={editValue}
+              onChange={(e) => setEditValue(e.currentTarget.value)}
+              onBlur={handleSaveCellEdit}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  handleSaveCellEdit()
+                } else if (e.key === 'Escape') {
+                  setEditingCell(null)
+                }
+              }}
+              autoFocus
+              size="xs"
+              style={{ flexGrow: 1 }}
+            />
+            <Tooltip label="Save" withArrow position="top">
+              <ActionIcon
+                variant="subtle"
+                color="teal"
+                onClick={handleSaveCellEdit}
+              >
+                <Icon icon="tabler:check" />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
+        ) : (
+          <Tooltip label="Click to edit" withArrow position="top">
+            <Text
+              onClick={() => {
+                setEditingCell({
+                  recordId: recipient.number,
+                  columnId: 'number',
+                })
+                setEditValue(recipient.number)
+              }}
+              style={{
+                cursor: 'pointer',
+                width: '100%',
+                padding: '6px 0',
+                height: '100%',
+              }}
+              truncate
+            >
+              {recipient.number}
+            </Text>
+          </Tooltip>
+        )
+      },
     },
     {
       accessor: 'actions',
@@ -354,7 +424,6 @@ const ModalManageSources: React.FC<Props> = ({
       ),
     },
   ]
-
   return (
     <>
       <Modal opened={opened} onClose={onClose} w={750} withCloseButton>
@@ -490,7 +559,6 @@ const ModalManageSources: React.FC<Props> = ({
               onChange={(e) => setSearchQuery(e.currentTarget.value)}
               disabled={recipients.length === 0}
             />
-            {/* ++ MODIFIED: Added sorting props to the DataTable. */}
             <DataTable
               height={'calc(70vh - 160px)'}
               records={paginatedRecipients}
@@ -522,7 +590,6 @@ const ModalManageSources: React.FC<Props> = ({
           </Group>
         </Stack>
       </Modal>
-
       <ModalEditRecipient
         opened={showEditModal}
         onClose={editModalHandlers.close}

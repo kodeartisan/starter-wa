@@ -102,7 +102,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
               onManage={sourcesModalHandlers.open}
               onLoad={loadListModalHandlers.open}
             />
-            {/* -- MODIFIED: Removed the static preview and gave the input full width. -- */}
             <Grid>
               <Grid.Col span={12}>
                 <InputMessage form={inputMessageForm} />

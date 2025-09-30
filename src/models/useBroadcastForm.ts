@@ -20,7 +20,7 @@ const defaultValues = {
   name: '',
   numbers: [] as any[],
   tags: [] as string[],
-  isTyping: false,
+  isTyping: true,
   validateNumbers: true,
   scheduler: {
     enabled: false,
