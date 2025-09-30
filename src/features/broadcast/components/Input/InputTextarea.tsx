@@ -18,7 +18,6 @@ import {
 } from '@mantine/core'
 import EmojiPicker from 'emoji-picker-react'
 import React, { useRef, useState } from 'react'
-import MessagePreview from '../Preview/MessagePreview'
 
 interface Props {
   value: string
@@ -26,9 +25,6 @@ interface Props {
   error?: any
   placeholder?: string | null
   variables?: { label: string; variable: string; tooltip?: string }[]
-  // ++ ADDED: Props to handle the live preview within the popover.
-  messageType: string
-  message: any
 }
 
 const InputTextarea: React.FC<Props> = ({
@@ -37,9 +33,6 @@ const InputTextarea: React.FC<Props> = ({
   error = null,
   placeholder = 'Enter your message here',
   variables = [],
-  // ++ ADDED: Destructure the new props for the live preview.
-  messageType,
-  message,
 }) => {
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const [emojiPickerOpened, setEmojiPickerOpened] = useState<boolean>(false)
@@ -49,6 +42,7 @@ const InputTextarea: React.FC<Props> = ({
   const applyFormat = (startTag: string, endTag: string = '') => {
     const textarea = textareaRef.current
     if (!textarea) return
+
     const start = textarea.selectionStart
     const end = textarea.selectionEnd
     const selectedText = value.substring(start, end)
@@ -96,14 +90,12 @@ const InputTextarea: React.FC<Props> = ({
       toast.error('Please enter a message to rewrite.')
       return
     }
-
     const prompts: Record<string, string> = {
       professional: 'Rewrite the following message to be more professional',
       friendly: 'Rewrite the following message to be more friendly and casual',
       fix_grammar:
         'Correct any spelling and grammar mistakes in the following message',
     }
-
     const prompt = prompts[rewriteType]
     if (!prompt) return
 
@@ -182,21 +174,7 @@ const InputTextarea: React.FC<Props> = ({
           </Tooltip>
           {renderEmojiToolbar()}
         </Group>
-        {/* ++ MODIFIED: Replaced the simple ActionIcon with a Popover for the live preview. */}
-        <Popover position="left-start" withArrow shadow="md">
-          <Popover.Target>
-            <Tooltip label="Live Preview" position="top">
-              <ActionIcon variant="subtle">
-                <Icon icon="tabler:eye" fontSize={18} />
-              </ActionIcon>
-            </Tooltip>
-          </Popover.Target>
-          <Popover.Dropdown p={0} w={350}>
-            <MessagePreview type={messageType} message={message} />
-          </Popover.Dropdown>
-        </Popover>
       </Group>
-
       <Box style={{ position: 'relative' }}>
         <LoadingOverlay
           visible={isRewriting}
@@ -258,7 +236,8 @@ const InputTextarea: React.FC<Props> = ({
       </Box>
       {error && (
         <Text c="red" size="sm">
-          {error}
+          {' '}
+          {error}{' '}
         </Text>
       )}
     </Stack>

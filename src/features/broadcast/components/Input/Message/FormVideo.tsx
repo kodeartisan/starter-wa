@@ -24,9 +24,6 @@ const FormVideo: React.FC<Props> = ({ form, variables }) => {
         onChange={(data) => form.setFieldValue('inputVideo.caption', data)}
         placeholder="Enter your caption here"
         variables={variables}
-        // ++ ADDED: Pass props for live preview.
-        messageType={form.values.type}
-        message={{ caption: form.values.inputVideo.caption }}
       />
     </>
   )

@@ -77,7 +77,7 @@ const MessagePreview: React.FC<Props> = ({ type, message }) => {
     if (!placeholder) return null
 
     return (
-      <Paper withBorder p="md" radius="sm" bg="gray.1">
+      <Paper withBorder p="sm" radius="sm" bg="gray.1">
         <Group>
           <Icon icon={placeholder.icon} fontSize={24} color="gray" />
           <Text c="dimmed" size="sm">
@@ -102,7 +102,6 @@ const MessagePreview: React.FC<Props> = ({ type, message }) => {
           style={{
             backgroundColor: '#e6ffda', // WhatsApp outgoing bubble color
             alignSelf: 'flex-start',
-            maxWidth: '90%',
           }}
         >
           <Stack gap={4}>

@@ -1,30 +1,25 @@
 // src/features/broadcast/components/Modal/ModalCreateBroadcast.tsx
 import Modal from '@/components/Modal/Modal'
+import { Message } from '@/constants'
 import type { Broadcast } from '@/libs/db'
 import { useBroadcastForm } from '@/models/useBroadcastForm'
 import toast from '@/utils/toast'
-import { Icon } from '@iconify/react'
 import {
   Grid,
   Group,
-  NumberInput,
   ScrollArea,
   Stack,
-  Switch,
   TagsInput,
-  Text,
   TextInput,
-  Tooltip,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
 import React from 'react'
-import { When } from 'react-if'
+import AntiBlockingSettings from '../Form/AntiBlockingSettings' // Import the new component
 import BroadcastActions from '../Form/BroadcastActions'
 import BroadcastScheduler from '../Form/BroadcastScheduler'
 import RecipientManager from '../Form/RecipientManager'
-import SmartPauseSettings from '../Form/SmartPauseSettings'
-import InputTyping from '../Input/InputTyping'
 import InputMessage from '../Input/Message/InputMessage'
+import MessagePreview from '../Preview/MessagePreview'
 import ModalDuplicateWarning from './ModalDuplicateWarning'
 import ModalFirstBroadcastWarning from './ModalFirstBroadcastWarning'
 import ModalLoadRecipientList from './ModalLoadRecipientList'
@@ -77,9 +72,30 @@ const ModalCreateBroadcast: React.FC<Props> = ({
     }
   }
 
+  // Prepare the message object for the live preview component
+  const { type, inputText, inputImage, inputVideo, inputFile } =
+    inputMessageForm.values
+  let messageForPreview: any
+  switch (type) {
+    case Message.TEXT:
+      messageForPreview = inputText
+      break
+    case Message.IMAGE:
+      messageForPreview = { caption: inputImage.caption }
+      break
+    case Message.VIDEO:
+      messageForPreview = { caption: inputVideo.caption }
+      break
+    case Message.FILE:
+      messageForPreview = { caption: inputFile.caption }
+      break
+    default:
+      messageForPreview = null
+  }
+
   return (
     <>
-      <Modal opened={opened} onClose={handleClose} w={820} withCloseButton>
+      <Modal opened={opened} onClose={handleClose} w={900} withCloseButton>
         <ScrollArea h={650}>
           <Stack px={'md'}>
             <Group grow>
@@ -95,6 +111,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 clearable
               />
             </Group>
+
             <RecipientManager
               recipientCount={form.values.numbers.length}
               error={form.errors.numbers}
@@ -102,120 +119,21 @@ const ModalCreateBroadcast: React.FC<Props> = ({
               onManage={sourcesModalHandlers.open}
               onLoad={loadListModalHandlers.open}
             />
+
             <Grid>
-              <Grid.Col span={12}>
+              <Grid.Col span={6}>
                 <InputMessage form={inputMessageForm} />
               </Grid.Col>
+              <Grid.Col span={6}>
+                <MessagePreview type={type} message={messageForPreview} />
+              </Grid.Col>
             </Grid>
-            <Group grow>
-              <NumberInput
-                label={
-                  <Group gap={4} wrap="nowrap">
-                    <Text size="sm" fw={500}>
-                      Min Delay (sec)
-                    </Text>
-                    <Tooltip
-                      label="Pausing between messages mimics human behavior and significantly reduces the risk of your account being flagged as spam by WhatsApp."
-                      position="top-start"
-                      multiline
-                      withArrow
-                      w={300}
-                    >
-                      <Icon
-                        icon="tabler:info-circle"
-                        style={{ display: 'block' }}
-                      />
-                    </Tooltip>
-                  </Group>
-                }
-                description="Minimum time between messages."
-                size="sm"
-                min={3}
-                {...form.getInputProps('delayMin')}
-              />
-              <NumberInput
-                label="Max Delay (sec)"
-                description="Maximum time between messages."
-                min={5}
-                size="sm"
-                {...form.getInputProps('delayMax')}
-              />
-            </Group>
-            <Group grow>
-              <InputTyping form={form} />
-              <Switch
-                label={
-                  <Group gap={4} wrap="nowrap">
-                    <Text fw={500}>Only send to valid numbers</Text>
-                    <Tooltip
-                      label="Before sending, check if each number is a valid WhatsApp account and reduce the risk of being flagged."
-                      position="top-start"
-                      multiline
-                      w={300}
-                      withArrow
-                    >
-                      <Icon
-                        icon="tabler:info-circle"
-                        style={{ display: 'block' }}
-                      />
-                    </Tooltip>
-                  </Group>
-                }
-                {...form.getInputProps('validateNumbers', {
-                  type: 'checkbox',
-                })}
-              />
-            </Group>
-            <Group grow>
-              <SmartPauseSettings form={form} />
-              <Stack>
-                <Switch
-                  label={
-                    <Group gap={4} wrap="nowrap">
-                      <Text fw={500}>Batch sending</Text>
-                      <Tooltip
-                        label="Splitting a large broadcast into smaller batches with a pause in between simulates human behavior, reducing the risk of being flagged for spam."
-                        position="top-start"
-                        multiline
-                        withArrow
-                        w={300}
-                      >
-                        <Icon
-                          icon="tabler:info-circle"
-                          style={{ display: 'block' }}
-                        />
-                      </Tooltip>
-                    </Group>
-                  }
-                  {...form.getInputProps('batch.enabled', {
-                    type: 'checkbox',
-                  })}
-                />
-                <When condition={form.values.batch.enabled}>
-                  <Group grow align="flex-start">
-                    <NumberInput
-                      label="Messages per batch"
-                      min={1}
-                      {...form.getInputProps('batch.size')}
-                    />
-                    <NumberInput
-                      label="Wait time (minutes)"
-                      min={1}
-                      {...form.getInputProps('batch.delay')}
-                    />
-                  </Group>
-                  {form.errors['batch'] && (
-                    <Text c="red" size="xs">
-                      {' '}
-                      {form.errors['batch']}{' '}
-                    </Text>
-                  )}
-                </When>
-              </Stack>
-            </Group>
-            <Group grow>
-              <BroadcastScheduler form={form} />
-            </Group>
+
+            {/* MODIFIED: Replaced individual settings with the single AntiBlockingSettings component */}
+            <AntiBlockingSettings form={form} />
+
+            <BroadcastScheduler form={form} />
+
             <BroadcastActions
               onSend={onSendClick}
               isScheduled={form.values.scheduler.enabled}

@@ -15,9 +15,6 @@ const FormText: React.FC<Props> = ({ form, variables }) => {
       onChange={(data) => form.setFieldValue('inputText', data)}
       error={form.errors.inputText}
       variables={variables}
-      // ++ ADDED: Pass props for live preview.
-      messageType={form.values.type}
-      message={form.values.inputText}
     />
   )
 }
