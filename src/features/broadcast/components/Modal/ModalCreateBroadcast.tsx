@@ -79,7 +79,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
 
   return (
     <>
-      <Modal opened={opened} onClose={handleClose} w={800} withCloseButton>
+      <Modal opened={opened} onClose={handleClose} w={820} withCloseButton>
         <ScrollArea h={650}>
           <Stack px={'md'}>
             <Group grow>
@@ -200,7 +200,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                     />
                     <NumberInput
                       label="Wait time (minutes)"
-                      description="Delay between batches."
                       min={1}
                       {...form.getInputProps('batch.delay')}
                     />
