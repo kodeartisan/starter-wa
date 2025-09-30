@@ -14,12 +14,16 @@ interface Props {
   opened: boolean
   onClose: () => void
   data?: Partial<BroadcastTemplate> | null
+  // ADDED: A new prop to accept initial form data for creating a new template.
+  initialData?: any | null
 }
 
 const ModalCreateUpdateTemplate: React.FC<Props> = ({
   opened,
   onClose,
   data = null,
+  // ADDED: Destructure the new prop.
+  initialData = null,
 }: Props) => {
   const {
     form: inputMessageForm,
@@ -36,11 +40,15 @@ const ModalCreateUpdateTemplate: React.FC<Props> = ({
     },
   })
 
-  // The useEffect hook for populating the form based on `data` prop.
-  // This logic is complex and specific to this component, so it remains here.
+  // MODIFIED: The useEffect hook is updated to prioritize `initialData` for populating the form.
   useEffect(() => {
     if (opened) {
-      if (data) {
+      // If initialData is provided, it's a "new template from composed message" flow.
+      if (initialData) {
+        inputMessageForm.setValues(initialData)
+        form.reset() // Ensure the name field is empty
+      } else if (data) {
+        // This is the existing "edit" or "clone" flow.
         form.setValues({ name: data.name })
         const messageData = data.message as any
         const type = data.type
@@ -84,15 +92,15 @@ const ModalCreateUpdateTemplate: React.FC<Props> = ({
             break
         }
       } else {
+        // This is the "create new blank template" flow.
         form.reset()
         inputMessageForm.reset()
       }
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, opened])
+  }, [data, initialData, opened])
 
   // --- START REFACTOR ---
-
   // Separated logic for creating a new template.
   const handleCreate = async () => {
     const { type } = inputMessageForm.values
@@ -117,7 +125,6 @@ const ModalCreateUpdateTemplate: React.FC<Props> = ({
     const { type } = inputMessageForm.values
     const { name } = form.values
     const messagePayload = getMessage()
-
     await db.broadcastTemplates.update(data.id, {
       name,
       type,
@@ -168,6 +175,7 @@ const ModalCreateUpdateTemplate: React.FC<Props> = ({
       <Stack justify="space-between">
         <Stack>
           <Center>
+            {/* MODIFIED: Title is now dynamic based on whether it's editing, creating from initial data, or creating new. */}
             <Title order={3}>{data?.id ? 'Edit' : 'Create'} Template</Title>
           </Center>
           <TextInput label="Name" required {...form.getInputProps('name')} />

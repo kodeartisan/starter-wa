@@ -21,6 +21,8 @@ import { useStorage } from '@plasmohq/storage/hook'
 import { useLiveQuery } from 'dexie-react-hooks'
 import React, { useMemo } from 'react'
 import { When } from 'react-if'
+// ADDED: Import the modal for creating templates.
+import ModalCreateUpdateTemplate from '../../Modal/ModalCreateUpdateTemplate'
 import ModalManageTemplate from '../../Modal/ModalManageTemplate'
 import FormDocument from './FormFile'
 import FormImage from './FormImage'
@@ -45,13 +47,16 @@ const InputMessage: React.FC<Props> = ({
     async () => await db.broadcastTemplates.toArray(),
   )
   const [showModalManageTemplate, modalManageTemplate] = useDisclosure(false)
-  // ADDED: Logic for dismissible Spintax tip.
+
+  // ADDED: State and handlers for the "Save as Template" modal.
+  const [showModalSaveTemplate, modalSaveTemplateHandlers] =
+    useDisclosure(false)
+
   const [isSpintaxTipDismissed, setIsSpintaxTipDismissed] = useStorage(
     Setting.SPINTAX_TIP_DISMISSED,
     false,
   )
 
-  // ++ MODIFIED: Define personalization variables, adding a Spintax button with a tooltip at the beginning.
   const personalizationVariables = [
     {
       label: 'Spintax',
@@ -107,6 +112,7 @@ const InputMessage: React.FC<Props> = ({
       }),
       [Message.POLL]: () => ({ type, inputPoll: { ...(message as object) } }),
     }
+
     const data = await dataByMessageTypes[type]?.()
     form.setValues(data)
   }
@@ -114,16 +120,12 @@ const InputMessage: React.FC<Props> = ({
   const renderInputMessage = () => {
     switch (form.values.type) {
       case Message.TEXT:
-        // ++ MODIFIED: Pass variables to the form component.
         return <FormText form={form} variables={personalizationVariables} />
       case Message.IMAGE:
-        // ++ MODIFIED: Pass variables to the form component.
         return <FormImage form={form} variables={personalizationVariables} />
       case Message.VIDEO:
-        // ++ MODIFIED: Pass variables to the form component.
         return <FormVideo form={form} variables={personalizationVariables} />
       case Message.FILE:
-        // ++ MODIFIED: Pass variables to the form component.
         return <FormDocument form={form} variables={personalizationVariables} />
       case Message.LOCATION:
         return <FormLocation form={form} />
@@ -135,6 +137,7 @@ const InputMessage: React.FC<Props> = ({
         return null
     }
   }
+
   const renderMenuMessage = () => {
     return (
       <SimpleGrid cols={5}>
@@ -175,11 +178,58 @@ const InputMessage: React.FC<Props> = ({
     )
   }
 
+  // ADDED: Function to check if the current message is empty to disable the save button.
+  const isMessageEmpty = () => {
+    const {
+      type,
+      inputText,
+      inputImage,
+      inputVideo,
+      inputFile,
+      inputLocation,
+      inputPoll,
+      inputVCard,
+    } = form.values
+    switch (type) {
+      case Message.TEXT:
+        return !inputText
+      case Message.IMAGE:
+        return !inputImage.file
+      case Message.VIDEO:
+        return !inputVideo.file
+      case Message.FILE:
+        return !inputFile.file
+      case Message.LOCATION:
+        return !inputLocation.lat || !inputLocation.lng
+      case Message.POLL:
+        return !inputPoll.name
+      case Message.VCARD:
+        return inputVCard.contacts.length === 0
+      default:
+        return true
+    }
+  }
+
   return (
     <>
       <Stack>
+        {/* MODIFIED: Added a "Save as Template" icon next to the Message title */}
         <Group justify="space-between">
-          <Text fw={500}>Message</Text>
+          <Group gap="xs" align="center">
+            <Text fw={500}>Message</Text>
+            <When condition={!disabledTemplateButton}>
+              <Tooltip label="Save as Template">
+                <ActionIcon
+                  size="sm"
+                  variant="subtle"
+                  onClick={modalSaveTemplateHandlers.open}
+                  disabled={isMessageEmpty()}
+                >
+                  <Icon icon="tabler:device-floppy" fontSize={18} />
+                </ActionIcon>
+              </Tooltip>
+            </When>
+          </Group>
           <When condition={!disabledTemplateButton}>
             <Popover width={300} position="top-end" withArrow shadow="md">
               <Popover.Target>
@@ -217,7 +267,7 @@ const InputMessage: React.FC<Props> = ({
           </When>
         </Group>
       </Stack>
-      {/* ADDED: Dismissible alert for Spintax education. */}
+
       {!isSpintaxTipDismissed && (
         <Alert
           icon={<Icon icon="tabler:info-circle" />}
@@ -235,9 +285,17 @@ const InputMessage: React.FC<Props> = ({
       )}
       {renderMenuMessage()}
       {renderInputMessage()}
+
       <ModalManageTemplate
         opened={showModalManageTemplate}
         onClose={modalManageTemplate.close}
+      />
+
+      {/* ADDED: The modal for saving the current message as a new template. */}
+      <ModalCreateUpdateTemplate
+        opened={showModalSaveTemplate}
+        onClose={modalSaveTemplateHandlers.close}
+        initialData={form.values}
       />
     </>
   )
