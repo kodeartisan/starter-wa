@@ -1,11 +1,12 @@
+// src/features/broadcast/components/Input/Message/Upload.tsx
 import { Icon } from '@iconify/react'
-import { Stack, Text } from '@mantine/core'
+import { Box, Stack, Text } from '@mantine/core'
 import {
   Dropzone,
   IMAGE_MIME_TYPE,
   type FileRejection,
 } from '@mantine/dropzone'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 
 interface Props {
   type: 'image' | 'video' | 'file'
@@ -25,6 +26,7 @@ const Upload: React.FC<Props> = ({
     name: string
     size: string
   } | null>(null)
+  const dropzoneRef = useRef<any>(null)
 
   const mimes = {
     image: IMAGE_MIME_TYPE,
@@ -52,8 +54,6 @@ const Upload: React.FC<Props> = ({
   }
 
   useEffect(() => {
-    // Cleanup function to revoke the object URL when the component unmounts
-    // or when the preview changes, to prevent memory leaks.
     return () => {
       if (preview) {
         URL.revokeObjectURL(preview)
@@ -62,7 +62,6 @@ const Upload: React.FC<Props> = ({
   }, [preview])
 
   useEffect(() => {
-    // This effect handles the display of a preview when a file 'value' is provided.
     if (value) {
       if (type === 'image') {
         const previewUrl = URL.createObjectURL(value)
@@ -74,7 +73,6 @@ const Upload: React.FC<Props> = ({
         setFileInfo({ name: value.name, size: `${sizeInMB} MB` })
       }
     } else {
-      // If the value is cleared, reset the preview and file info.
       setPreview(null)
       setFileInfo(null)
     }
@@ -83,9 +81,7 @@ const Upload: React.FC<Props> = ({
   const handleDrop = async (files: File[]) => {
     if (files.length > 0) {
       const file = files[0]
-      onDrop(file) // Pass the file to the parent component.
-
-      // Generate a preview based on the file type.
+      onDrop(file)
       if (type === 'video') {
         const thumbnail = await generateVideoThumbnail(file)
         setPreview(thumbnail)
@@ -110,17 +106,15 @@ const Upload: React.FC<Props> = ({
       const canvas = document.createElement('canvas')
       const context = canvas.getContext('2d')
       video.src = URL.createObjectURL(file)
-
       video.addEventListener('loadeddata', () => {
         canvas.width = 200
         canvas.height = 150
-        video.currentTime = 0 // Seek to the beginning
-
+        video.currentTime = 0
         video.addEventListener('seeked', () => {
           if (context) {
             context.drawImage(video, 0, 0, canvas.width, canvas.height)
             const thumbnailUrl = canvas.toDataURL('image/png')
-            URL.revokeObjectURL(video.src) // Clean up the object URL
+            URL.revokeObjectURL(video.src)
             resolve(thumbnailUrl)
           }
         })
@@ -128,74 +122,91 @@ const Upload: React.FC<Props> = ({
     })
   }
 
+  const renderContent = () => {
+    const isFileSelected = (type === 'file' && fileInfo) || preview
+
+    if (isFileSelected) {
+      return (
+        <Box
+          pos="relative"
+          style={{
+            minHeight: 120,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          {type === 'file' && fileInfo ? (
+            <Stack justify="center" align="center" ta="center">
+              <Icon icon="tabler:file-text" fontSize={50} />
+              <Text>File: {fileInfo.name}</Text>
+              <Text size="sm">Size: {fileInfo.size}</Text>
+            </Stack>
+          ) : (
+            preview && (
+              <img
+                src={preview}
+                alt="Preview"
+                style={{
+                  maxWidth: '100%',
+                  height: 100,
+                  objectFit: 'contain',
+                }}
+              />
+            )
+          )}
+        </Box>
+      )
+    }
+
+    return (
+      <>
+        <Dropzone.Idle>
+          <Stack justify="center" align="center">
+            <Icon
+              icon={
+                type === 'image'
+                  ? 'tabler:photo'
+                  : type === 'video'
+                    ? 'tabler:video'
+                    : type === 'file'
+                      ? 'tabler:file-text'
+                      : 'tabler:file'
+              }
+              fontSize={50}
+            />
+            <Text>Drag & drop here or click to select a file</Text>
+            <Text size="xs" c="dimmed">
+              {idleDescriptions[type]}
+            </Text>
+          </Stack>
+        </Dropzone.Idle>
+        <Dropzone.Accept>
+          <Stack justify="center" align="center">
+            <Icon icon={'tabler:upload'} fontSize={50} />
+            <Text>Drop the file here...</Text>
+          </Stack>
+        </Dropzone.Accept>
+        <Dropzone.Reject>
+          <Stack justify="center" align="center">
+            <Icon icon={'tabler:x'} fontSize={50} />
+            <Text>{rejectDescriptions[type]}</Text>
+          </Stack>
+        </Dropzone.Reject>
+      </>
+    )
+  }
+
   return (
     <Dropzone
+      ref={dropzoneRef}
       onDrop={handleDrop}
       onReject={handleReject}
       maxSize={maxSizes[type]}
       accept={mimes[type]}
       multiple={false}
     >
-      {/* START: MODIFIED - Conditional Rendering for Dropzone states */}
-      {/* This section checks if a file is already selected. If so, it shows the preview. */}
-      {/* If not, it renders the different dropzone states (Idle, Accept, Reject). */}
-      {type === 'file' && fileInfo ? (
-        <div style={{ textAlign: 'center' }}>
-          <Stack justify="center" align="center">
-            <Icon icon="tabler:file-text" fontSize={50} />
-            <Text>File: {fileInfo.name}</Text>
-            <Text size="sm">Size: {fileInfo.size}</Text>
-          </Stack>
-        </div>
-      ) : preview ? (
-        <div style={{ textAlign: 'center' }}>
-          <img
-            src={preview}
-            alt="Preview"
-            style={{ maxWidth: '100%', height: 100, objectFit: 'contain' }}
-          />
-        </div>
-      ) : (
-        // This block provides enhanced visual feedback for the drag-and-drop interaction.
-        <>
-          {/* Default state when no file is being dragged. */}
-          <Dropzone.Idle>
-            <Stack justify="center" align="center">
-              <Icon
-                icon={
-                  type === 'image'
-                    ? 'tabler:photo'
-                    : type === 'video'
-                      ? 'tabler:video'
-                      : type === 'file'
-                        ? 'tabler:file-text'
-                        : 'tabler:file'
-                }
-                fontSize={50}
-              />
-              <Text>Drag & drop here or click to select a file</Text>
-              <Text size="xs" c="dimmed">
-                {idleDescriptions[type]}
-              </Text>
-            </Stack>
-          </Dropzone.Idle>
-          {/* State when a valid file is dragged over the component. */}
-          <Dropzone.Accept>
-            <Stack justify="center" align="center">
-              <Icon icon={'tabler:upload'} fontSize={50} />
-              <Text>Drop the file here...</Text>
-            </Stack>
-          </Dropzone.Accept>
-          {/* State when an invalid file is dragged over. */}
-          <Dropzone.Reject>
-            <Stack justify="center" align="center">
-              <Icon icon={'tabler:x'} fontSize={50} />
-              <Text>{rejectDescriptions[type]}</Text>
-            </Stack>
-          </Dropzone.Reject>
-        </>
-      )}
-      {/* END: MODIFIED */}
+      {renderContent()}
     </Dropzone>
   )
 }

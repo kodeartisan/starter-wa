@@ -2,7 +2,7 @@
 import { Message } from '@/constants'
 import parse from '@/utils/parse'
 import { Icon } from '@iconify/react'
-import { Group, Paper, Stack, Text, Title } from '@mantine/core'
+import { Box, Group, Paper, Stack, Text, Title } from '@mantine/core'
 import React from 'react'
 
 interface Props {
@@ -77,19 +77,19 @@ const MessagePreview: React.FC<Props> = ({ type, message }) => {
     if (!placeholder) return null
 
     return (
-      <Paper withBorder p="sm" radius="sm" bg="gray.1">
+      <Box p="sm" bg="gray.1">
         <Group>
           <Icon icon={placeholder.icon} fontSize={24} color="gray" />
           <Text c="dimmed" size="sm">
             {placeholder.label} Preview
           </Text>
         </Group>
-      </Paper>
+      </Box>
     )
   }
 
   return (
-    <Paper p="md" withBorder shadow="none" radius="md" h="100%">
+    <Paper p="md" withBorder shadow="none" radius="md">
       <Stack>
         <Group>
           <Icon icon="tabler:eye" />

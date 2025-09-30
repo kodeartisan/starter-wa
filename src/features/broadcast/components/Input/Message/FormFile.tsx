@@ -18,6 +18,7 @@ const FormFile: React.FC<Props> = ({ form, variables }) => {
         onDrop={(file) => {
           form.setFieldValue('inputFile.file', file)
         }}
+        onRemove={() => form.setFieldValue('inputFile.file', null)}
       />
       <InputTextarea
         value={form.values.inputFile.caption}

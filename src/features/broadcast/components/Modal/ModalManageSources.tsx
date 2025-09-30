@@ -14,12 +14,10 @@ import {
   TextInput,
   Tooltip,
 } from '@mantine/core'
-// ++ ADDED: Import useDebouncedValue for search input debouncing
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks'
 import _ from 'lodash'
 import { DataTable, type DataTableSortStatus } from 'mantine-datatable'
 import React, { useEffect, useMemo, useState } from 'react'
-import ModalEditRecipient from './ModalEditRecipient'
 import ModalLoadRecipientList from './ModalLoadRecipientList'
 import ModalSaveRecipientList from './ModalSaveRecipientList'
 import ModalSourceExcel from './ModalSourceExcel'
@@ -44,11 +42,9 @@ const ModalManageSources: React.FC<Props> = ({
 }) => {
   const [recipients, setRecipients] = useState<any[]>([])
   const [selectedRecords, setSelectedRecords] = useState<any[]>([])
-  const [editingRecipient, setEditingRecipient] = useState<any | null>(null)
   const [page, setPage] = useState(1)
   const [paginatedRecipients, setPaginatedRecipients] = useState<any[]>([])
   const [searchQuery, setSearchQuery] = useState('')
-  // ++ ADDED: Debounce the search query with a 300ms delay to improve performance.
   const [debouncedSearchQuery] = useDebouncedValue(searchQuery, 300)
   const [isSaving, setIsSaving] = useState(false)
   const [editingCell, setEditingCell] = useState<{
@@ -64,10 +60,10 @@ const ModalManageSources: React.FC<Props> = ({
   const [showManualModal, manualModalHandlers] = useDisclosure(false)
   const [showExcelModal, excelModalHandlers] = useDisclosure(false)
   const [showGroupsModal, groupsModalHandlers] = useDisclosure(false)
-  const [showEditModal, editModalHandlers] = useDisclosure(false)
   const [showMyContactsModal, myContactsModalHandlers] = useDisclosure(false)
   const [showSaveListModal, saveListModalHandlers] = useDisclosure(false)
   const [showLoadListModal, loadListModalHandlers] = useDisclosure(false)
+
   const fileExporter = useFile()
 
   useEffect(() => {
@@ -80,7 +76,6 @@ const ModalManageSources: React.FC<Props> = ({
     }
   }, [opened, initialRecipients])
 
-  // -- MODIFIED: This improves performance by re-computing the list only when recipients or the debounced search query change.
   const filteredAndSortedRecipients = useMemo(() => {
     let data = [...recipients]
     if (debouncedSearchQuery) {
@@ -91,7 +86,6 @@ const ModalManageSources: React.FC<Props> = ({
           r.number?.toLowerCase().includes(lowerCaseQuery),
       )
     }
-
     const { columnAccessor, direction } = sortStatus
     if (columnAccessor) {
       data = _.orderBy(data, [columnAccessor], [direction])
@@ -126,7 +120,6 @@ const ModalManageSources: React.FC<Props> = ({
     setRecipients(uniqueRecipients)
     const addedCount = finalCount - initialCount
     const duplicateCount = combined.length - finalCount
-
     if (addedCount > 0 && duplicateCount > 0) {
       toast.info(
         `${addedCount} recipient(s) added. ${duplicateCount} duplicate(s) were automatically removed.`,
@@ -157,41 +150,10 @@ const ModalManageSources: React.FC<Props> = ({
     toast.success(`${numbersToDelete.size} recipient(s) deleted.`)
   }
 
-  const handleOpenEditModal = (recipient: any) => {
-    setEditingRecipient(recipient)
-    editModalHandlers.open()
-  }
-
-  const handleUpdateRecipientFromModal = (
-    originalNumber: string,
-    updatedData: { number: string; name: string },
-  ) => {
-    const isDuplicate = recipients.some(
-      (r) => r.number === updatedData.number && r.number !== originalNumber,
-    )
-    if (isDuplicate) {
-      toast.error(
-        `The number ${updatedData.number} already exists in the list.`,
-      )
-      return
-    }
-    setRecipients((currentRecipients) =>
-      currentRecipients.map((r) =>
-        r.number === originalNumber
-          ? { ...r, name: updatedData.name, number: updatedData.number }
-          : r,
-      ),
-    )
-    editModalHandlers.close()
-  }
-
-  // ++ MODIFIED: Enhanced cell edit handler with validation for the 'number' field.
   const handleSaveCellEdit = () => {
     if (!editingCell) return
     const { recordId, columnId } = editingCell
     const finalValue = editValue.trim()
-
-    // When editing a number, validate it's not empty and not a duplicate.
     if (columnId === 'number') {
       if (finalValue === '') {
         toast.error('Number cannot be empty.')
@@ -205,12 +167,9 @@ const ModalManageSources: React.FC<Props> = ({
         return
       }
     }
-
     setRecipients((currentRecipients) =>
       currentRecipients.map((r) => {
         if (r.number === recordId) {
-          // For 'name', if the edit value is empty, revert to the original name.
-          // For 'number', empty value is blocked by validation above.
           const valueToSet =
             finalValue === '' && columnId === 'name' ? r.name : finalValue
           return { ...r, [columnId]: valueToSet }
@@ -262,7 +221,11 @@ const ModalManageSources: React.FC<Props> = ({
   }
 
   const handleClearAll = () => {
-    setRecipients([])
+    if (
+      confirm('Are you sure you want to remove all recipients from this list?')
+    ) {
+      setRecipients([])
+    }
   }
 
   const handleConfirm = () => {
@@ -331,7 +294,6 @@ const ModalManageSources: React.FC<Props> = ({
         )
       },
     },
-    // ++ MODIFIED: Added render function to the 'number' column for inline editing.
     {
       accessor: 'number',
       title: 'Number',
@@ -400,16 +362,6 @@ const ModalManageSources: React.FC<Props> = ({
       width: '0%',
       render: (recipient) => (
         <Group gap={4} justify="right" wrap="nowrap">
-          <Tooltip label="Edit">
-            <ActionIcon
-              size="sm"
-              variant="subtle"
-              color="blue"
-              onClick={() => handleOpenEditModal(recipient)}
-            >
-              <Icon icon="tabler:edit" />
-            </ActionIcon>
-          </Tooltip>
           <Tooltip label="Delete">
             <ActionIcon
               size="sm"
@@ -424,9 +376,10 @@ const ModalManageSources: React.FC<Props> = ({
       ),
     },
   ]
+
   return (
     <>
-      <Modal opened={opened} onClose={onClose} w={750} withCloseButton>
+      <Modal opened={opened} onClose={onClose} w={800} withCloseButton>
         <Stack justify="space-between" h={'calc(80vh)'} p="sm">
           <Stack>
             <Group justify="space-between">
@@ -445,57 +398,55 @@ const ModalManageSources: React.FC<Props> = ({
                 )}
               </Group>
               <Group>
-                <Menu shadow="md">
-                  <Menu.Target>
-                    <Button
-                      size="xs"
-                      leftSection={<Icon icon="tabler:plus" fontSize={16} />}
-                    >
-                      Add Recipients
-                    </Button>
-                  </Menu.Target>
-                  <Menu.Dropdown>
-                    <Menu.Label>Sources</Menu.Label>
-                    <Menu.Item
-                      leftSection={
-                        <Icon icon="tabler:keyboard" fontSize={16} />
-                      }
-                      onClick={manualModalHandlers.open}
-                    >
-                      Manual
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={
-                        <Icon icon="tabler:file-type-xls" fontSize={16} />
-                      }
-                      onClick={excelModalHandlers.open}
-                    >
-                      Excel
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={<Icon icon="tabler:users" fontSize={16} />}
-                      onClick={groupsModalHandlers.open}
-                    >
-                      Groups
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={
-                        <Icon icon="tabler:address-book" fontSize={16} />
-                      }
-                      onClick={myContactsModalHandlers.open}
-                    >
-                      My Contacts
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={
-                        <Icon icon="tabler:database-import" fontSize={16} />
-                      }
-                      onClick={loadListModalHandlers.open}
-                    >
-                      Load Saved List
-                    </Menu.Item>
-                  </Menu.Dropdown>
-                </Menu>
+                <Button.Group>
+                  <Button
+                    size="xs"
+                    variant="default"
+                    leftSection={<Icon icon="tabler:keyboard" fontSize={16} />}
+                    onClick={manualModalHandlers.open}
+                  >
+                    Manual
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="default"
+                    leftSection={
+                      <Icon icon="tabler:file-type-xls" fontSize={16} />
+                    }
+                    onClick={excelModalHandlers.open}
+                  >
+                    Excel
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="default"
+                    leftSection={<Icon icon="tabler:users" fontSize={16} />}
+                    onClick={groupsModalHandlers.open}
+                  >
+                    Groups
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="default"
+                    leftSection={
+                      <Icon icon="tabler:address-book" fontSize={16} />
+                    }
+                    onClick={myContactsModalHandlers.open}
+                  >
+                    My Contacts
+                  </Button>
+                  <Button
+                    size="xs"
+                    variant="default"
+                    leftSection={
+                      <Icon icon="tabler:database-import" fontSize={16} />
+                    }
+                    onClick={loadListModalHandlers.open}
+                  >
+                    Load List
+                  </Button>
+                </Button.Group>
+
                 <Menu shadow="md" withArrow>
                   <Menu.Target>
                     <Button
@@ -538,17 +489,19 @@ const ModalManageSources: React.FC<Props> = ({
                     >
                       Export as XLSX
                     </Menu.Item>
-                    <Menu.Divider />
-                    <Menu.Item
-                      color="red"
-                      leftSection={<Icon icon="tabler:x" fontSize={16} />}
-                      onClick={handleClearAll}
-                      disabled={recipients.length === 0}
-                    >
-                      Clear All
-                    </Menu.Item>
                   </Menu.Dropdown>
                 </Menu>
+
+                <Button
+                  size="xs"
+                  variant="light"
+                  color="red"
+                  leftSection={<Icon icon="tabler:x" fontSize={16} />}
+                  onClick={handleClearAll}
+                  disabled={recipients.length === 0}
+                >
+                  Clear All
+                </Button>
               </Group>
             </Group>
             <TextInput
@@ -590,12 +543,7 @@ const ModalManageSources: React.FC<Props> = ({
           </Group>
         </Stack>
       </Modal>
-      <ModalEditRecipient
-        opened={showEditModal}
-        onClose={editModalHandlers.close}
-        onSubmit={handleUpdateRecipientFromModal}
-        recipientData={editingRecipient}
-      />
+
       <ModalSourceManual
         opened={showManualModal}
         onClose={manualModalHandlers.close}

@@ -18,6 +18,7 @@ const FormVideo: React.FC<Props> = ({ form, variables }) => {
         onDrop={(file) => {
           form.setFieldValue('inputVideo.file', file)
         }}
+        onRemove={() => form.setFieldValue('inputVideo.file', null)}
       />
       <InputTextarea
         value={form.values.inputVideo.caption}
