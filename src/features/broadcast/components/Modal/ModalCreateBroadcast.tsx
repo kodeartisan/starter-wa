@@ -14,7 +14,7 @@ import {
   TextInput,
 } from '@mantine/core'
 import { useDisclosure } from '@mantine/hooks'
-import React, { useState } from 'react'
+import React from 'react'
 import AntiBlockingSettings from '../Form/AntiBlockingSettings' // Import the new component
 import BroadcastActions from '../Form/BroadcastActions'
 import BroadcastScheduler from '../Form/BroadcastScheduler'
@@ -43,8 +43,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
   const [showSourcesModal, sourcesModalHandlers] = useDisclosure(false)
   const [showDuplicateWarning, duplicateWarningHandlers] = useDisclosure(false)
   const [showLoadListModal, loadListModalHandlers] = useDisclosure(false)
-  // ADDED: State to manage the loading status of the submission button.
-  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const {
     form,
@@ -67,14 +65,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
   }
 
   const onSendClick = async () => {
-    setIsSubmitting(true)
     const result = await handleSendBroadcast()
-
-    // If the process isn't immediately successful (e.g., requires a warning or failed validation),
-    // stop the loading indicator. On direct success, the modal closes, resetting the state naturally.
-    if (result !== 'SUCCESS') {
-      setIsSubmitting(false)
-    }
 
     if (result === 'NEEDS_WARNING') {
       warningModalHandlers.open()
@@ -87,6 +78,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
   const { type, inputText, inputImage, inputVideo, inputFile } =
     inputMessageForm.values
   let messageForPreview: any
+
   switch (type) {
     case Message.TEXT:
       messageForPreview = inputText
@@ -103,6 +95,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
     default:
       messageForPreview = null
   }
+
   return (
     <>
       <Modal opened={opened} onClose={handleClose} w={950} withCloseButton>
@@ -121,7 +114,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 clearable
               />
             </Group>
-
             <Grid>
               <Grid.Col span={6}>
                 <Stack>
@@ -146,11 +138,11 @@ const ModalCreateBroadcast: React.FC<Props> = ({
               onSend={onSendClick}
               isScheduled={form.values.scheduler.enabled}
               scheduledAt={form.values.scheduler.scheduledAt}
-              isLoading={isSubmitting}
             />
           </Stack>
         </ScrollArea>
       </Modal>
+
       <ModalManageSources
         opened={showSourcesModal}
         onClose={sourcesModalHandlers.close}
@@ -167,7 +159,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
         onClose={warningModalHandlers.close}
         onConfirm={async () => {
           warningModalHandlers.close()
-          setIsSubmitting(true) // Re-enable loading before final submission.
           await handleWarningAccepted()
         }}
       />
@@ -176,7 +167,6 @@ const ModalCreateBroadcast: React.FC<Props> = ({
         onClose={duplicateWarningHandlers.close}
         onConfirm={async () => {
           duplicateWarningHandlers.close()
-          setIsSubmitting(true) // Re-enable loading before final submission.
           await forceSendBroadcast()
         }}
       />

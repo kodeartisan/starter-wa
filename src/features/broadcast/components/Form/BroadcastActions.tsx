@@ -8,7 +8,6 @@ interface Props {
   onSend: () => void
   isScheduled: boolean
   scheduledAt: Date | null
-  isLoading?: boolean
 }
 
 /**
@@ -20,7 +19,6 @@ const BroadcastActions: React.FC<Props> = ({
   onSend,
   isScheduled,
   scheduledAt,
-  isLoading = false,
 }: Props) => {
   const isScheduledForFuture =
     isScheduled && scheduledAt && isFuture(new Date(scheduledAt))
@@ -30,7 +28,6 @@ const BroadcastActions: React.FC<Props> = ({
       <Button
         leftSection={<Icon icon="tabler:send" fontSize={18} />}
         onClick={onSend}
-        loading={isLoading}
       >
         {isScheduledForFuture ? 'Schedule Broadcast' : 'Send Broadcast'}
       </Button>

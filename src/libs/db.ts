@@ -30,8 +30,8 @@ export interface Broadcast {
   batchDelay: number
   resumeAt?: Date | null
   tags?: string[]
-  // ++ ADDED: A hash of the message content for quick duplicate checks.
   contentHash?: string
+  warmupModeEnabled: number // ADDED: Warm-up mode toggle
 }
 
 export interface BroadcastContact {
@@ -67,14 +67,12 @@ const db = new Dexie(packageJson.name) as Dexie & {
   broadcastRecipients: EntityTable<BroadcastRecipient, 'id'>
 }
 
-// NOTE: Dexie cannot index boolean values. Fields intended for use in `where()` clauses
-// have been changed from `boolean` to `number` (0 for false, 1 for true).
-// ++ MODIFIED: Database version incremented to apply schema changes.
+// MODIFIED: Database version incremented to apply schema changes.
 db.version(1).stores({
   media: '++id, parentId, type, name, file, ext',
-  // ++ MODIFIED: Added `contentHash` for indexing to speed up duplicate checks.
+  // MODIFIED: Added `warmupModeEnabled` to the schema.
   broadcasts:
-    '++id, name, type, isTyping, isScheduler, status, delayMin, delayMax, validateNumbers, smartPauseEnabled, smartPauseStart, smartPauseEnd, batchEnabled, batchSize, batchDelay, resumeAt, *tags, contentHash',
+    '++id, name, type, isTyping, isScheduler, status, delayMin, delayMax, validateNumbers, smartPauseEnabled, smartPauseStart, smartPauseEnd, batchEnabled, batchSize, batchDelay, resumeAt, *tags, contentHash, warmupModeEnabled',
   broadcastContacts:
     '++id, broadcastId, number, name, status, error, scheduledAt, sendAt, [broadcastId+status]',
   broadcastTemplates: '++id, name, type, message',

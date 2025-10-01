@@ -36,6 +36,10 @@ const defaultValues = {
     size: 20,
     delay: 15,
   },
+  // ADDED: Default state for the new warm-up mode feature.
+  warmupMode: {
+    enabled: false,
+  },
   delayMin: 3,
   delayMax: 6,
 }
@@ -54,7 +58,6 @@ interface useBroadcastFormProps {
 const hashMessage = (obj: any): string => {
   const str = JSON.stringify(obj)
   if (str.length === 0) return '0'
-
   const hash = str
     .split('')
     .reduce((a, b) => ((a << 5) - a + b.charCodeAt(0)) | 0, 0)
@@ -157,7 +160,6 @@ export const useBroadcastForm = ({
         let recipientsToSet: any[] = []
         let nameSuffix = ' (Copy)'
         const broadcastName = `${cloneData.name || 'Broadcast'}`
-
         if (cloneData.recipients && cloneData.recipients.length > 0) {
           recipientsToSet = cloneData.recipients
           nameSuffix = ' (Resend)'
@@ -170,7 +172,6 @@ export const useBroadcastForm = ({
             name: contact.name,
           }))
         }
-
         form.setValues({
           name: `${broadcastName}${nameSuffix}`,
           numbers: recipientsToSet,
@@ -191,13 +192,15 @@ export const useBroadcastForm = ({
             size: cloneData.batchSize || 20,
             delay: cloneData.batchDelay || 15,
           },
+          // ADDED: Ensure warm-up mode setting is cloned.
+          warmupMode: {
+            enabled: !!cloneData.warmupModeEnabled,
+          },
           delayMin: cloneData.delayMin ? cloneData.delayMin / 1000 : 3,
           delayMax: cloneData.delayMax ? cloneData.delayMax / 1000 : 6,
         })
-
         const { type, message } = cloneData
         inputMessageForm.setFieldValue('type', type)
-
         switch (type) {
           case Message.TEXT:
             inputMessageForm.setFieldValue('inputText', message as string)
@@ -211,7 +214,6 @@ export const useBroadcastForm = ({
             const caption =
               (message as any)?.caption ||
               (typeof message === 'string' ? message : '')
-
             if (type === Message.IMAGE) {
               inputMessageForm.setFieldValue('inputImage', {
                 file: mediaFile?.file || null,
@@ -238,7 +240,6 @@ export const useBroadcastForm = ({
         }
       }
     }
-
     if (cloneData) {
       populateForm().catch(console.error)
     }
@@ -250,18 +251,15 @@ export const useBroadcastForm = ({
     onClose()
   }
 
-  // -- MODIFIED: This function now contains the core logic for saving the broadcast to the database.
   const saveAndDispatchBroadcast = async () => {
-    // MODIFIED: Removed signature logic
     const messagePayload = getMessage()
     const messageType = inputMessageForm.values.type
-
     const broadcastData = {
       name: form.values.name,
       tags: form.values.tags,
       type: messageType,
       message: messagePayload,
-      contentHash: hashMessage(messagePayload), // ++ ADDED: Store the content hash.
+      contentHash: hashMessage(messagePayload),
       isTyping: form.values.isTyping ? 1 : 0,
       isScheduler: form.values.scheduler.enabled ? 1 : 0,
       validateNumbers: form.values.validateNumbers ? 1 : 0,
@@ -274,16 +272,16 @@ export const useBroadcastForm = ({
       batchEnabled: form.values.batch.enabled ? 1 : 0,
       batchSize: form.values.batch.size,
       batchDelay: form.values.batch.delay,
+      // ADDED: Save the warm-up mode state to the database.
+      warmupModeEnabled: form.values.warmupMode.enabled ? 1 : 0,
       resumeAt: null,
     }
 
     try {
       const broadcastId = await db.broadcasts.add(broadcastData as Broadcast)
-
       if (isTypeMessageMedia(inputMessageForm.values.type)) {
         await insertBroadcastFile(broadcastId, Media.BROADCAST)
       }
-
       //@ts-ignore
       const contacts: BroadcastContact[] = form.values.numbers.map(
         (recipient: any) => ({
@@ -299,7 +297,6 @@ export const useBroadcastForm = ({
         }),
       )
       await db.broadcastContacts.bulkAdd(contacts)
-
       onSuccess()
     } catch (error) {
       console.error('Failed to save broadcast:', error)
@@ -307,27 +304,20 @@ export const useBroadcastForm = ({
     }
   }
 
-  // -- MODIFIED: This function now serves as a validation gateway before sending.
   const handleSendBroadcast = async () => {
     if (formHasErrors(form, inputMessageForm)) return 'VALIDATION_ERROR'
-
-    // ++ ADDED: Duplicate content check.
     const messagePayload = getMessage()
     const contentHash = hashMessage(messagePayload)
     const lastBroadcast = await db.broadcasts.orderBy('id').last()
-
     if (lastBroadcast && lastBroadcast.contentHash === contentHash) {
       return 'DUPLICATE'
     }
-
     const hasAcknowledged = await storage.get(
       Setting.HAS_ACKNOWLEDGED_BROADCAST_WARNING,
     )
-
     if (!hasAcknowledged) {
       return 'NEEDS_WARNING'
     }
-
     await saveAndDispatchBroadcast()
     return 'SUCCESS'
   }
@@ -343,6 +333,6 @@ export const useBroadcastForm = ({
     handleClose,
     handleSendBroadcast,
     handleWarningAccepted,
-    forceSendBroadcast: saveAndDispatchBroadcast, // ++ ADDED: Expose the raw send function for the duplicate warning modal.
+    forceSendBroadcast: saveAndDispatchBroadcast,
   }
 }

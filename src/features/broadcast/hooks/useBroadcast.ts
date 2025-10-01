@@ -32,11 +32,6 @@ const useBroadcast = () => {
       }
     }
 
-    const randomDelay =
-      Math.floor(
-        Math.random() * (broadcast.delayMax - broadcast.delayMin + 1),
-      ) + broadcast.delayMin
-    await delay(randomDelay)
     const action = getBroadcastAction(broadcast, contact)
     if (action) {
       await action()
@@ -54,7 +49,6 @@ const useBroadcast = () => {
       .count()
 
     if (pendingCount === 0 && runningCount === 0) {
-      // Check if the broadcast is paused for batching; if so, it's not "SUCCESS" yet.
       const freshBroadcast = await BroadcastModel.get(broadcast.id)
       if (freshBroadcast.status === Status.PAUSED) {
         return
@@ -69,19 +63,17 @@ const useBroadcast = () => {
   const processBroadcastQueue = async () => {
     if (processingState.current === 'PROCESSING') return
     processingState.current = 'PROCESSING'
-
     try {
       while (true) {
         const contacts = await BroadcastContactModel.getStatusPendingBatch(20)
         if (!contacts.length) break
-
         const contactsByBroadcast = _.groupBy(contacts, 'broadcastId')
 
         for (const broadcastIdStr in contactsByBroadcast) {
           const broadcastId = parseInt(broadcastIdStr, 10)
           const contactGroup = contactsByBroadcast[broadcastId]
-
           const broadcast = await BroadcastModel.get(broadcastId)
+
           if (!broadcast) {
             const contactIds = contactGroup.map((c) => c.id)
             await db.broadcastContacts
@@ -97,6 +89,11 @@ const useBroadcast = () => {
               .catch(console.error)
             continue
           }
+
+          // MODIFIED: Fetch the count of successfully sent messages for this broadcast.
+          let successfulCountForBroadcast = await db.broadcastContacts
+            .where({ broadcastId: broadcast.id, status: Status.SUCCESS })
+            .count()
 
           if (broadcast.smartPauseEnabled) {
             const now = new Date()
@@ -123,14 +120,26 @@ const useBroadcast = () => {
             if (!validationRef.current) return
             try {
               await BroadcastContactModel.running(contact.id)
+
+              // MODIFIED: Implemented the core warm-up delay logic.
+              const isWarmupPhase =
+                broadcast.warmupModeEnabled && successfulCountForBroadcast < 20
+              const randomDelay = isWarmupPhase
+                ? Math.floor(Math.random() * (30000 - 15000 + 1)) + 15000 // 15-30s delay for warm-up
+                : Math.floor(
+                    Math.random() *
+                      (broadcast.delayMax - broadcast.delayMin + 1),
+                  ) + broadcast.delayMin // User-defined delay
+
+              await delay(randomDelay)
               await runBroadcast(broadcast, contact)
               await BroadcastContactModel.success(contact.id)
+              successfulCountForBroadcast++ // Increment count for the next message in this broadcast.
             } catch (error: any) {
               await BroadcastContactModel.failed(contact.id, error.message)
             }
           }
 
-          // ++ ADDED: Batch Sending Logic
           if (broadcast.batchEnabled) {
             const successfulCount = await db.broadcastContacts
               .where({ broadcastId: broadcast.id, status: Status.SUCCESS })
@@ -139,7 +148,6 @@ const useBroadcast = () => {
               .where({ broadcastId: broadcast.id, status: Status.PENDING })
               .count()
 
-            // If a batch is complete and more messages are pending, pause the broadcast.
             if (
               successfulCount > 0 &&
               successfulCount % broadcast.batchSize === 0 &&
@@ -152,11 +160,9 @@ const useBroadcast = () => {
                 status: Status.PAUSED,
                 resumeAt: resumeAt,
               })
-              // Continue to the next broadcast group instead of checking if this one is done.
               continue
             }
           }
-
           await checkAllContactsDone(broadcast)
         }
       }
@@ -172,21 +178,17 @@ const useBroadcast = () => {
 
   const checkScheduledAndPaused = async () => {
     const now = new Date()
-
-    // Mark scheduled contacts as 'PENDING'
     await db.broadcastContacts
       .where('status')
       .equals(Status.SCHEDULER)
       .and((contact) => dayjs(contact.scheduledAt).isBefore(now))
       .modify({ status: Status.PENDING })
 
-    // Resume Smart Pause broadcasts
     const pausedBroadcasts = await db.broadcasts
       .where('status')
       .equals(Status.PAUSED)
       .toArray()
     for (const broadcast of pausedBroadcasts) {
-      // Smart Pause resume logic
       if (broadcast.smartPauseEnabled && !broadcast.resumeAt) {
         const currentTime = now.getHours() * 60 + now.getMinutes()
         const [startH, startM] = broadcast.smartPauseStart
@@ -199,7 +201,7 @@ const useBroadcast = () => {
           await BroadcastModel.pending(broadcast.id)
         }
       }
-      // ++ ADDED: Batch Sending resume logic
+
       if (
         broadcast.batchEnabled &&
         broadcast.resumeAt &&
@@ -211,7 +213,6 @@ const useBroadcast = () => {
         })
       }
     }
-
     await processBroadcastQueue()
   }
 

@@ -1,7 +1,7 @@
 // src/features/broadcast/components/Input/InputSendLater.tsx
 import useLicense from '@/hooks/useLicense'
 import { Icon } from '@iconify/react'
-import { Badge, Group, Switch, Text, Tooltip } from '@mantine/core'
+import { Badge, Group, Switch, Text, TextInput, Tooltip } from '@mantine/core'
 import { DateTimePicker } from '@mantine/dates'
 import type { UseFormReturnType } from '@mantine/form'
 import { endOfDay } from 'date-fns'
@@ -36,11 +36,10 @@ const InputSendLater: React.FC<Props> = ({ form }: Props) => {
         {...form.getInputProps('scheduler.enabled', { type: 'checkbox' })}
       />
       <When condition={form.values.scheduler.enabled}>
-        <DateTimePicker
+        <TextInput
           label="Date time"
           size="md"
-          minDate={dayjs().add(2, 'minutes').toDate()}
-          clearable
+          type="datetime-local"
           {...form.getInputProps('scheduler.scheduledAt')}
         />
       </When>

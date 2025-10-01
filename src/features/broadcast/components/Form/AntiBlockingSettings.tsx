@@ -83,7 +83,6 @@ const AntiBlockingSettings: React.FC<Props> = ({ form }) => {
                 />
               </Grid.Col>
             </Grid>
-
             <Grid>
               <Grid.Col span={{ base: 12, md: 6 }}>
                 <InputTyping form={form} />
@@ -113,10 +112,31 @@ const AntiBlockingSettings: React.FC<Props> = ({ form }) => {
                 />
               </Grid.Col>
             </Grid>
-
             <Grid>
+              {/* ADDED: Warm-up Mode Toggle */}
               <Grid.Col span={{ base: 12, md: 6 }}>
-                <SmartPauseSettings form={form} />
+                <Switch
+                  label={
+                    <Group gap={4} wrap="nowrap">
+                      <Text fw={500}>Warm-up Mode</Text>
+                      <Tooltip
+                        label="For large broadcasts, this automatically sends the first 20 messages with a longer, more random delay to simulate natural activity and enhance account safety."
+                        position="top-start"
+                        multiline
+                        w={300}
+                        withArrow
+                      >
+                        <Icon
+                          icon="tabler:info-circle"
+                          style={{ display: 'block' }}
+                        />
+                      </Tooltip>
+                    </Group>
+                  }
+                  {...form.getInputProps('warmupMode.enabled', {
+                    type: 'checkbox',
+                  })}
+                />
               </Grid.Col>
               <Grid.Col span={{ base: 12, md: 6 }}>
                 <Stack>
@@ -162,6 +182,11 @@ const AntiBlockingSettings: React.FC<Props> = ({ form }) => {
                     )}
                   </When>
                 </Stack>
+              </Grid.Col>
+            </Grid>
+            <Grid>
+              <Grid.Col span={{ base: 12, md: 6 }}>
+                <SmartPauseSettings form={form} />
               </Grid.Col>
             </Grid>
           </Stack>
