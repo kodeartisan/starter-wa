@@ -1,7 +1,16 @@
 // src/features/broadcast/components/Input/InputSendLater.tsx
 import useLicense from '@/hooks/useLicense'
+import { showModalUpgrade } from '@/utils/util'
 import { Icon } from '@iconify/react'
-import { Badge, Group, Switch, Text, TextInput, Tooltip } from '@mantine/core'
+import {
+  Badge,
+  Group,
+  Stack,
+  Switch,
+  Text,
+  TextInput,
+  Tooltip,
+} from '@mantine/core'
 import { DateTimePicker } from '@mantine/dates'
 import type { UseFormReturnType } from '@mantine/form'
 import { endOfDay } from 'date-fns'
@@ -17,11 +26,25 @@ const InputSendLater: React.FC<Props> = ({ form }: Props) => {
   const license = useLicense()
   const maxScheduleDate = endOfDay(new Date())
   return (
-    <>
+    <Stack
+      onClick={() => {
+        if (license.isFree()) {
+          showModalUpgrade(
+            'Schedule for Later',
+            'Schedule your broadcasts to be sent at a specific date and time in the future.',
+          )
+        }
+      }}
+    >
       <Switch
         label={
           <Group gap={4} wrap="nowrap">
             <Text fw={500}>Send later</Text>
+            {license.isFree() && (
+              <Badge color="yellow" variant="light" size="sm">
+                Pro
+              </Badge>
+            )}
             <Tooltip
               label="Schedule your broadcast to be sent at a specific date and time in the future."
               position="top-start"
@@ -43,7 +66,7 @@ const InputSendLater: React.FC<Props> = ({ form }: Props) => {
           {...form.getInputProps('scheduler.scheduledAt')}
         />
       </When>
-    </>
+    </Stack>
   )
 }
 

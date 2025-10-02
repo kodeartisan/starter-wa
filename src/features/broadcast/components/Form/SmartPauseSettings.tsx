@@ -1,6 +1,8 @@
 // src/features/broadcast/components/Form/SmartPauseSettings.tsx
+import useLicense from '@/hooks/useLicense'
+import { showModalUpgrade } from '@/utils/util'
 import { Icon } from '@iconify/react'
-import { Group, Stack, Switch, Text, Tooltip } from '@mantine/core'
+import { Badge, Group, Stack, Switch, Text, Tooltip } from '@mantine/core'
 import { TimeInput } from '@mantine/dates'
 import type { UseFormReturnType } from '@mantine/form'
 import React from 'react'
@@ -16,12 +18,27 @@ interface Props {
  * to define working hours during which broadcasts can be sent.
  */
 const SmartPauseSettings: React.FC<Props> = ({ form }) => {
+  const license = useLicense()
   return (
-    <Stack>
+    <Stack
+      onClick={() => {
+        if (license.isFree()) {
+          showModalUpgrade(
+            'Smart Pause',
+            'Automatically pause the broadcast outside of specified hours and resume the next day. This helps simulate human behavior and avoid sending messages at inappropriate times.',
+          )
+        }
+      }}
+    >
       <Switch
         label={
           <Group gap={4} wrap="nowrap">
             <Text fw={500}>Smart Pause</Text>
+            {license.isFree() && (
+              <Badge color="yellow" variant="light" size="sm">
+                Pro
+              </Badge>
+            )}
             <Tooltip
               label="Automatically pause the broadcast outside of specified hours and resume the next day. This helps simulate human behavior and avoid sending messages at inappropriate times."
               position="top-start"

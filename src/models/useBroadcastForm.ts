@@ -88,7 +88,18 @@ export const useBroadcastForm = ({
         }
         return null
       },
+      warmupMode: (value) => {
+        if (license.isFree && value.enabled) {
+          form.setFieldValue('warmupMode.enabled', false)
+          return
+        }
+        return null
+      },
       scheduler: (value) => {
+        if (license.isFree()) {
+          form.setFieldValue('scheduler.enabled', false)
+          return
+        }
         if (value.enabled && !value.scheduledAt) {
           return 'Scheduled date and time is required.'
         }
@@ -115,6 +126,10 @@ export const useBroadcastForm = ({
         return null
       },
       smartPause: (value) => {
+        if (license.isFree()) {
+          form.setFieldValue('smartPause.enabled', false)
+          return
+        }
         if (!value.enabled) return null
         if (!value.start || !value.end) {
           return 'Start and end times are required for Smart Pause.'
@@ -125,6 +140,11 @@ export const useBroadcastForm = ({
         return null
       },
       batch: (value) => {
+        if (license.isFree()) {
+          form.setFieldValue('batch.enabled', false)
+          return
+        }
+
         if (!value.enabled) return null
         if (!value.size || value.size < 1) {
           return 'Batch size must be at least 1.'
@@ -145,7 +165,14 @@ export const useBroadcastForm = ({
         return null
       },
     },
-    validateInputOnChange: ['numbers', 'scheduler.scheduledAt'],
+    validateInputOnChange: [
+      'numbers',
+      'scheduler.scheduledAt',
+      'warmupMode.enabled',
+      'batch.enabled',
+      'smartPause.enabled',
+      'scheduler.enabled',
+    ],
   })
 
   const {
