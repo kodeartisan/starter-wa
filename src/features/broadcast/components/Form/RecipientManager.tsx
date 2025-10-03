@@ -1,6 +1,7 @@
 // src/features/broadcast/components/Form/RecipientManager.tsx
+import useLicense from '@/hooks/useLicense'
 import { Icon } from '@iconify/react'
-import { Button, Group, Stack, Text } from '@mantine/core'
+import { Button, Group, Stack, Text, Tooltip } from '@mantine/core'
 import React from 'react'
 
 interface Props {
@@ -8,7 +9,6 @@ interface Props {
   error?: string | any
   onClear: () => void
   onManage: () => void
-  // ADDED: New prop for the "Load List" button handler.
   onLoad: () => void
 }
 
@@ -22,9 +22,22 @@ const RecipientManager: React.FC<Props> = ({
   error,
   onClear,
   onManage,
-  // ADDED: Destructure the new prop.
   onLoad,
 }) => {
+  const license = useLicense()
+
+  // The Manage button is defined once to avoid code duplication.
+  const manageButton = (
+    <Button
+      variant="outline"
+      size="compact-sm"
+      onClick={onManage}
+      leftSection={<Icon icon="tabler:users-plus" fontSize={16} />}
+    >
+      Manage
+    </Button>
+  )
+
   return (
     <Stack gap="xs">
       <Group justify="space-between">
@@ -40,7 +53,6 @@ const RecipientManager: React.FC<Props> = ({
           >
             Clear
           </Button>
-          {/* ADDED: "Load List" button to quickly load a saved recipient list. */}
           <Button
             variant="outline"
             size="compact-sm"
@@ -49,14 +61,19 @@ const RecipientManager: React.FC<Props> = ({
           >
             Load
           </Button>
-          <Button
-            variant="outline"
-            size="compact-sm"
-            onClick={onManage}
-            leftSection={<Icon icon="tabler:users-plus" fontSize={16} />}
-          >
-            Manage
-          </Button>
+
+          {/* MODIFIED: Conditionally wrap the Manage button with a Tooltip for free users */}
+          {license.isFree() ? (
+            <Tooltip
+              label="Free plan is limited to 5 recipients. Upgrade to Pro for unlimited contacts!"
+              position="top"
+              withArrow
+            >
+              {manageButton}
+            </Tooltip>
+          ) : (
+            manageButton
+          )}
         </Group>
       </Group>
       {error && (

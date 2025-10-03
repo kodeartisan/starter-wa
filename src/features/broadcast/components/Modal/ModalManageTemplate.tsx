@@ -76,6 +76,7 @@ const ModalManageTemplate: React.FC<Props> = ({ opened, onClose }) => {
   const renderMessage = (broadcastTemplate: BroadcastTemplate) => {
     const { message } = broadcastTemplate
     if (!message) return '-'
+
     const typeContent = {
       [Message.TEXT]:
         typeof message === 'string' ? message : JSON.stringify(message),

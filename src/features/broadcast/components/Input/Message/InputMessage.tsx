@@ -1,11 +1,11 @@
 // src/features/broadcast/components/Input/Message/InputMessage.tsx
-import { Media, Message, Setting } from '@/constants'
+import { Media, Message } from '@/constants'
 import useLicense from '@/hooks/useLicense'
 import db, { type BroadcastTemplate } from '@/libs/db'
+import { showModalUpgrade } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   ActionIcon,
-  Alert,
   Button,
   Group,
   Popover,
@@ -17,11 +17,9 @@ import {
 } from '@mantine/core'
 import type { UseFormReturnType } from '@mantine/form'
 import { useDisclosure } from '@mantine/hooks'
-import { useStorage } from '@plasmohq/storage/hook'
 import { useLiveQuery } from 'dexie-react-hooks'
 import React, { useMemo } from 'react'
 import { When } from 'react-if'
-// ADDED: Import the modal for creating templates.
 import ModalCreateUpdateTemplate from '../../Modal/ModalCreateUpdateTemplate'
 import ModalManageTemplate from '../../Modal/ModalManageTemplate'
 import FormDocument from './FormFile'
@@ -41,22 +39,13 @@ interface Props {
 const InputMessage: React.FC<Props> = ({
   form,
   disabledTemplateButton = false,
-}: Props) => {
+}) => {
   const license = useLicense()
-  const templates = useLiveQuery(
-    async () => await db.broadcastTemplates.toArray(),
-  )
+  const templates =
+    useLiveQuery(async () => await db.broadcastTemplates.toArray()) || []
   const [showModalManageTemplate, modalManageTemplate] = useDisclosure(false)
-
-  // ADDED: State and handlers for the "Save as Template" modal.
   const [showModalSaveTemplate, modalSaveTemplateHandlers] =
     useDisclosure(false)
-
-  const [isSpintaxTipDismissed, setIsSpintaxTipDismissed] = useStorage(
-    Setting.SPINTAX_TIP_DISMISSED,
-    false,
-  )
-
   const personalizationVariables = [
     {
       label: 'Spintax',
@@ -112,7 +101,6 @@ const InputMessage: React.FC<Props> = ({
       }),
       [Message.POLL]: () => ({ type, inputPoll: { ...(message as object) } }),
     }
-
     const data = await dataByMessageTypes[type]?.()
     form.setValues(data)
   }
@@ -178,7 +166,6 @@ const InputMessage: React.FC<Props> = ({
     )
   }
 
-  // ADDED: Function to check if the current message is empty to disable the save button.
   const isMessageEmpty = () => {
     const {
       type,
@@ -210,19 +197,37 @@ const InputMessage: React.FC<Props> = ({
     }
   }
 
+  // ++ MODIFIED: Logic to handle template limits for free users.
+  const isTemplateLimitReached = license.isFree() && templates.length >= 1
+  const handleSaveTemplateClick = () => {
+    if (isTemplateLimitReached) {
+      showModalUpgrade(
+        'Unlimited Templates',
+        'The free plan allows 1 template. Upgrade to Pro to save and reuse unlimited messages!',
+      )
+      return
+    }
+    modalSaveTemplateHandlers.open()
+  }
+
+  const saveTemplateTooltipLabel = isTemplateLimitReached
+    ? 'Upgrade to Pro for unlimited templates'
+    : 'Save as Template'
+  // -- END MODIFICATION
+
   return (
     <>
       <Stack>
-        {/* MODIFIED: Added a "Save as Template" icon next to the Message title */}
         <Group justify="space-between">
           <Group gap="xs" align="center">
             <Text fw={500}>Message</Text>
             <When condition={!disabledTemplateButton}>
-              <Tooltip label="Save as Template">
+              {/* MODIFIED: Updated Tooltip label and onClick handler */}
+              <Tooltip label={saveTemplateTooltipLabel}>
                 <ActionIcon
                   size="sm"
                   variant="subtle"
-                  onClick={modalSaveTemplateHandlers.open}
+                  onClick={handleSaveTemplateClick}
                   disabled={isMessageEmpty()}
                 >
                   <Icon icon="tabler:device-floppy" fontSize={18} />
@@ -267,31 +272,12 @@ const InputMessage: React.FC<Props> = ({
           </When>
         </Group>
       </Stack>
-
-      {!isSpintaxTipDismissed && (
-        <Alert
-          icon={<Icon icon="tabler:info-circle" />}
-          title="Pro Tip"
-          color="teal"
-          withCloseButton
-          onClose={() => setIsSpintaxTipDismissed(true)}
-          mt="xs"
-          mb="sm"
-          radius="md"
-        >
-          Use Spintax format like `{'{Hi|Hello|Hola}'}` to create message
-          variations. This helps reduce the risk of being blocked.
-        </Alert>
-      )}
       {renderMenuMessage()}
       {renderInputMessage()}
-
       <ModalManageTemplate
         opened={showModalManageTemplate}
         onClose={modalManageTemplate.close}
       />
-
-      {/* ADDED: The modal for saving the current message as a new template. */}
       <ModalCreateUpdateTemplate
         opened={showModalSaveTemplate}
         onClose={modalSaveTemplateHandlers.close}

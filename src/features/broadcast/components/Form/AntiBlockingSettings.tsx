@@ -109,23 +109,11 @@ const AntiBlockingSettings: React.FC<Props> = ({ form }) => {
       <Grid>
         {/* MODIFIED: Warm-up Mode Toggle */}
         <Grid.Col span={{ base: 12, md: 6 }}>
-          <div
-            onClick={() =>
-              handleProFeatureClick(
-                'Warm-up Mode',
-                'For large broadcasts, this automatically sends the first 20 messages with a longer, more random delay to simulate natural activity and enhance account safety.',
-              )
-            }
-          >
+          <div>
             <Switch
               label={
                 <Group gap={8} wrap="nowrap">
                   <Text fw={500}>Warm-up Mode</Text>
-                  {license.isFree() && (
-                    <Badge color="yellow" variant="light" size="sm">
-                      Pro
-                    </Badge>
-                  )}
                   <Tooltip
                     label="Automatically sends the first 20 messages with a longer, more random delay to simulate natural activity and enhance account safety."
                     position="top-start"
@@ -207,11 +195,6 @@ const AntiBlockingSettings: React.FC<Props> = ({ form }) => {
               )}
             </When>
           </Stack>
-        </Grid.Col>
-      </Grid>
-      <Grid>
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <SmartPauseSettings form={form} />
         </Grid.Col>
       </Grid>
     </Stack>

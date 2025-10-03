@@ -19,6 +19,7 @@ import AntiBlockingSettings from '../Form/AntiBlockingSettings' // Import the ne
 import BroadcastActions from '../Form/BroadcastActions'
 import BroadcastScheduler from '../Form/BroadcastScheduler'
 import RecipientManager from '../Form/RecipientManager'
+import SmartPauseSettings from '../Form/SmartPauseSettings'
 import InputMessage from '../Input/Message/InputMessage'
 import MessagePreview from '../Preview/MessagePreview'
 import ModalDuplicateWarning from './ModalDuplicateWarning'
@@ -98,7 +99,7 @@ const ModalCreateBroadcast: React.FC<Props> = ({
 
   return (
     <>
-      <Modal opened={opened} onClose={handleClose} w={950} withCloseButton>
+      <Modal opened={opened} onClose={handleClose} w={920} withCloseButton>
         <ScrollArea h={650}>
           <Stack px={'md'}>
             <Group grow>
@@ -131,9 +132,16 @@ const ModalCreateBroadcast: React.FC<Props> = ({
                 <MessagePreview type={type} message={messageForPreview} />
               </Grid.Col>
             </Grid>
-            {/* MODIFIED: Replaced individual settings with the single AntiBlockingSettings component */}
             <AntiBlockingSettings form={form} />
-            <BroadcastScheduler form={form} />
+            <Grid>
+              <Grid.Col span={6}>
+                <SmartPauseSettings form={form} />
+              </Grid.Col>
+              <Grid.Col span={6}>
+                <BroadcastScheduler form={form} />
+              </Grid.Col>
+            </Grid>
+
             <BroadcastActions
               onSend={onSendClick}
               isScheduled={form.values.scheduler.enabled}

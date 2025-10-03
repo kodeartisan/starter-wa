@@ -88,13 +88,6 @@ export const useBroadcastForm = ({
         }
         return null
       },
-      warmupMode: (value) => {
-        if (license.isFree && value.enabled) {
-          form.setFieldValue('warmupMode.enabled', false)
-          return
-        }
-        return null
-      },
       scheduler: (value) => {
         if (license.isFree()) {
           form.setFieldValue('scheduler.enabled', false)

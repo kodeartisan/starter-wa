@@ -1,7 +1,14 @@
 // src/features/broadcast/components/Modal/ModalSourceManual.tsx
 import Modal from '@/components/Modal/Modal'
-import { Icon } from '@iconify/react'
-import { Button, Center, Group, Stack, TagsInput, Title } from '@mantine/core'
+import {
+  Button,
+  Center,
+  Group,
+  ScrollArea,
+  Stack,
+  Textarea,
+  Title,
+} from '@mantine/core'
 import { useForm } from '@mantine/form'
 import React from 'react'
 
@@ -13,39 +20,37 @@ interface Props {
 
 const ModalSourceManual: React.FC<Props> = ({ opened, onClose, onSubmit }) => {
   const form = useForm({
+    // MODIFIED: Changed initial value to a string to support the Textarea component.
     initialValues: {
-      numbers: [] as string[],
+      numbers: '',
     },
+    // MODIFIED: Adapted validation to check if the trimmed string is empty.
     validate: {
       numbers: (value) =>
-        value.length === 0 ? 'Please enter at least one number.' : null,
+        value.trim().length === 0 ? 'Please enter at least one number.' : null,
     },
   })
 
-  const handleSubmit = (values: { numbers: string[] }) => {
-    onSubmit(values.numbers)
+  /**
+   * English: Handles form submission by parsing the newline-separated numbers
+   * from the textarea, cleaning them, ensuring uniqueness, and then
+   * passing the result to the parent component.
+   */
+  const handleSubmit = (values: { numbers: string }) => {
+    // 1. Split the string by newlines.
+    // 2. Clean each line by removing non-numeric characters (except '+') and trimming whitespace.
+    // 3. Filter out any empty lines that might result from the split.
+    const cleanedNumbers = values.numbers
+      .split('\n')
+      .map((num) => num.replace(/[^0-9+]/g, '').trim())
+      .filter((num) => num.length > 0)
+
+    // Use a Set to automatically handle duplicates before submitting.
+    const uniqueNumbers = [...new Set(cleanedNumbers)]
+
+    onSubmit(uniqueNumbers)
     form.reset()
     onClose()
-  }
-
-  // ++ ADDED: Function to handle input changes and perform real-time cleaning.
-  const handleInputChange = (values: string[]) => {
-    // This function is triggered when tags are added or removed.
-    // We process the last added item to clean it.
-    if (values.length > form.values.numbers.length) {
-      const lastValue = values[values.length - 1]
-      // Remove any non-numeric characters except for a leading '+'
-      const cleanedValue = lastValue.replace(/[^0-9+]/g, '')
-
-      // Replace the last entered value with the cleaned one
-      const newValues = [...values.slice(0, -1), cleanedValue]
-
-      // Update form state with the cleaned and unique values
-      form.setFieldValue('numbers', Array.from(new Set(newValues)))
-    } else {
-      // Handle tag removal normally
-      form.setFieldValue('numbers', values)
-    }
   }
 
   return (
@@ -56,15 +61,18 @@ const ModalSourceManual: React.FC<Props> = ({ opened, onClose, onSubmit }) => {
             <Center>
               <Title order={4}>Add Numbers Manually</Title>
             </Center>
-            {/* ++ MODIFIED: Added onChange handler and right section for validation icon */}
-            <TagsInput
-              label="Phone Numbers"
-              placeholder="Enter number with country code and press Enter"
-              description="Example: 6281234567890. Non-numeric characters will be removed."
-              {...form.getInputProps('numbers')}
-              onChange={handleInputChange} // Handle cleaning
-              clearable
-            />
+            {/* MODIFIED: Replaced TagsInput with a more suitable Textarea for lists. */}
+            <ScrollArea h={200}>
+              <Textarea
+                label="Phone Numbers"
+                placeholder="Enter one number per line, including the country code."
+                {...form.getInputProps('numbers')}
+                autosize
+                minRows={5}
+                data-autofocus
+              />
+            </ScrollArea>
+
             <Group justify="flex-end" mt="md">
               <Button variant="default" onClick={onClose}>
                 Cancel

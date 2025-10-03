@@ -24,7 +24,6 @@ interface Props {
 
 const InputSendLater: React.FC<Props> = ({ form }: Props) => {
   const license = useLicense()
-  const maxScheduleDate = endOfDay(new Date())
   return (
     <Stack
       onClick={() => {

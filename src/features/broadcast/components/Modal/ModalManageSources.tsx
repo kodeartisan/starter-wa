@@ -1,11 +1,14 @@
 // src/features/broadcast/components/Modal/ModalManageSources.tsx
 import Modal from '@/components/Modal/Modal'
 import useFile from '@/hooks/useFile'
+import useLicense from '@/hooks/useLicense'
 import db from '@/libs/db'
 import toast from '@/utils/toast'
+import { showModalUpgrade } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   ActionIcon,
+  Badge,
   Button,
   Group,
   Menu,
@@ -56,14 +59,13 @@ const ModalManageSources: React.FC<Props> = ({
     columnAccessor: 'name',
     direction: 'asc',
   })
-
   const [showManualModal, manualModalHandlers] = useDisclosure(false)
   const [showExcelModal, excelModalHandlers] = useDisclosure(false)
   const [showGroupsModal, groupsModalHandlers] = useDisclosure(false)
   const [showMyContactsModal, myContactsModalHandlers] = useDisclosure(false)
   const [showSaveListModal, saveListModalHandlers] = useDisclosure(false)
   const [showLoadListModal, loadListModalHandlers] = useDisclosure(false)
-
+  const license = useLicense()
   const fileExporter = useFile()
 
   useEffect(() => {
@@ -180,6 +182,20 @@ const ModalManageSources: React.FC<Props> = ({
     setEditingCell(null)
   }
 
+  const handleOpenSaveListModal = async () => {
+    if (license.isFree()) {
+      const existingListsCount = await db.broadcastRecipients.count()
+      if (existingListsCount >= 1) {
+        showModalUpgrade(
+          'Unlimited Recipient Lists',
+          'Upgrade to Pro to save and manage unlimited recipient lists for easy reuse.',
+        )
+        return
+      }
+    }
+    saveListModalHandlers.open()
+  }
+
   const handleSaveList = async (name: string) => {
     if (recipients.length === 0) {
       toast.error('Cannot save an empty list.')
@@ -233,67 +249,18 @@ const ModalManageSources: React.FC<Props> = ({
     onClose()
   }
 
+  const handleExcelButtonClick = () => {
+    if (license.isFree()) {
+      showModalUpgrade(
+        'Import from Excel',
+        'Upgrade to Pro to bulk import recipients from an Excel or CSV file instantly.',
+      )
+      return
+    }
+    excelModalHandlers.open()
+  }
+
   const columns: any[] = [
-    {
-      accessor: 'name',
-      title: 'Name',
-      sortable: true,
-      render: (recipient) => {
-        const isEditing =
-          editingCell?.recordId === recipient.number &&
-          editingCell?.columnId === 'name'
-        return isEditing ? (
-          <Group gap="xs" wrap="nowrap">
-            <TextInput
-              value={editValue}
-              onChange={(e) => setEditValue(e.currentTarget.value)}
-              onBlur={handleSaveCellEdit}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault()
-                  handleSaveCellEdit()
-                } else if (e.key === 'Escape') {
-                  setEditingCell(null)
-                }
-              }}
-              autoFocus
-              size="xs"
-              style={{ flexGrow: 1 }}
-            />
-            <Tooltip label="Save" withArrow position="top">
-              <ActionIcon
-                variant="subtle"
-                color="teal"
-                onClick={handleSaveCellEdit}
-              >
-                <Icon icon="tabler:check" />
-              </ActionIcon>
-            </Tooltip>
-          </Group>
-        ) : (
-          <Tooltip label="Click to edit" withArrow position="top">
-            <Text
-              onClick={() => {
-                setEditingCell({
-                  recordId: recipient.number,
-                  columnId: 'name',
-                })
-                setEditValue(recipient.name)
-              }}
-              style={{
-                cursor: 'pointer',
-                width: '100%',
-                padding: '6px 0',
-                height: '100%',
-              }}
-              truncate
-            >
-              {recipient.name}
-            </Text>
-          </Tooltip>
-        )
-      },
-    },
     {
       accessor: 'number',
       title: 'Number',
@@ -356,6 +323,66 @@ const ModalManageSources: React.FC<Props> = ({
       },
     },
     {
+      accessor: 'name',
+      title: 'Name',
+      sortable: true,
+      render: (recipient) => {
+        const isEditing =
+          editingCell?.recordId === recipient.number &&
+          editingCell?.columnId === 'name'
+        return isEditing ? (
+          <Group gap="xs" wrap="nowrap">
+            <TextInput
+              value={editValue}
+              onChange={(e) => setEditValue(e.currentTarget.value)}
+              onBlur={handleSaveCellEdit}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  e.preventDefault()
+                  handleSaveCellEdit()
+                } else if (e.key === 'Escape') {
+                  setEditingCell(null)
+                }
+              }}
+              autoFocus
+              size="xs"
+              style={{ flexGrow: 1 }}
+            />
+            <Tooltip label="Save" withArrow position="top">
+              <ActionIcon
+                variant="subtle"
+                color="teal"
+                onClick={handleSaveCellEdit}
+              >
+                <Icon icon="tabler:check" />
+              </ActionIcon>
+            </Tooltip>
+          </Group>
+        ) : (
+          <Tooltip label="Click to edit" withArrow position="top">
+            <Text
+              onClick={() => {
+                setEditingCell({
+                  recordId: recipient.number,
+                  columnId: 'name',
+                })
+                setEditValue(recipient.name)
+              }}
+              style={{
+                cursor: 'pointer',
+                width: '100%',
+                padding: '6px 0',
+                height: '100%',
+              }}
+              truncate
+            >
+              {recipient.name}
+            </Text>
+          </Tooltip>
+        )
+      },
+    },
+    {
       accessor: 'actions',
       title: <Text>Actions</Text>,
       textAlign: 'right',
@@ -379,7 +406,7 @@ const ModalManageSources: React.FC<Props> = ({
 
   return (
     <>
-      <Modal opened={opened} onClose={onClose} w={800} withCloseButton>
+      <Modal opened={opened} onClose={onClose} w={850} withCloseButton>
         <Stack justify="space-between" h={'calc(80vh)'} p="sm">
           <Stack>
             <Group justify="space-between">
@@ -413,9 +440,18 @@ const ModalManageSources: React.FC<Props> = ({
                     leftSection={
                       <Icon icon="tabler:file-type-xls" fontSize={16} />
                     }
-                    onClick={excelModalHandlers.open}
+                    onClick={handleExcelButtonClick}
                   >
-                    Excel
+                    <Group gap="xs" wrap="nowrap">
+                      <Text component="span" size="xs">
+                        Excel
+                      </Text>
+                      {license.isFree() && (
+                        <Badge color="yellow" variant="light" size="xs">
+                          Pro
+                        </Badge>
+                      )}
+                    </Group>
                   </Button>
                   <Button
                     size="xs"
@@ -446,7 +482,6 @@ const ModalManageSources: React.FC<Props> = ({
                     Load List
                   </Button>
                 </Button.Group>
-
                 <Menu shadow="md" withArrow>
                   <Menu.Target>
                     <Button
@@ -464,7 +499,7 @@ const ModalManageSources: React.FC<Props> = ({
                       leftSection={
                         <Icon icon="tabler:device-floppy" fontSize={16} />
                       }
-                      onClick={saveListModalHandlers.open}
+                      onClick={handleOpenSaveListModal}
                       disabled={recipients.length === 0}
                     >
                       Save Current List
@@ -491,7 +526,6 @@ const ModalManageSources: React.FC<Props> = ({
                     </Menu.Item>
                   </Menu.Dropdown>
                 </Menu>
-
                 <Button
                   size="xs"
                   variant="light"
@@ -543,7 +577,6 @@ const ModalManageSources: React.FC<Props> = ({
           </Group>
         </Stack>
       </Modal>
-
       <ModalSourceManual
         opened={showManualModal}
         onClose={manualModalHandlers.close}
