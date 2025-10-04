@@ -7,6 +7,7 @@ import {
   Grid,
   Group,
   NumberInput,
+  Select,
   Stack,
   Switch,
   Text,
@@ -21,6 +22,13 @@ import SmartPauseSettings from './SmartPauseSettings'
 interface Props {
   form: UseFormReturnType<any>
 }
+
+// Data for the new Select component
+const delayOptions = [
+  { value: 'recommended', label: 'Recommended (5-10 seconds)' },
+  { value: 'slow', label: 'Slow & Safe (10-20 seconds)' },
+  { value: 'fast', label: 'Fast (3-6 seconds)' },
+]
 
 /**
  * @component AntiBlockingSettings
@@ -41,44 +49,28 @@ const AntiBlockingSettings: React.FC<Props> = ({ form }) => {
 
   return (
     <Stack gap="lg" pt="sm">
-      <Grid>
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <NumberInput
-            label={
-              <Group gap={4} wrap="nowrap">
-                <Text size="sm" fw={500}>
-                  Min Delay (sec)
-                </Text>
-                <Tooltip
-                  label="Pausing between messages mimics human behavior and significantly reduces the risk of your account being flagged as spam by WhatsApp."
-                  position="top-start"
-                  multiline
-                  withArrow
-                  w={300}
-                >
-                  <Icon
-                    icon="tabler:info-circle"
-                    style={{ display: 'block' }}
-                  />
-                </Tooltip>
-              </Group>
-            }
-            description="Minimum time between messages."
-            size="sm"
-            min={3}
-            {...form.getInputProps('delayMin')}
-          />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 6 }}>
-          <NumberInput
-            label="Max Delay (sec)"
-            description="Maximum time between messages."
-            min={5}
-            size="sm"
-            {...form.getInputProps('delayMax')}
-          />
-        </Grid.Col>
-      </Grid>
+      {/* MODIFIED: Replaced the two NumberInputs with a single Select component */}
+      <Select
+        label={
+          <Group gap={4} wrap="nowrap">
+            <Text size="sm" fw={500}>
+              Message Delay
+            </Text>
+            <Tooltip
+              label="Setting a random delay between each message makes your activity look more natural, like a human, and significantly reduces the risk of being blocked. Set the minimum and maximum delay range."
+              position="top-start"
+              multiline
+              withArrow
+              w={300}
+            >
+              <Icon icon="tabler:info-circle" style={{ display: 'block' }} />
+            </Tooltip>
+          </Group>
+        }
+        data={delayOptions}
+        {...form.getInputProps('delayPreset')}
+      />
+
       <Grid>
         <Grid.Col span={{ base: 12, md: 6 }}>
           <InputTyping form={form} />
@@ -106,8 +98,8 @@ const AntiBlockingSettings: React.FC<Props> = ({ form }) => {
           />
         </Grid.Col>
       </Grid>
+
       <Grid>
-        {/* MODIFIED: Warm-up Mode Toggle */}
         <Grid.Col span={{ base: 12, md: 6 }}>
           <div>
             <Switch

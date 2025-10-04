@@ -16,12 +16,20 @@ import { addMinutes, differenceInHours, isFuture } from 'date-fns'
 import _ from 'lodash'
 import { useEffect } from 'react'
 
+// Define presets to avoid magic strings and keep the logic centralized.
+const DELAY_PRESETS = {
+  fast: { min: 3, max: 6 },
+  recommended: { min: 5, max: 10 },
+  slow: { min: 10, max: 20 },
+}
+
 const defaultValues = {
   name: '',
   numbers: [] as any[],
   tags: [] as string[],
   isTyping: true,
   validateNumbers: true,
+  delayPreset: 'recommended', // MODIFIED: Replaced delayMin/Max with a single preset.
   scheduler: {
     enabled: false,
     scheduledAt: addMinutes(new Date(), 5),
@@ -36,12 +44,9 @@ const defaultValues = {
     size: 20,
     delay: 15,
   },
-  // ADDED: Default state for the new warm-up mode feature.
   warmupMode: {
     enabled: false,
   },
-  delayMin: 3,
-  delayMax: 6,
 }
 
 interface useBroadcastFormProps {
@@ -76,7 +81,6 @@ export const useBroadcastForm = ({
 }: useBroadcastFormProps) => {
   const license = useLicense()
   const { profile } = useAppStore()
-
   const form = useForm({
     initialValues: defaultValues,
     validate: {
@@ -137,7 +141,6 @@ export const useBroadcastForm = ({
           form.setFieldValue('batch.enabled', false)
           return
         }
-
         if (!value.enabled) return null
         if (!value.size || value.size < 1) {
           return 'Batch size must be at least 1.'
@@ -147,16 +150,7 @@ export const useBroadcastForm = ({
         }
         return null
       },
-      delayMin: (value) =>
-        !value || value < 1 ? 'Minimum delay must be at least 1 second.' : null,
-      delayMax: (value, values) => {
-        if (!value || value < 1)
-          return 'Maximum delay must be at least 1 second.'
-        if (values.delayMin && value < values.delayMin) {
-          return 'Max delay cannot be less than min delay.'
-        }
-        return null
-      },
+      // MODIFIED: Removed validation for delayMin and delayMax
     },
     validateInputOnChange: [
       'numbers',
@@ -192,6 +186,15 @@ export const useBroadcastForm = ({
             name: contact.name,
           }))
         }
+
+        // MODIFIED: Helper to map old delay values (in ms) to a preset key.
+        const mapDelayToPreset = (minMs?: number, maxMs?: number) => {
+          if (minMs === 3000 && maxMs === 6000) return 'fast'
+          if (minMs === 10000 && maxMs === 20000) return 'slow'
+          // Default to 'recommended' for any other case, including the old 5-10s default.
+          return 'recommended'
+        }
+
         form.setValues({
           name: `${broadcastName}${nameSuffix}`,
           numbers: recipientsToSet,
@@ -212,15 +215,16 @@ export const useBroadcastForm = ({
             size: cloneData.batchSize || 20,
             delay: cloneData.batchDelay || 15,
           },
-          // ADDED: Ensure warm-up mode setting is cloned.
           warmupMode: {
             enabled: !!cloneData.warmupModeEnabled,
           },
-          delayMin: cloneData.delayMin ? cloneData.delayMin / 1000 : 3,
-          delayMax: cloneData.delayMax ? cloneData.delayMax / 1000 : 6,
+          // MODIFIED: Set the preset based on the cloned broadcast's values.
+          delayPreset: mapDelayToPreset(cloneData.delayMin, cloneData.delayMax),
         })
+
         const { type, message } = cloneData
         inputMessageForm.setFieldValue('type', type)
+
         switch (type) {
           case Message.TEXT:
             inputMessageForm.setFieldValue('inputText', message as string)
@@ -260,6 +264,7 @@ export const useBroadcastForm = ({
         }
       }
     }
+
     if (cloneData) {
       populateForm().catch(console.error)
     }
@@ -274,6 +279,13 @@ export const useBroadcastForm = ({
   const saveAndDispatchBroadcast = async () => {
     const messagePayload = getMessage()
     const messageType = inputMessageForm.values.type
+
+    // MODIFIED: Derive min/max delay from the selected preset.
+    const selectedPreset =
+      DELAY_PRESETS[form.values.delayPreset] || DELAY_PRESETS.recommended
+    const delayMinMs = selectedPreset.min * 1000
+    const delayMaxMs = selectedPreset.max * 1000
+
     const broadcastData = {
       name: form.values.name,
       tags: form.values.tags,
@@ -284,24 +296,25 @@ export const useBroadcastForm = ({
       isScheduler: form.values.scheduler.enabled ? 1 : 0,
       validateNumbers: form.values.validateNumbers ? 1 : 0,
       status: form.values.scheduler.enabled ? Status.SCHEDULER : Status.PENDING,
-      delayMin: form.values.delayMin * 1000,
-      delayMax: form.values.delayMax * 1000,
+      delayMin: delayMinMs, // MODIFIED
+      delayMax: delayMaxMs, // MODIFIED
       smartPauseEnabled: form.values.smartPause.enabled ? 1 : 0,
       smartPauseStart: form.values.smartPause.start,
       smartPauseEnd: form.values.smartPause.end,
       batchEnabled: form.values.batch.enabled ? 1 : 0,
       batchSize: form.values.batch.size,
       batchDelay: form.values.batch.delay,
-      // ADDED: Save the warm-up mode state to the database.
       warmupModeEnabled: form.values.warmupMode.enabled ? 1 : 0,
       resumeAt: null,
     }
 
     try {
       const broadcastId = await db.broadcasts.add(broadcastData as Broadcast)
+
       if (isTypeMessageMedia(inputMessageForm.values.type)) {
         await insertBroadcastFile(broadcastId, Media.BROADCAST)
       }
+
       //@ts-ignore
       const contacts: BroadcastContact[] = form.values.numbers.map(
         (recipient: any) => ({
@@ -326,18 +339,21 @@ export const useBroadcastForm = ({
 
   const handleSendBroadcast = async () => {
     if (formHasErrors(form, inputMessageForm)) return 'VALIDATION_ERROR'
+
     const messagePayload = getMessage()
     const contentHash = hashMessage(messagePayload)
     const lastBroadcast = await db.broadcasts.orderBy('id').last()
     if (lastBroadcast && lastBroadcast.contentHash === contentHash) {
       return 'DUPLICATE'
     }
+
     const hasAcknowledged = await storage.get(
       Setting.HAS_ACKNOWLEDGED_BROADCAST_WARNING,
     )
     if (!hasAcknowledged) {
       return 'NEEDS_WARNING'
     }
+
     await saveAndDispatchBroadcast()
     return 'SUCCESS'
   }
