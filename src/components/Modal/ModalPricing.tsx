@@ -1,7 +1,8 @@
-// src/components/Modal/ModalUpgrade.tsx
+// src/components/Modal/ModalPricing.tsx
 import Modal from '@/components/Modal/Modal'
 import plans from '@/config/plans'
 import { Icon } from '@iconify/react'
+// MODIFIED: Added Tooltip to the import list.
 import {
   Badge,
   Box,
@@ -12,6 +13,7 @@ import {
   Text,
   ThemeIcon,
   Title,
+  Tooltip,
 } from '@mantine/core'
 import React from 'react'
 
@@ -23,12 +25,11 @@ interface Props {
 const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
   return (
     <Modal opened={opened} onClose={onClose} w={1000} withCloseButton={false}>
-      <Stack py={'md'}>
-        <Stack align="center" ta="center">
+      <Stack py={'sm'}>
+        <Stack align="center" ta="center" gap={2}>
           <Title order={1}>Simple, transparent pricing</Title>
           <Text size={'xl'} c="dimmed">
-            {' '}
-            Choose the perfect plan for your needs.{' '}
+            Choose the perfect plan for your needs.
           </Text>
         </Stack>
         <Group justify="center" align="stretch" mt="sm" gap="lg">
@@ -49,7 +50,6 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
                 position: 'relative',
               }}
             >
-              {/* ADDED: Urgency badge for the Pro plan */}
               {!plan.isFree && (
                 <Badge
                   variant="gradient"
@@ -68,12 +68,11 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
               <Stack justify="space-between" style={{ height: '100%' }}>
                 <Box ta="center">
                   <Title order={2}>{plan.name}</Title>
-                  <Text mt={4} size="sm">
+                  <Text mt={4} size="sm" fw={500}>
                     {' '}
                     {plan.description}{' '}
                   </Text>
                 </Box>
-                {/* MODIFIED: Wrapped price section in a Stack to add the savings badge */}
                 <Stack align="center" gap={4}>
                   <Group gap={8} align={'baseline'} justify="center">
                     {!plan.isFree && plan.placeholderPrice && (
@@ -97,38 +96,51 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
                       </Text>
                     )}
                   </Group>
-                  {/* ADDED: Savings badge to explicitly highlight the discount */}
                   {!plan.isFree && (
                     <Badge variant="filled" size="lg">
-                      Save over 78%
+                      Save over 70%
                     </Badge>
                   )}
                 </Stack>
-
+                {/* MODIFIED: Wrapped feature list items with Tooltip */}
                 <Stack gap="sm">
                   {plan.features.map((feature, idx) => (
-                    <Group key={idx} gap="sm" align="flex-start">
-                      <ThemeIcon
-                        variant="transparent"
-                        color={plan.isFree ? 'gray' : 'teal'}
-                        size="sm"
-                        radius="xl"
+                    <Tooltip
+                      key={idx}
+                      label={feature.tooltip}
+                      position="top-start"
+                      multiline
+                      w={400}
+                      withArrow
+                      disabled={!feature.tooltip}
+                    >
+                      <Group
+                        gap="sm"
+                        align="flex-start"
+                        style={{ cursor: feature.tooltip ? 'help' : 'default' }}
                       >
-                        {plan.isFree ? (
-                          <Icon icon="tabler:circle-check" fontSize={16} />
-                        ) : (
-                          <Icon
-                            icon="tabler:star-filled"
-                            fontSize={16}
-                            color="orange"
-                          />
-                        )}
-                      </ThemeIcon>
-                      <Text size="sm" fw={500}>
-                        {' '}
-                        {feature}{' '}
-                      </Text>
-                    </Group>
+                        <ThemeIcon
+                          variant="transparent"
+                          color={plan.isFree ? 'gray' : 'teal'}
+                          size="sm"
+                          radius="xl"
+                        >
+                          {plan.isFree ? (
+                            <Icon icon="tabler:circle-check" fontSize={16} />
+                          ) : (
+                            <Icon
+                              icon="tabler:star-filled"
+                              fontSize={16}
+                              color="orange"
+                            />
+                          )}
+                        </ThemeIcon>
+                        <Text size="sm" fw={500}>
+                          {' '}
+                          {feature.text}{' '}
+                        </Text>
+                      </Group>
+                    </Tooltip>
                   ))}
                 </Stack>
                 <Box mt="md">

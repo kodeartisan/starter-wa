@@ -1,44 +1,10 @@
 // src/config/plans.ts
-// English: Define a structured feature type for the comparison table
-export interface PlanFeature {
-  feature: string
-  free: string | boolean
-  pro: string | boolean
-}
 
-// English: Centralized list of features for easy management and comparison
-export const features: PlanFeature[] = [
-  {
-    feature: 'Message Backups',
-    free: 'Up to 10 messages',
-    pro: 'Unlimited',
-  },
-  {
-    feature: 'Backup Media (Images, Videos, Docs)',
-    free: false,
-    pro: true,
-  },
-  {
-    feature: 'Advanced Date Range Filtering',
-    free: 'Last 7 days only',
-    pro: true,
-  },
-  {
-    feature: 'Multiple Keyword Filtering',
-    free: '1 keyword', // MODIFIED: Changed from `false` to specify the limit.
-    pro: 'Unlimited', // MODIFIED: Changed from `true` to be more descriptive.
-  },
-  {
-    feature: 'Export to Multiple Formats',
-    free: 'HTML only',
-    pro: 'PDF, CSV, Excel, JSON, TXT',
-  },
-  {
-    feature: 'Customer Support',
-    free: 'Standard Support',
-    pro: 'Priority Support',
-  },
-]
+// English: Define a type for plan features to include tooltips.
+export interface PlanFeatureItem {
+  text: string
+  tooltip?: string
+}
 
 // English: Define plan objects for the pricing cards.
 // This array structure allows for easy side-by-side comparison in the UI.
@@ -48,29 +14,72 @@ const plans = [
     isFree: true,
     description: 'For basic needs.',
     price: '$0',
-    priceSuffix: null, // <-- priceSuffix ditambahkan di sini
+    priceSuffix: null,
     link: '#',
+    // MODIFIED: Features are now objects with text and optional tooltips.
     features: [
-      'Start unlimited chats',
-      'No need to save contacts',
-      'Send text messages only',
+      {
+        text: 'Max 5 Recipients',
+        tooltip: 'Send a broadcast to a maximum of 5 contacts at a time.',
+      },
+      {
+        text: 'Max 1 Template',
+        tooltip: 'Save one message template for quick reuse.',
+      },
+      {
+        text: 'Text message only',
+        tooltip: 'Only text-based messages can be sent.',
+      },
+      {
+        text: 'Basic Anti-Blocking',
+        tooltip: 'Includes a simple message delay to reduce risk.',
+      },
     ],
   },
   {
     name: 'Lifetime',
     isFree: false,
     description: 'Pay once, access forever, no monthly fees.',
-    placeholderPrice: '$89',
-    price: '$19',
+    placeholderPrice: '$90',
+    price: '$27',
     priceSuffix: 'one-time',
     link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?logo=0',
+    // MODIFIED: Features are now objects with text and optional tooltips.
     features: [
-      'Start unlimited chats',
-      'No need to save contacts',
-      'Send Image, Video, File, Location and Text',
-      'Save Unlimited Message Templates',
-      'No monthly fees, No subscription',
-      'Pay once, access forever',
+      {
+        text: 'Unlimited recipients',
+        tooltip:
+          'Send broadcasts to as many contacts as you need with no limitations.',
+      },
+      {
+        text: 'Import recipients from Excel/CSV',
+        tooltip: 'Quickly import your contact lists from Excel or CSV files.',
+      },
+      {
+        text: 'Schedule Broadcasts',
+        tooltip:
+          'Plan your campaigns in advance by scheduling messages for a future date and time.',
+      },
+      {
+        text: 'Send All Media Types (Images, Videos, Files)',
+        tooltip:
+          'Engage your audience by sending images, videos, and documents.',
+      },
+      {
+        text: 'Save Unlimited Message Templates',
+        tooltip:
+          'Create and save an endless number of message templates to streamline your workflow.',
+      },
+      {
+        text: 'Advanced Anti-Blocking',
+        tooltip:
+          'Protect your account with features like batch sending, smart pauses during non-working hours, and warm-up mode.',
+      },
+      {
+        text: 'Export result to Excel/CSV',
+        tooltip:
+          'Download detailed reports of your broadcast campaigns for analysis.',
+      },
     ],
   },
 ]

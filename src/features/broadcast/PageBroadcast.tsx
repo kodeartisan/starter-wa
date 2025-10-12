@@ -3,9 +3,11 @@ import LayoutPage from '@/components/Layout/LayoutPage'
 import { Media, Status } from '@/constants'
 import useDataQuery from '@/hooks/useDataQuery'
 import useFile from '@/hooks/useFile'
+import useLicense from '@/hooks/useLicense'
 import type { Broadcast } from '@/libs/db'
 import db from '@/libs/db'
 import toast from '@/utils/toast'
+import { showModalUpgrade } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   Box,
@@ -34,11 +36,11 @@ const PageBroadcast: React.FC = () => {
     searchField: 'name',
     initialSort: { field: 'id', direction: 'desc' },
   })
-
   const broadcastHook = useBroadcast()
   const fileExporter = useFile()
-
+  const license = useLicense()
   const [selectedTags, setSelectedTags] = useState<string[]>([])
+
   const allTags =
     useLiveQuery(async () => {
       const tagArrays = await db.broadcasts.where('tags').notEqual('').toArray()
@@ -68,15 +70,10 @@ const PageBroadcast: React.FC = () => {
   useEffect(() => {
     const otherFilters =
       dataQuery.filters.filter((f) => f.field !== 'tags') || []
-
     if (selectedTags.length > 0) {
       dataQuery.setFilters([
         ...otherFilters,
-        {
-          field: 'tags',
-          operator: 'anyOf',
-          value: selectedTags,
-        },
+        { field: 'tags', operator: 'anyOf', value: selectedTags },
       ])
     } else {
       dataQuery.setFilters(otherFilters)
@@ -216,6 +213,7 @@ const PageBroadcast: React.FC = () => {
       await db.broadcastContacts
         .where({ broadcastId: broadcastId, status: Status.SCHEDULER })
         .modify({ scheduledAt: newScheduledAt })
+
       await db.broadcasts.update(broadcastId, { status: Status.SCHEDULER })
       toast.success('Broadcast schedule updated successfully.')
       editScheduleModalHandlers.close()
@@ -247,11 +245,13 @@ const PageBroadcast: React.FC = () => {
             .where('broadcastId')
             .anyOf(broadcastIds)
             .delete()
+
           await db.media
             .where('parentId')
             .anyOf(broadcastIds)
             .and((item) => item.type === Media.BROADCAST)
             .delete()
+
           await db.broadcasts.bulkDelete(broadcastIds)
         },
       )
@@ -285,27 +285,42 @@ const PageBroadcast: React.FC = () => {
   }
 
   const handleExport = async (broadcast: Broadcast, format: string) => {
+    if (license.isFree()) {
+      showModalUpgrade(
+        'Export Broadcast Data',
+        'Upgrade to Pro to export your campaign reports to CSV or Excel for detailed analysis and record-keeping.',
+      )
+      return
+    }
+
     setIsExporting(true)
     try {
       const contacts = await db.broadcastContacts
         .where({ broadcastId: broadcast.id })
         .toArray()
+
       if (contacts.length === 0) {
         toast.info('No data to export.')
         return
       }
-      const dataForExport = contacts.map((c) => ({
-        Name: c.name || '-',
-        'Number/ID': c.number.split('@')[0],
-        Status: c.status,
-        'Sent At': c.sendAt
-          ? dayjs(c.sendAt).format('YYYY-MM-DD HH:mm:ss')
+
+      const dataForExport = contacts.map((contact) => ({
+        Name: contact.name || 'N/A',
+        Number: contact.number.split('@')[0],
+        Status: contact.status,
+        'Sent At': contact.sendAt
+          ? dayjs(contact.sendAt).format('YYYY-MM-DD HH:mm:ss')
           : '-',
-        Error: c.error || '-',
+        Notes: contact.error || '-',
       }))
-      const filename = `broadcast_${
-        broadcast.name || broadcast.id
-      }_${new Date().toISOString().slice(0, 10)}`
+
+      const broadcastName = (broadcast.name || 'Untitled_Broadcast').replace(
+        /[^a-zA-Z0-9]/g,
+        '_',
+      )
+      const exportDate = dayjs().format('YYYYMMDD')
+      const filename = `${broadcastName}_${exportDate}`
+
       await fileExporter.saveAs(format, dataForExport, filename)
     } catch (error) {
       console.error('Failed to export broadcast data:', error)
@@ -437,14 +452,12 @@ const PageBroadcast: React.FC = () => {
         }}
         cloneData={cloneData}
       />
-
       <ModalDetailHistory
         opened={showModalDetail}
         onClose={modalDetailHandlers.close}
         data={detailData}
         onCreateFollowUp={handleCreateFollowUp}
       />
-
       <ModalEditSchedule
         opened={showEditScheduleModal}
         onClose={editScheduleModalHandlers.close}

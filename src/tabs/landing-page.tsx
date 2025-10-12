@@ -1,3 +1,4 @@
+// src/tabs/landing-page.tsx
 import { PRIMARY_ICON } from '@/constants'
 import theme from '@/libs/theme'
 import { Icon } from '@iconify/react'
@@ -27,11 +28,10 @@ import {
 } from '@mantine/core'
 import '@mantine/core/styles.css'
 import { useWindowScroll } from '@mantine/hooks'
+import icon from 'data-base64:../../assets/icon.png'
 import React, { useEffect, useState } from 'react'
 
-// --- Start: Updated Config for Direct Chat Focus ---
-
-// Define a structured feature type for the comparison table
+// --- Start: Updated Config for Broadcast Focus ---
 export interface PlanFeature {
   feature: string
   free: string | boolean
@@ -40,32 +40,23 @@ export interface PlanFeature {
 
 // Centralized list of features for easy management and comparison
 const comparisonFeatures: PlanFeature[] = [
+  { feature: 'Broadcasts per month', free: 'Unlimited', pro: 'Unlimited' },
   {
-    feature: 'Start Chats Without Saving Numbers',
-    free: true,
-    pro: true,
-  },
-  {
-    feature: 'Send Text Messages',
-    free: true,
-    pro: true,
-  },
-  {
-    feature: 'Send Media (Images, Videos, Docs)',
-    free: false,
-    pro: true,
-  },
-  {
-    feature: 'Share Location Pins',
-    free: false,
-    pro: true,
-  },
-
-  {
-    feature: 'Save Unlimited Message Templates',
-    free: '1 Template',
+    feature: 'Recipients per Broadcast',
+    free: 'Up to 5 recipients',
     pro: 'Unlimited',
   },
+  { feature: 'Personalization with Variables', free: true, pro: true },
+  { feature: 'Import from Groups & Contacts', free: true, pro: true },
+  { feature: 'Import from Excel/CSV', free: false, pro: true },
+  { feature: 'Send Media (Images, Videos, Docs)', free: false, pro: true },
+  { feature: 'Schedule Broadcasts', free: false, pro: true },
+  {
+    feature: 'Smart Anti-Blocking Features',
+    free: 'Basic Delay Only',
+    pro: 'Advanced (Batching, Smart Pause)',
+  },
+  { feature: 'Save Message Templates', free: '1 Template', pro: 'Unlimited' },
   {
     feature: 'Customer Support',
     free: 'Standard Support',
@@ -78,30 +69,34 @@ const plans = [
   {
     name: 'Free',
     isFree: true,
-    description: 'For basic direct messaging needs.',
+    description: 'For basic broadcasting needs.',
     price: '$0',
     placeholderPrice: null,
     link: '#',
     features: [
-      'Start unlimited chats',
-      'No need to save contacts',
-      'Send text messages only',
+      'Send to 5 contacts per broadcast',
+      'Personalize with {name}',
+      'Import from Groups',
       'Standard support',
     ],
   },
   {
-    name: 'Pro Lifetime',
+    name: 'Lifetime',
     isFree: false,
-    description: 'Pay once, unlock powerful messaging features forever.',
-    placeholderPrice: '$89',
-    price: '$39',
+    description: 'Pay once, access forever, no monthly fees.',
+    placeholderPrice: '$90',
+    price: '$27',
     link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?media=0&logo=0&desc=0&discount=0',
     features: [
+      'Unlimited Recipients per Broadcast',
+      'Schedule Campaigns for Later',
+      'Advanced Anti-Blocking System',
+      'Import from Excel/CSV Files',
       'Send All Media Types (Images, Videos, Files)',
-      'Share Locations',
       'Save Unlimited Message Templates',
       'Priority Customer Support',
-      'All Future Updates Included',
+      'No monthly fees, No subscription',
+      'Pay once, access forever',
     ],
   },
 ]
@@ -168,6 +163,7 @@ const CountdownTimer: React.FC<{ offerEndDate: Date; isMini?: boolean }> = ({
   const [timeLeft, setTimeLeft] = useState<TimeLeft | null>(
     calculateTimeLeft(offerEndDate),
   )
+
   useEffect(() => {
     const timer = setInterval(() => {
       setTimeLeft(calculateTimeLeft(offerEndDate))
@@ -205,30 +201,29 @@ const CountdownTimer: React.FC<{ offerEndDate: Date; isMini?: boolean }> = ({
     </Group>
   )
 }
-
 // --- End Countdown Timer Logic ---
 
 // --- Section Components ---
 const HeroSection = () => (
   <Center p="xl" pt={80}>
     <Stack align="center" gap="xl" ta="center" maw={700}>
-      <ThemeIcon
-        size={80}
-        radius="xl"
-        variant="gradient"
-        gradient={{ from: 'teal', to: 'lime' }}
-      >
-        <Icon icon="tabler:message-circle-plus" fontSize={48} />
-      </ThemeIcon>
+      <img
+        width={100}
+        height={100}
+        src={icon}
+        style={{
+          borderRadius: 10,
+        }}
+      />
       <Title order={1} fz={{ base: 36, sm: 48 }}>
         {' '}
-        Instantly Start WhatsApp Chats Without Saving Numbers.{' '}
+        The Ultimate WhatsApp Broadcasting Tool.{' '}
       </Title>
       <Text c="dimmed" fz="lg">
         {' '}
-        The fastest way to send messages, images, videos, and files to any
-        WhatsApp number. No more cluttering your contact list for one-time
-        conversations.{' '}
+        Send personalized bulk messages, manage recipient lists from Groups or
+        Excel, schedule campaigns, and protect your account with smart
+        anti-blocking features.{' '}
       </Text>
       <Stack align="center">
         <Button
@@ -244,9 +239,50 @@ const HeroSection = () => (
           {' '}
           Get Lifetime Access Now{' '}
         </Button>
-        <Text size="xs" c="dimmed">
-          {' '}
-          Includes 30-day money-back guarantee{' '}
+      </Stack>
+      <Stack align="center" mt="xl" gap="xs">
+        <Avatar.Group>
+          <Avatar
+            src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-1.png"
+            radius="xl"
+          />
+          <Avatar
+            src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png"
+            radius="xl"
+          />
+          <Avatar
+            src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-3.png"
+            radius="xl"
+          />
+          <Avatar
+            src="https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-4.png"
+            radius="xl"
+          />
+        </Avatar.Group>
+        <Group gap={2} mt={4}>
+          <Icon
+            icon="tabler:star-filled"
+            color="var(--mantine-color-yellow-5)"
+          />
+          <Icon
+            icon="tabler:star-filled"
+            color="var(--mantine-color-yellow-5)"
+          />
+          <Icon
+            icon="tabler:star-filled"
+            color="var(--mantine-color-yellow-5)"
+          />
+          <Icon
+            icon="tabler:star-filled"
+            color="var(--mantine-color-yellow-5)"
+          />
+          <Icon
+            icon="tabler:star-filled"
+            color="var(--mantine-color-yellow-5)"
+          />
+        </Group>
+        <Text c="dimmed" size="sm">
+          Trusted by worldwide happy users
         </Text>
       </Stack>
     </Stack>
@@ -256,46 +292,69 @@ const HeroSection = () => (
 const FeaturesSection = () => {
   const featuresData = [
     {
-      icon: 'tabler:address-book-off',
-      title: 'No More "Ghost" Contacts',
+      icon: 'tabler:users-plus',
+      title: 'Advanced Recipient Management',
       description:
-        'Message any number without saving it. Perfect for business inquiries, customer support, or one-time contacts.',
+        'Easily import contacts from WhatsApp Groups, Excel/CSV files, your address book, or add them manually for complete flexibility.',
+    },
+    {
+      icon: 'tabler:clock-hour-8',
+      title: 'Schedule Your Campaigns',
+      description:
+        'Plan your outreach in advance. Schedule broadcasts to be sent at the perfect date and time for maximum impact. (Pro Feature)',
+    },
+    {
+      icon: 'tabler:shield-cog',
+      title: 'Smart Anti-Blocking System',
+      description:
+        'Send with confidence. Our system uses randomized delays, batch sending, and smart pauses to simulate human behavior and protect your account.',
+    },
+    {
+      icon: 'tabler:letter-case',
+      title: 'Personalize Every Message',
+      description:
+        'Increase engagement by using variables like {name}. Make every recipient feel like the message was crafted just for them.',
     },
     {
       icon: 'tabler:paperclip',
-      title: 'Send Anything, Instantly',
+      title: 'Send Any Media Type',
       description:
-        'Go beyond text. The Pro version lets you send images, videos, documents.',
+        'Go beyond text. The Pro version lets you broadcast images, videos, documents, and more to your entire contact list.',
     },
     {
-      icon: 'tabler:shield-lock',
-      title: 'Private & Secure',
-      description:
-        'Your messages are sent directly via WhatsApp Web. We never see, store, or have access to your conversations.',
-    },
-
-    {
-      icon: 'tabler:template',
+      icon: 'tabler:device-floppy',
       title: 'Save Time with Templates',
       description:
-        'Create and reuse message templates for common replies, greetings, or information. (Pro Feature)',
+        'Create and reuse message templates for common announcements, promotions, or replies to streamline your workflow.',
     },
     {
-      icon: 'tabler:rocket',
-      title: 'Simple & Fast',
+      icon: 'tabler:eye',
+      title: 'Live Message Preview',
       description:
-        'A clean, intuitive interface designed to get your message sent in seconds, right from WhatsApp Web.',
+        'See exactly how your message will look with personalization and formatting before you send it to your entire list.',
+    },
+    {
+      icon: 'tabler:chart-bar',
+      title: 'Detailed Campaign Reporting',
+      description:
+        'Track the delivery status for every message. View detailed reports and export your campaign data to CSV or Excel for analysis. (Pro Feature)',
+    },
+    {
+      icon: 'tabler:flame',
+      title: 'Account Warm-up Mode',
+      description:
+        'Enhance account safety by automatically sending the first messages of a campaign with longer, random delays to simulate natural activity.',
     },
   ]
   return (
     <Box mt={80}>
       <Center>
         <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>A Smarter Way to Chat</Title>
+          <Title order={2}>A Smarter Way to Broadcast</Title>
           <Text c="dimmed">
             {' '}
-            Unlock powerful features that make direct messaging faster and more
-            efficient.{' '}
+            Unlock powerful features that make your bulk messaging campaigns
+            more effective and secure.{' '}
           </Text>
         </Stack>
       </Center>
@@ -328,10 +387,11 @@ const UserPersonaSection = () => (
   <Box mt={80}>
     <Center>
       <Stack align="center" ta="center" maw={600}>
-        <Title order={2}>Built For Everyone</Title>
+        <Title order={2}>Built For Growth</Title>
         <Text c="dimmed">
           {' '}
-          Whether for work or personal convenience, we've got you covered.{' '}
+          Whether you're a marketer, a business owner, or a community manager,
+          we've got you covered.{' '}
         </Text>
       </Stack>
     </Center>
@@ -343,12 +403,12 @@ const UserPersonaSection = () => (
               <ThemeIcon variant="light" size={40} radius="md">
                 <Icon icon="tabler:briefcase" fontSize={22} />
               </ThemeIcon>
-              <Title order={3}>For Professionals & Business</Title>
+              <Title order={3}>For Marketers & Sales Teams</Title>
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Quickly follow up with leads, send quotes, or provide support
-              without adding every number to your business phone.{' '}
+              Run promotional campaigns, send event reminders, and follow up
+              with leads in bulk without manual effort.{' '}
             </Text>
             <List
               spacing="xs"
@@ -362,12 +422,11 @@ const UserPersonaSection = () => (
             >
               <List.Item>
                 {' '}
-                Send promotional images or PDF invoices directly.{' '}
+                Announce new products or special offers instantly.{' '}
               </List.Item>
-
               <List.Item>
                 {' '}
-                Keep your professional contacts list clean and organized.{' '}
+                Schedule follow-up messages to nurture your leads.{' '}
               </List.Item>
             </List>
             <Button
@@ -378,7 +437,7 @@ const UserPersonaSection = () => (
               color="teal"
             >
               {' '}
-              Upgrade for Business Needs{' '}
+              Upgrade for Marketing Power{' '}
             </Button>
           </Stack>
         </Card>
@@ -388,14 +447,14 @@ const UserPersonaSection = () => (
           <Stack style={{ height: '100%' }}>
             <Group>
               <ThemeIcon variant="light" size={40} radius="md">
-                <Icon icon="tabler:heart" fontSize={22} />
+                <Icon icon="tabler:users" fontSize={22} />
               </ThemeIcon>
-              <Title order={3}>For Personal Use</Title>
+              <Title order={3}>For Businesses & Communities</Title>
             </Group>
             <Text c="dimmed" size="sm" mt="md">
               {' '}
-              Contact a seller on a marketplace, RSVP to an event, or message a
-              new acquaintance without filling your address book.{' '}
+              Keep your customers or community members informed with important
+              updates, news, and announcements.{' '}
             </Text>
             <List
               spacing="xs"
@@ -409,15 +468,15 @@ const UserPersonaSection = () => (
             >
               <List.Item>
                 {' '}
-                Quickly message someone from a classifieds ad.{' '}
+                Send newsletters directly to your audience's inbox.{' '}
               </List.Item>
               <List.Item>
                 {' '}
-                Send your location to a friend you're meeting.{' '}
+                Notify members about upcoming meetings or events.{' '}
               </List.Item>
               <List.Item>
                 {' '}
-                Keep your personal contacts for people you actually know.{' '}
+                Distribute important information quickly and reliably.{' '}
               </List.Item>
             </List>
             <Button
@@ -428,7 +487,7 @@ const UserPersonaSection = () => (
               color="teal"
             >
               {' '}
-              Get More Convenience{' '}
+              Enhance Your Communication{' '}
             </Button>
           </Stack>
         </Card>
@@ -441,37 +500,38 @@ const CaseStudySection = () => {
   const caseStudies = [
     {
       icon: 'tabler:building-store',
-      title: 'Contacting a Marketplace Seller',
+      title: 'Announcing a Flash Sale',
       description:
-        "A user wants to ask about an item on an online marketplace. Instead of saving the seller's number, they use the extension to instantly send a message and a picture of the item.",
-      features: ['No Contact Saving', 'Send Images'],
-      persona: 'For Online Shoppers',
+        'A small retail business imports their customer list from an Excel file and schedules a personalized broadcast announcing a weekend flash sale, driving a significant increase in foot traffic.',
+      features: ['Bulk Sending', 'Import from Excel', 'Scheduling'],
+      persona: 'For Small Businesses',
     },
     {
-      icon: 'tabler:users',
-      title: 'Following Up with a Lead',
+      icon: 'tabler:school',
+      title: 'Sending School Updates',
       description:
-        'A sales professional meets a new lead and needs to send them a company brochure. She quickly sends the PDF  without cluttering her personal contacts.',
-      features: ['Send Documents'],
-      persona: 'For Sales & Business',
+        'A school administrator imports parent contacts from various class groups to send an urgent notification about a school closure, ensuring everyone receives the message instantly.',
+      features: ['Import from Groups', 'Send Documents'],
+      persona: 'For Organizations',
     },
     {
-      icon: 'tabler:tools-kitchen-2',
-      title: 'Coordinating with a Technician',
+      icon: 'tabler:speakerphone',
+      title: 'Running a Marketing Campaign',
       description:
-        'A homeowner needs to send their address to a repairman. They use the extension to share a location pin directly, ensuring the technician finds their house without any hassle.',
-      features: ['Send Location', 'Quick Messaging'],
-      persona: 'For Everyday Tasks',
+        'A digital marketer sends a personalized promotional message with a new product video to a list of leads, using the smart anti-blocking features to ensure safe and effective delivery.',
+      features: ['Personalization', 'Send Media', 'Anti-Blocking'],
+      persona: 'For Marketers',
     },
   ]
   return (
     <Box mt={80}>
       <Center>
         <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>Solves Real-World Problems</Title>
+          <Title order={2}>Solves Real-World Communication Challenges</Title>
           <Text c="dimmed">
             {' '}
-            See how people use our tool to make communication faster and easier.{' '}
+            See how people use our tool to make their outreach faster and more
+            efficient.{' '}
           </Text>
         </Stack>
       </Center>
@@ -514,7 +574,6 @@ const CaseStudySection = () => {
     </Box>
   )
 }
-
 const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
   <Box mt={80} id="pricing">
     <Center>
@@ -555,14 +614,9 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 <Stack mb="lg">
                   <Title order={4} c="orange.7">
                     {' '}
-                    LAUNCH OFFER: 56% OFF ENDS SOON!{' '}
+                    LAUNCH OFFER: 70% OFF ENDS SOON!{' '}
                   </Title>
                   <CountdownTimer offerEndDate={offerEndDate} />
-                  <Text size="xs" c="dimmed" mt="xs">
-                    {' '}
-                    Don't miss out on saving $50. Price returns to normal after
-                    the timer ends.{' '}
-                  </Text>
                 </Stack>
               )}
               <Box pos="relative">
@@ -606,7 +660,6 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                 </Group>
               ))}
             </Stack>
-
             <Box mt="auto">
               {plan.isFree ? (
                 <Button size="md" variant="default" fullWidth disabled>
@@ -640,17 +693,6 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
                         100% Secure Payment via Lemon Squeezy{' '}
                       </Text>
                     </Group>
-                    <Group justify="center" gap={6}>
-                      <Icon
-                        icon="tabler:shield-check"
-                        fontSize={14}
-                        color="var(--mantine-color-gray-6)"
-                      />
-                      <Text size="xs" c="dimmed">
-                        {' '}
-                        30-Day Money-Back Guarantee{' '}
-                      </Text>
-                    </Group>
                   </Stack>
                 </Stack>
               )}
@@ -661,7 +703,6 @@ const PricingSection: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => (
     </Group>
   </Box>
 )
-
 const NoSubscriptionSection = () => (
   <Box mt={80}>
     <Center>
@@ -715,7 +756,6 @@ const NoSubscriptionSection = () => (
     </Center>
   </Box>
 )
-
 const FeatureComparisonTable = () => (
   <Box mt={80}>
     <Center>
@@ -781,7 +821,6 @@ const FeatureComparisonTable = () => (
     </Card>
   </Box>
 )
-
 const SecuritySection = () => (
   <Box mt={80}>
     <Card withBorder p="xl" radius="lg" bg="gray.0">
@@ -838,15 +877,15 @@ const TestimonialsSection = () => {
       name: 'Sarah L.',
       role: 'Small Business Owner',
       quote:
-        'This has been a lifesaver for my business. I contact dozens of new people a day, and <b>not having to save every single number is a huge time-saver</b>. The ability to send a PDF quote directly with the Pro version is a game-changer.',
+        'This has been a lifesaver for my business. I can finally send weekend promotions to all my customers at once. <b>The anti-blocking features give me peace of mind</b>, and importing from Excel is a huge time-saver.',
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-2.png',
       name: 'Mike P.',
-      role: 'Online Seller',
+      role: 'Community Manager',
       quote:
-        "I use this all the time for marketplace listings and one-off inquiries. <b>So simple and fast</b>. It's how WhatsApp should have worked from the beginning! The Pro upgrade was a no-brainer to send product videos.",
+        "I use this to send weekly newsletters to my community members. <b>Importing from our WhatsApp group is incredibly easy</b>. The personalization with {name} makes every message feel special. It's an essential tool for me now.",
     },
     {
       avatar:
@@ -854,15 +893,15 @@ const TestimonialsSection = () => {
       name: 'Alisha C.',
       role: 'Event Coordinator',
       quote:
-        "Coordinating with vendors and clients means contacting lots of new numbers. This tool keeps my phone's address book from becoming a mess. <b>Scheduling reminders with the Pro version</b> is also an incredible feature.",
+        'Coordinating with vendors and clients means sending lots of the same updates. <b>Scheduling broadcasts ahead of time has been a game-changer</b> for my productivity. No more last-minute message sending!',
     },
     {
       avatar:
         'https://raw.githubusercontent.com/mantinedev/mantine/master/.demo/avatars/avatar-5.png',
       name: 'David G.',
-      role: 'Community Manager',
+      role: 'Marketing Professional',
       quote:
-        'I need to message new members without saving all their numbers. This extension makes it effortless. The <b>ability to use message templates</b> saves me so much time every day. Worth every penny for the lifetime license.',
+        'The Pro version is worth every penny for the lifetime license. I can run multiple campaigns, send product videos, and <b>the batch sending feature is perfect for our large contact lists</b>. Highly recommended.',
     },
   ]
   return (
@@ -907,39 +946,13 @@ const TestimonialsSection = () => {
     </Box>
   )
 }
-
-const GuaranteeSection = () => (
-  <Paper
-    bg="teal.0"
-    radius="lg"
-    p="xl"
-    mt={80}
-    style={{ border: '2px dashed var(--mantine-color-teal-4)' }}
-  >
-    <Group justify="center" align="center">
-      <ThemeIcon variant="light" color="teal" size={60} radius="xl">
-        <Icon icon="tabler:shield-check" fontSize={32} />
-      </ThemeIcon>
-      <Stack gap={0} ta={{ base: 'center', sm: 'left' }}>
-        <Title order={3}>Our 100% 'Peace of Mind' Full Guarantee</Title>
-        <Text c="dimmed" maw={500}>
-          {' '}
-          We're confident you'll love the Pro features. If you're not 100%
-          satisfied, contact us within 30 days of your purchase for a full,
-          no-questions-asked refund.{' '}
-        </Text>
-      </Stack>
-    </Group>
-  </Paper>
-)
-
 const FaqSection = () => {
   const faqData = [
     {
       icon: 'tabler:rocket',
       question: 'What are the main benefits of upgrading to Pro?',
       answer:
-        'Pro unlocks powerful messaging features. You can <b>send files like images, videos, and documents</b> and locations, and <b>schedule messages</b> to be sent later. It turns a simple convenience into a powerful communication tool.',
+        'Pro unlocks the full power of broadcasting. You get <b>unlimited recipients</b>, the ability to <b>schedule campaigns</b> for any time, advanced <b>anti-blocking features</b> like batching and smart pause, and the option to send all media types like images and videos.',
     },
     {
       icon: 'tabler:key',
@@ -949,17 +962,18 @@ const FaqSection = () => {
     },
     {
       icon: 'tabler:alert-circle',
-      question: 'Do I need to save the number in my contacts first?',
+      question: 'Is it safe to send bulk messages on WhatsApp?',
       answer:
-        "No! That's the main feature of the extension. You can type in any valid WhatsApp number and start a chat immediately without adding it to your address book.",
+        "While bulk messaging always carries some risk, our extension is built with safety as a top priority. The Pro version's <b>smart anti-blocking features</b> (random delays, batching, typing simulation) are designed to mimic human behavior and significantly reduce the risk of account blocking. We always recommend starting with contacts who know you.",
     },
     {
-      icon: 'tabler:shield-check',
-      question: 'Is it safe to use?',
+      icon: 'tabler:file-import',
+      question: 'How do I add my contacts to a broadcast?',
       answer:
-        'Absolutely. The extension uses the official WhatsApp Web interface to send messages. It operates <b>locally on your computer</b>, and we do not store your messages or have access to your account.',
+        'You have multiple options! You can <b>import members directly from your WhatsApp groups</b>, upload an <b>Excel or CSV file</b> with columns for "number" and "name", select from your saved contacts, or type/paste numbers manually.',
     },
   ]
+
   return (
     <Box mt={80} id="faq">
       <Center>
@@ -997,56 +1011,6 @@ const FaqSection = () => {
   )
 }
 
-const ValueStackSection = () => (
-  <Box mt={80}>
-    <Card withBorder radius="lg" p="xl">
-      <Center>
-        <Stack align="center" ta="center" maw={600}>
-          <Title order={2}>Here's Everything You Get</Title>
-          <Text c="dimmed">
-            {' '}
-            Your Pro Lifetime License is a complete package for powerful, direct
-            communication.{' '}
-          </Text>
-        </Stack>
-      </Center>
-      <Grid mt="xl" gutter="xl">
-        <Grid.Col span={{ base: 12, sm: 6 }}>
-          <List
-            spacing="sm"
-            size="sm"
-            center
-            icon={
-              <ThemeIcon color="teal" size={24} radius="xl">
-                <Icon icon="tabler:check" fontSize={14} />
-              </ThemeIcon>
-            }
-          >
-            <List.Item>Start Chats Without Saving Numbers</List.Item>
-            <List.Item>Send All Media Types (Images, Videos, etc.)</List.Item>
-          </List>
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, sm: 6 }}>
-          <List
-            spacing="sm"
-            size="sm"
-            center
-            icon={
-              <ThemeIcon color="teal" size={24} radius="xl">
-                <Icon icon="tabler:check" fontSize={14} />
-              </ThemeIcon>
-            }
-          >
-            <List.Item>Schedule Messages for Later</List.Item>
-            <List.Item>Priority Customer Support</List.Item>
-            <List.Item>30-Day Money-Back Guarantee</List.Item>
-          </List>
-        </Grid.Col>
-      </Grid>
-    </Card>
-  </Box>
-)
-
 const ContactUsSection = () => (
   <Box mt={80}>
     <Card withBorder p="xl" shadow="sm" radius="lg">
@@ -1074,7 +1038,6 @@ const ContactUsSection = () => (
     </Card>
   </Box>
 )
-
 const Footer = () => (
   <Box mt={80} py="xl">
     <Divider />
@@ -1094,6 +1057,7 @@ const Footer = () => (
 
 const StickyHeader: React.FC<{ offerEndDate: Date }> = ({ offerEndDate }) => {
   const [scroll] = useWindowScroll()
+
   return (
     <Transition
       mounted={scroll.y > 200}
@@ -1149,7 +1113,6 @@ const getOfferEndDate = (): Date => {
   localStorage.setItem('offerEndDate', newEndDate.toISOString())
   return newEndDate
 }
-
 const LandingPage = () => {
   const [notification, setNotification] = useState<{
     city: string
@@ -1163,9 +1126,7 @@ const LandingPage = () => {
       { city: 'Shaqra', country: 'Saudi Arabia' },
       { city: 'Miami', country: 'United States' },
     ]
-
     let timeoutId: NodeJS.Timeout
-
     const scheduleNextNotification = () => {
       clearTimeout(timeoutId)
       const randomDelay = Math.floor(Math.random() * (15000 - 8000 + 1)) + 8000 // 8-15 seconds
@@ -1194,14 +1155,12 @@ const LandingPage = () => {
           <FeaturesSection />
           <UserPersonaSection />
           <CaseStudySection />
-          <PricingSection offerEndDate={offerEndDate} />
           <NoSubscriptionSection />
+          <PricingSection offerEndDate={offerEndDate} />
           <FeatureComparisonTable />
           <SecuritySection />
           <TestimonialsSection />
-          <GuaranteeSection />
           <FaqSection />
-          <ValueStackSection />
           <ContactUsSection />
           <Center mt={40}>
             <Stack align="center" gap="lg">
@@ -1231,6 +1190,7 @@ const LandingPage = () => {
               </Stack>
             </Stack>
           </Center>
+
           <Footer />
         </Stack>
       </Container>
