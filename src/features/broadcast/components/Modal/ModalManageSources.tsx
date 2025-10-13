@@ -1,6 +1,5 @@
 // src/features/broadcast/components/Modal/ModalManageSources.tsx
 import Modal from '@/components/Modal/Modal'
-import useFile from '@/hooks/useFile'
 import useLicense from '@/hooks/useLicense'
 import db from '@/libs/db'
 import toast from '@/utils/toast'
@@ -25,8 +24,6 @@ import ModalLoadRecipientList from './ModalLoadRecipientList'
 import ModalSaveRecipientList from './ModalSaveRecipientList'
 import ModalSourceExcel from './ModalSourceExcel'
 import ModalSourceGroups from './ModalSourceGroups'
-import ModalSourceManual from './ModalSourceManual'
-import ModalSourceMyContacts from './ModalSourceMyContacts'
 
 interface Props {
   opened: boolean
@@ -59,14 +56,11 @@ const ModalManageSources: React.FC<Props> = ({
     columnAccessor: 'name',
     direction: 'asc',
   })
-  const [showManualModal, manualModalHandlers] = useDisclosure(false)
   const [showExcelModal, excelModalHandlers] = useDisclosure(false)
   const [showGroupsModal, groupsModalHandlers] = useDisclosure(false)
-  const [showMyContactsModal, myContactsModalHandlers] = useDisclosure(false)
   const [showSaveListModal, saveListModalHandlers] = useDisclosure(false)
   const [showLoadListModal, loadListModalHandlers] = useDisclosure(false)
   const license = useLicense()
-  const fileExporter = useFile()
 
   useEffect(() => {
     if (opened) {
@@ -221,19 +215,6 @@ const ModalManageSources: React.FC<Props> = ({
   const handleLoadList = (loadedRecipients: any[]) => {
     setRecipients(loadedRecipients)
     toast.success(`Loaded ${loadedRecipients.length} recipients.`)
-  }
-
-  const handleExport = async (format: string) => {
-    if (recipients.length === 0) {
-      toast.info('No recipients to export.')
-      return
-    }
-    const dataForExport = recipients.map((r) => ({
-      number: r.number,
-      name: r.name,
-    }))
-    const filename = `recipients_${new Date().toISOString().slice(0, 10)}`
-    await fileExporter.saveAs(format, dataForExport, filename)
   }
 
   const handleClearAll = () => {
@@ -429,14 +410,6 @@ const ModalManageSources: React.FC<Props> = ({
                   <Button
                     size="xs"
                     variant="default"
-                    leftSection={<Icon icon="tabler:keyboard" fontSize={16} />}
-                    onClick={manualModalHandlers.open}
-                  >
-                    Manual
-                  </Button>
-                  <Button
-                    size="xs"
-                    variant="default"
                     leftSection={
                       <Icon icon="tabler:file-type-xls" fontSize={16} />
                     }
@@ -461,16 +434,7 @@ const ModalManageSources: React.FC<Props> = ({
                   >
                     Groups
                   </Button>
-                  <Button
-                    size="xs"
-                    variant="default"
-                    leftSection={
-                      <Icon icon="tabler:address-book" fontSize={16} />
-                    }
-                    onClick={myContactsModalHandlers.open}
-                  >
-                    My Contacts
-                  </Button>
+
                   <Button
                     size="xs"
                     variant="default"
@@ -503,26 +467,6 @@ const ModalManageSources: React.FC<Props> = ({
                       disabled={recipients.length === 0}
                     >
                       Save Current List
-                    </Menu.Item>
-                    <Menu.Divider />
-                    <Menu.Label>Export List</Menu.Label>
-                    <Menu.Item
-                      leftSection={
-                        <Icon icon="tabler:file-type-csv" fontSize={16} />
-                      }
-                      onClick={() => handleExport('csv')}
-                      disabled={recipients.length === 0}
-                    >
-                      Export as CSV
-                    </Menu.Item>
-                    <Menu.Item
-                      leftSection={
-                        <Icon icon="tabler:file-type-xls" fontSize={16} />
-                      }
-                      onClick={() => handleExport('xlsx')}
-                      disabled={recipients.length === 0}
-                    >
-                      Export as XLSX
                     </Menu.Item>
                   </Menu.Dropdown>
                 </Menu>
@@ -577,11 +521,6 @@ const ModalManageSources: React.FC<Props> = ({
           </Group>
         </Stack>
       </Modal>
-      <ModalSourceManual
-        opened={showManualModal}
-        onClose={manualModalHandlers.close}
-        onSubmit={handleAddRecipients}
-      />
       <ModalSourceExcel
         opened={showExcelModal}
         onClose={excelModalHandlers.close}
@@ -590,11 +529,6 @@ const ModalManageSources: React.FC<Props> = ({
       <ModalSourceGroups
         opened={showGroupsModal}
         onClose={groupsModalHandlers.close}
-        onSubmit={handleAddRecipients}
-      />
-      <ModalSourceMyContacts
-        opened={showMyContactsModal}
-        onClose={myContactsModalHandlers.close}
         onSubmit={handleAddRecipients}
       />
       <ModalSaveRecipientList

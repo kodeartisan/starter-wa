@@ -43,7 +43,7 @@ const plans = [
     placeholderPrice: '$90',
     price: '$27',
     priceSuffix: 'one-time',
-    link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?logo=0',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/db222543-5bb5-498c-94b3-63046cd150cf?logo=0&desc=0',
     // MODIFIED: Features are now objects with text and optional tooltips.
     features: [
       {

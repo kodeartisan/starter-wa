@@ -1,7 +1,7 @@
 // src/components/AppMenu.tsx
 import { Action, Page, Setting } from '@/constants'
 import BroadcastListener from '@/features/broadcast/components/Listeners/BroadcastListener'
-import PageBroadcast from '@/features/broadcast/PageBroadcast'
+import PageBroadcastGroup from '@/features/broadcast/PageBroadcastGroup'
 import useLicense from '@/hooks/useLicense'
 import useRuntimeMessage from '@/hooks/useRuntimeMessage'
 import useWa from '@/hooks/useWa'
@@ -186,7 +186,7 @@ const AppMenu: React.FC = () => {
     return (
       <>
         <Tabs.Panel value={Page.HOME}>
-          <PageBroadcast />
+          <PageBroadcastGroup />
         </Tabs.Panel>
       </>
     )

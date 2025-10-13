@@ -6,18 +6,15 @@ import theme from '@/libs/theme'
 import { Icon } from '@iconify/react'
 import {
   ActionIcon,
-  Avatar,
   Badge,
   Button,
   Card,
   Center,
-  Checkbox,
   Code,
   Container,
   CopyButton,
   Grid,
   Group,
-  List,
   MantineProvider,
   Paper,
   Stack,
@@ -50,28 +47,27 @@ const MarqueeTileFeatureShowcase = () => (
   >
     <Stack h="100%" justify="center">
       <Grid align="center">
-        <Grid.Col span={5}>
+        <Grid.Col span={4}>
           <Stack>
             <ThemeIcon
-              size={90}
+              size={100}
               radius="xl"
               variant="gradient"
               gradient={{ from: 'teal', to: 'lime' }}
             >
-              <Icon icon="tabler:message-circle-plus" fontSize={70} />
+              <Icon icon="teenyicons:send-solid" fontSize={70} />
             </ThemeIcon>
             <Title fz={48} lh={1.2} c="white">
               {' '}
-              Direct Chat for WhatsApp{' '}
+              WA Super Group Bulk Sender{' '}
             </Title>
-            <Title order={2} c="white" fw={500} mt="md">
-              {' '}
-              Instantly chat with anyone on WhatsApp without saving their
-              number. Send text, images, videos, files, and more.{' '}
+            <Title order={1} c="white" fw={500} mt="md">
+              Send bulk messages, schedule campaigns with powerful anti-blocking
+              features.{' '}
             </Title>
           </Stack>
         </Grid.Col>
-        <Grid.Col span={5}>
+        <Grid.Col span={6} offset={0}>
           <Stack gap="lg">
             <Card withBorder shadow="lg" p="lg">
               <Group>
@@ -81,16 +77,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={60}
                 >
-                  <Icon icon="tabler:keyboard" fontSize={45} />
+                  <Icon icon="tabler:users-plus" fontSize={45} />
                 </ThemeIcon>
                 <Title order={1} fw={700}>
                   {' '}
-                  Enter Any Number{' '}
+                  Manage Recipients
                 </Title>
               </Group>
               <Title size={26} c="gray.7" fw={500} mt="md">
                 {' '}
-                Start chats with unsaved contacts.{' '}
+                Import from Groups, Excel & more.{' '}
               </Title>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -101,16 +97,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={60}
                 >
-                  <Icon icon="tabler:paperclip" fontSize={45} />
+                  <Icon icon="tabler:clock-hour-8" fontSize={45} />
                 </ThemeIcon>
                 <Title order={1} fw={700}>
                   {' '}
-                  Send All Media Types{' '}
+                  Schedule in Advance{' '}
                 </Title>
               </Group>
               <Title size={26} c="gray.7" fw={500} mt="md">
                 {' '}
-                Send images, videos, docs & more.
+                Plan your outreach for the perfect time.{' '}
               </Title>
             </Card>
             <Card withBorder shadow="lg" p="lg">
@@ -121,16 +117,16 @@ const MarqueeTileFeatureShowcase = () => (
                   radius="xl"
                   size={60}
                 >
-                  <Icon icon="tabler:address-book-off" fontSize={45} />
+                  <Icon icon="tabler:shield-cog" fontSize={45} />
                 </ThemeIcon>
                 <Title order={1} fw={700}>
                   {' '}
-                  Keep Contacts Clean{' '}
+                  Broadcast with Confidence{' '}
                 </Title>
               </Group>
               <Title size={26} c="gray.7" fw={500} mt="md">
                 {' '}
-                No more clutter for one-time chats.{' '}
+                Protect your account from bans.{' '}
               </Title>
             </Card>
           </Stack>
@@ -141,71 +137,67 @@ const MarqueeTileFeatureShowcase = () => (
 )
 
 // --- Feature Mockups for Screenshots ---
-const FeatureMockupDirectChatUI = () => (
+const FeatureMockupBroadcastCreationUI = () => (
   <Card withBorder radius="md" p="xl" w={500}>
     <Stack>
-      <Title order={4}>Direct Chat Interface</Title>
+      <Title order={4}>Create a New Broadcast</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        A clean and simple form to start your conversation quickly.{' '}
+        Compose your message, add recipients, and configure settings—all in one
+        place.{' '}
       </Text>
       <TextInput
-        label="WhatsApp Number"
-        placeholder="e.g., 6281234567890"
-        description="Enter the full number with country code."
-        defaultValue="12025550181"
+        label="Campaign Name (Optional)"
+        placeholder="e.g., Weekly Newsletter"
+        defaultValue="Q4 Product Launch"
       />
       <Textarea
         label="Message"
-        placeholder="Write a message..."
-        defaultValue="Hello! I'm interested in the item you listed for sale."
+        placeholder="Write a message... You can use {name} to personalize."
+        defaultValue="Hi {name}, join us for our new product launch this Friday!"
         minRows={4}
       />
-      <Button mt="sm">Send Message</Button>
+      <Button mt="sm">Send Broadcast</Button>
     </Stack>
   </Card>
 )
 
-const FeatureMockupMessageTypeSelection = () => (
+const FeatureMockupRecipientManagement = () => (
   <Card withBorder radius="md" p="xl" w={500}>
     <Stack>
-      <Title order={4}>Go Beyond Text</Title>
+      <Title order={4}>Manage Your Recipients</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        Upgrade to unlock all message types for richer conversations.{' '}
+        Easily add contacts from multiple sources to build your perfect
+        broadcast list.{' '}
       </Text>
       <Text fw={500} size="sm" mt="md">
-        Message Type
+        {' '}
+        Add from...{' '}
       </Text>
       <Grid>
-        <Grid.Col span={4}>
-          <Button variant="filled" fullWidth>
-            <Icon icon="tabler:text-size" fontSize={24} />
+        <Grid.Col span={6}>
+          <Button variant="outline" fullWidth>
+            <Icon icon="tabler:users-group" />
+            <Text ml="xs">Groups</Text>
           </Button>
         </Grid.Col>
-        <Grid.Col span={4}>
-          <Button variant="default" fullWidth>
-            <Icon icon="tabler:photo" fontSize={24} />
+        <Grid.Col span={6}>
+          <Button variant="outline" fullWidth>
+            <Icon icon="tabler:file-type-xls" />
+            <Text ml="xs">Excel / CSV</Text>
           </Button>
         </Grid.Col>
-        <Grid.Col span={4}>
-          <Button variant="default" fullWidth>
-            <Icon icon="tabler:video" fontSize={24} />
+        <Grid.Col span={6}>
+          <Button variant="outline" fullWidth>
+            <Icon icon="tabler:address-book" />
+            <Text ml="xs">My Contacts</Text>
           </Button>
         </Grid.Col>
-        <Grid.Col span={4}>
-          <Button variant="default" fullWidth>
-            <Icon icon="tabler:file" fontSize={24} />
-          </Button>
-        </Grid.Col>
-        <Grid.Col span={4}>
-          <Button variant="default" fullWidth>
-            <Icon icon="tabler:map-pin" fontSize={24} />
-          </Button>
-        </Grid.Col>
-        <Grid.Col span={4}>
-          <Button variant="default" fullWidth>
-            <Icon icon="tabler:user-square" fontSize={24} />
+        <Grid.Col span={6}>
+          <Button variant="outline" fullWidth>
+            <Icon icon="tabler:keyboard" />
+            <Text ml="xs">Manual Input</Text>
           </Button>
         </Grid.Col>
       </Grid>
@@ -213,62 +205,194 @@ const FeatureMockupMessageTypeSelection = () => (
   </Card>
 )
 
-const FeatureMockupImageUpload = () => (
+const FeatureMockupAntiBlocking = () => (
   <Card withBorder radius="md" p="xl" w={500}>
     <Stack>
-      <Title order={4}>Attach Images, Videos & Files</Title>
+      <Title order={4}>Smart Anti-Blocking</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        Easily upload media with a caption, just like in a normal chat.{' '}
+        Send with confidence using features that mimic human behavior.{' '}
       </Text>
-      <Paper
-        mt="md"
-        withBorder
-        p="xl"
-        radius="md"
-        style={{ borderStyle: 'dashed' }}
-      >
-        <Center>
-          <Stack align="center">
-            <Icon icon="tabler:photo" fontSize={50} />
-            <Text>Drag & drop here or click to select a file</Text>
-            <Text size="xs" c="dimmed">
-              Max size: 3MB | Formats: JPG, PNG, WEBP
-            </Text>
-          </Stack>
-        </Center>
+      <Paper mt="md" withBorder p="md" radius="sm">
+        <Stack>
+          <Group justify="space-between">
+            <Text fw={500}>Batch Sending</Text>
+          </Group>
+          <Text size="xs" c="dimmed" mt={-10}>
+            {' '}
+            Send in smaller chunks with delays in between.{' '}
+          </Text>
+        </Stack>
       </Paper>
-      <Textarea placeholder="Enter your caption here" />
+      <Paper withBorder p="md" radius="sm">
+        <Stack>
+          <Group justify="space-between">
+            <Text fw={500}>Smart Pause</Text>
+          </Group>
+          <Text size="xs" c="dimmed" mt={-10}>
+            {' '}
+            Automatically pause sending outside of working hours.{' '}
+          </Text>
+        </Stack>
+      </Paper>
+      <Paper withBorder p="md" radius="sm">
+        <Stack>
+          <Text fw={500}>Account Warm-up</Text>
+          <Text size="xs" c="dimmed" mt={-10}>
+            {' '}
+            Send initial messages slowly to improve account safety.{' '}
+          </Text>
+        </Stack>
+      </Paper>
     </Stack>
   </Card>
 )
 
-const FeatureMockupContactVCard = () => (
+const FeatureMockupCampaignHistory = () => (
   <Card withBorder radius="md" p="xl" w={500}>
     <Stack>
-      <Title order={4}>Send Contacts (vCard)</Title>
+      <Title order={4}>Track Your Campaigns</Title>
       <Text c="dimmed" size="sm">
         {' '}
-        Share contact details from your own contact list without leaving the
-        chat.{' '}
+        Monitor the status of your broadcasts and export detailed reports.{' '}
       </Text>
-      <Group justify="space-between" mt="md">
-        <Text fw={500}>Selected Contacts (1)</Text>
-        <Button
-          size="xs"
-          variant="outline"
-          leftSection={<Icon icon="tabler:address-book" fontSize={16} />}
-        >
-          Select Contact(s)
+      <Paper withBorder p="md" radius="sm" mt="md">
+        <Stack>
+          <Group justify="space-between">
+            <Text fw={500}>Weekly Promo</Text>
+            <Badge color="teal">Done</Badge>
+          </Group>
+          <Text size="sm">Recipients: 250 Total</Text>
+          <Group grow>
+            <Text size="xs" c="green">
+              {' '}
+              Success: 245{' '}
+            </Text>
+            <Text size="xs" c="red">
+              {' '}
+              Failed: 5{' '}
+            </Text>
+          </Group>
+          <Button size="xs" variant="light" mt="xs">
+            {' '}
+            View Details & Export{' '}
+          </Button>
+        </Stack>
+      </Paper>
+    </Stack>
+  </Card>
+)
+
+const FeatureMockupPersonalizationAndTemplates = () => (
+  <Card withBorder radius="md" p="xl" w={500}>
+    <Stack>
+      <Title order={4}>Personalize & Save Time</Title>
+      <Text c="dimmed" size="sm">
+        {' '}
+        Use variables and templates to create unique messages in seconds.{' '}
+      </Text>
+      <Textarea
+        mt="sm"
+        label="Message"
+        defaultValue="Hi {name}, don't miss our special event! {We'd love to see you|Hope you can make it}."
+        minRows={4}
+      />
+      <Group mt="xs">
+        <Button variant="light" size="compact-xs">
+          {' '}
+          {'{name}'}{' '}
+        </Button>
+        <Button variant="light" size="compact-xs">
+          {' '}
+          {'{number}'}{' '}
+        </Button>
+        <Button variant="light" size="compact-xs">
+          {' '}
+          {'{Hi|Hello}'}{' '}
         </Button>
       </Group>
-      <Paper withBorder p="xs" radius="sm" mt="xs">
-        <Group justify="space-between">
-          <Text size="sm">Alice Johnson</Text>
-          <ActionIcon color="red" variant="transparent">
-            <Icon icon="tabler:trash" fontSize={16} />
-          </ActionIcon>
-        </Group>
+      <Group justify="flex-end" mt="md">
+        <Button
+          variant="subtle"
+          size="sm"
+          leftSection={<Icon icon="tabler:device-floppy" />}
+        >
+          {' '}
+          Save as Template{' '}
+        </Button>
+      </Group>
+    </Stack>
+  </Card>
+)
+
+const FeatureMockupSchedulingAndAutomation = () => (
+  <Card withBorder radius="md" p="xl" w={500}>
+    <Stack>
+      <Title order={4}>Schedule & Automate</Title>
+      <Text c="dimmed" size="sm">
+        {' '}
+        Plan ahead and automate your sending schedule for optimal timing.{' '}
+      </Text>
+      <Paper withBorder p="md" radius="sm" mt="md">
+        <Stack>
+          <Group justify="space-between">
+            <Text fw={500}>Send Later</Text>
+          </Group>
+          <TextInput
+            label="Date and Time"
+            type="datetime-local"
+            defaultValue="2025-10-15T10:30"
+          />
+        </Stack>
+      </Paper>
+      <Paper withBorder p="md" radius="sm" mt="sm">
+        <Stack>
+          <Group justify="space-between">
+            <Text fw={500}>Smart Pause</Text>
+          </Group>
+          <Group grow>
+            <TextInput label="Send between" type="time" defaultValue="09:00" />
+            <TextInput label="And" type="time" defaultValue="17:00" />
+          </Group>
+        </Stack>
+      </Paper>
+    </Stack>
+  </Card>
+)
+
+const FeatureMockupMediaBroadcasting = () => (
+  <Card withBorder radius="md" p="xl" w={500}>
+    <Stack>
+      <Title order={4}>Send Rich Media</Title>
+      <Text c="dimmed" size="sm">
+        {' '}
+        Capture attention by sending images, videos, and files.{' '}
+      </Text>
+      <Group mt="md" grow>
+        <Button variant="default">Text</Button>
+        <Button>Image</Button>
+        <Button variant="default">Video</Button>
+        <Button variant="default">File</Button>
+      </Group>
+      <Paper
+        mt="sm"
+        h={150}
+        withBorder
+        radius="sm"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexDirection: 'column',
+          backgroundColor: 'var(--mantine-color-gray-0)',
+        }}
+      >
+        <ThemeIcon size={40} radius="xl" color="gray">
+          <Icon icon="tabler:photo" />
+        </ThemeIcon>
+        <Text mt="xs" c="dimmed">
+          Image_Promo.png
+        </Text>
       </Paper>
     </Stack>
   </Card>
@@ -281,7 +405,6 @@ interface MarqueeTileFeatureDetailProps {
   description: string
   featureComponent: React.ReactNode
 }
-
 const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
   icon,
   title,
@@ -315,7 +438,7 @@ const MarqueeTileFeatureDetail: React.FC<MarqueeTileFeatureDetailProps> = ({
             </Title>
           </Stack>
         </Grid.Col>
-        <Grid.Col span={6}>
+        <Grid.Col span={6} offset={1}>
           <Center h="100%">{featureComponent}</Center>
         </Grid.Col>
       </Grid>
@@ -327,54 +450,90 @@ const ScreenshotGallery: React.FC = () => {
   const screenshotData = [
     {
       title: 'Marquee Promo Tile: Feature Showcase (1280x800)',
-      filename: 'marquee_promo_tile_direct_chat.png',
+      filename: 'marquee_promo_tile_broadcast.png',
       component: <MarqueeTileFeatureShowcase />,
     },
     {
       title: 'Feature Screenshot: Main Interface (1280x800)',
-      filename: 'feature_direct_chat_main_ui.png',
+      filename: 'feature_broadcast_main_ui.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:keyboard"
-          title="Enter Any Number"
-          description="Simply type or paste any WhatsApp number with its country code to start a direct conversation instantly."
-          featureComponent={<FeatureMockupDirectChatUI />}
+          icon="tabler:broadcast"
+          title="Intuitive Broadcast Creation"
+          description="Our streamlined interface lets you compose messages, manage recipients, and configure advanced settings—all in one place."
+          featureComponent={<FeatureMockupBroadcastCreationUI />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: Message Types (1280x800)',
-      filename: 'feature_direct_chat_message_types.png',
+      title: 'Feature Screenshot: Recipient Management (1280x800)',
+      filename: 'feature_broadcast_recipients.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:apps"
-          title="Choose Your Message Type"
-          description="Send simple text, images, videos, files, locations, and more."
-          featureComponent={<FeatureMockupMessageTypeSelection />}
+          icon="tabler:users-plus"
+          title="Flexible Recipient Management"
+          description="Build your audience your way. Import from WhatsApp Groups, upload Excel/CSV files."
+          featureComponent={<FeatureMockupRecipientManagement />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: Attach Media (1280x800)',
-      filename: 'feature_direct_chat_attach_media.png',
+      title: 'Feature Screenshot: Media Broadcasting (1280x800)',
+      filename: 'feature_broadcast_media.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:paperclip"
-          title="Attach Media & Files"
-          description="Easily upload photos, videos, or documents and add a caption before sending to an unsaved number."
-          featureComponent={<FeatureMockupImageUpload />}
+          icon="tabler:photo-plus"
+          title="Send Rich Media Messages"
+          description="Go beyond text. Make your broadcasts more engaging by sending images, videos, and important documents to capture attention."
+          featureComponent={<FeatureMockupMediaBroadcasting />}
         />
       ),
     },
     {
-      title: 'Feature Screenshot: Send Contacts (1280x800)',
-      filename: 'feature_direct_chat_send_vcard.png',
+      title: 'Feature Screenshot: Personalization & Templates (1280x800)',
+      filename: 'feature_broadcast_personalization.png',
       component: (
         <MarqueeTileFeatureDetail
-          icon="tabler:user-square"
-          title="Share Contacts Instantly (Pro)"
-          description="Need to share someone's contact details? Select a contact from your address book and send it as a vCard."
-          featureComponent={<FeatureMockupContactVCard />}
+          icon="tabler:letter-case"
+          title="Personalize & Save Time"
+          description="Engage your audience with personalized variables like {name}. Save unlimited message templates to streamline your workflow."
+          featureComponent={<FeatureMockupPersonalizationAndTemplates />}
+        />
+      ),
+    },
+    {
+      title: 'Feature Screenshot: Scheduling & Automation (1280x800)',
+      filename: 'feature_broadcast_scheduling.png',
+      component: (
+        <MarqueeTileFeatureDetail
+          icon="tabler:calendar-cog"
+          title="Advanced Scheduling"
+          description="Plan campaigns in advance with the message scheduler and define sending hours with Smart Pause to reach your audience at the perfect time."
+          featureComponent={<FeatureMockupSchedulingAndAutomation />}
+        />
+      ),
+    },
+    {
+      title: 'Feature Screenshot: Anti-Blocking System (1280x800)',
+      filename: 'feature_broadcast_anti_blocking.png',
+      component: (
+        <MarqueeTileFeatureDetail
+          icon="tabler:shield-cog"
+          title="Broadcast Safely"
+          description="Send with confidence. Protect your account with smart features like Batch Sending, Smart Pause, and Warm-up Mode that simulate human behavior."
+          featureComponent={<FeatureMockupAntiBlocking />}
+        />
+      ),
+    },
+    {
+      title: 'Feature Screenshot: Campaign Reports (1280x800)',
+      filename: 'feature_broadcast_reports.png',
+      component: (
+        <MarqueeTileFeatureDetail
+          icon="tabler:chart-bar"
+          title="Monitor Your Success"
+          description="Track the real-time status of every message. Dive into detailed reports and export your campaign data to CSV or Excel for deeper analysis."
+          featureComponent={<FeatureMockupCampaignHistory />}
         />
       ),
     },
@@ -405,70 +564,77 @@ const ScreenshotGallery: React.FC = () => {
 const ResourcePage = () => {
   const storeListingText = {
     titles: [
-      'Direct Chat for WhatsApp',
-      'Chat Without Saving Numbers',
-      'Send Media to Unsaved Contacts',
+      'WA Super Group Bulk Sender',
+      'Bulk Sender for WhatsApp',
+      'WhatsApp Broadcasting Tool',
     ],
     shortDescriptions: [
-      'Start a WhatsApp chat with anyone without saving their number. Send text, images, videos, files, vCards, and more.',
-      'The quickest way to message unsaved numbers on WhatsApp. Supports all media types, including documents and locations.',
-      'Stop cluttering your contacts. Type in a number, write your message, and send instantly. Perfect for business and personal use.',
+      'Send personalized bulk messages from WhatsApp Web. Import from Groups & Excel, Schedule Campaigns, and use Smart Anti-Blocking features.',
+      'The ultimate broadcasting tool for WhatsApp. Send mass messages with personalization, media attachments, and advanced safety features.',
+      'Manage bulk messaging campaigns on WhatsApp. Import unlimited contacts, schedule for later, and view detailed reports. Pro features available.',
     ],
-    longDescription: `⚙️ The Fastest Way to Chat on WhatsApp
+    longDescription: `⚙️ The Ultimate WhatsApp Broadcasting Tool
 
-Tired of your phone's contact list being filled with numbers you only need for a one-time conversation? With Direct Chat for WhatsApp, you can start a conversation with any WhatsApp number instantly, without the hassle of saving it to your address book first.
-
-This extension integrates seamlessly into WhatsApp Web, providing a simple interface to supercharge your messaging.
+Tired of manually sending the same message over and over? With WA Super Group Bulk Sender, you can run powerful, personalized bulk messaging campaigns directly from WhatsApp Web. This extension is designed for marketers, business owners, and community managers who need to communicate efficiently.
 
 ✨ Key Features
-- **Chat Without Saving**: The core feature. Enter any phone number and start chatting right away. Keep your address book clean and organized.
-- **Send Anything (Pro)**: Go beyond simple text. The Pro version unlocks the ability to send:
-    - 🖼️ Images & Videos
-    - 📄 Documents & Files
-    - 📍 Locations
-    - 👤 Contact Cards (vCards)
-- **Use Message Templates**: Save time by creating and reusing templates for frequently sent messages. The free version includes 1 template, while Pro offers unlimited templates.
-- **Simple & Intuitive**: A clean, straightforward interface designed to get your message sent in seconds.
+- **Unlimited Recipients**: Send messages to as many contacts as you need. No arbitrary limits.
+- **Advanced Recipient Management**: Build your lists with unparalleled flexibility.
+  - 👥 Import members directly from your WhatsApp Groups.
+  - 📊 Import from Excel/CSV files with columns for number and name.
+  - 📖 Select from your saved phone contacts.
+  - ⌨️ Add numbers manually.
+- **Personalize Every Message**: Increase engagement by using variables like {name} to make each message feel unique and personal.
+- **Schedule Campaigns (Pro)**: Plan your outreach in advance. Schedule broadcasts to be sent at the perfect date and time for maximum impact.
+- **Smart Anti-Blocking System (Pro)**: Send with confidence. Our system is packed with features to protect your account:
+  - ⏱️ Randomized delays between messages.
+  - 📦 Batch sending to break large campaigns into smaller, safer chunks.
+  - ⏸️ Smart Pause to halt sending outside of your specified working hours.
+  - 🔥 Account Warm-up mode to gradually increase sending speed for new campaigns.
+- **Send All Media Types (Pro)**: Go beyond text. Broadcast images, videos, and documents to your entire contact list.
+- **Save Unlimited Templates (Pro)**: Create and reuse message templates for common announcements, promotions, or replies to streamline your workflow.
+- **Live Preview & Reporting**: See exactly how your message will look before sending and track the delivery status for every recipient. Export detailed campaign reports to CSV or Excel for analysis.
 - **Privacy-Focused**: The extension operates locally in your browser. We never collect, store, or transmit your personal data, contacts, or chat information. Your privacy is guaranteed.
 
 🤔 Who Is This For?
-- **Sales & Business Professionals**: Quickly send quotes, brochures, or follow-up messages to new leads.
-- **Online Shoppers & Sellers**: Easily contact sellers or buyers on marketplaces without adding them as a contact.
-- **Event Organizers**: Send location pins or event details to attendees and vendors.
-- **Anyone Needing Convenience**: Message a new acquaintance, a service provider, or a delivery person without the unnecessary step of saving their number.
+- **Marketers & Sales Teams**: Run promotional campaigns, announce new products, and follow up with leads in bulk.
+- **Businesses & Organizations**: Keep customers, students, or patients informed with important updates and newsletters.
+- **Community Managers**: Notify members about upcoming meetings, events, or important announcements quickly and reliably.
 
 🚀 How It Works
 1. Click the extension icon on the WhatsApp Web page.
-2. Enter the full WhatsApp number, including the country code.
-3. Type your message or select a media type to send.
-4. Click "Send Message"!
+2. Create a new broadcast campaign.
+3. Add your recipients using any of the import methods.
+4. Compose your personalized message, attach media, and configure the anti-blocking settings.
+5. Send immediately or schedule it for later!
 
-Upgrade your WhatsApp experience today. Stop the contact clutter and start chatting smarter!
+Upgrade your WhatsApp marketing and communication today. Stop the manual work and start broadcasting smarter!
 
 ---
 WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other countries. This extension is an independent project and has no relationship to WhatsApp or WhatsApp Inc.`,
   }
 
   const justificationTexts = {
-    singlePurpose: `The extension's single purpose is to allow users to initiate conversations on WhatsApp with phone numbers that are not saved in their contacts. All features—including entering a number, composing a text message, and attaching various media types (images, files, locations, vCards)—are directly tied to this core function of facilitating direct chats within the WhatsApp Web interface.`,
-    storage: `The 'storage' permission is used to locally store user settings and license information. This includes: the user's license key for Pro features and an instance ID for license management. This data is kept on the user's device to ensure a consistent experience without needing a remote server.`,
-    scripting: `Content scripts are essential to inject the extension's user interface onto the web.whatsapp.com page. They also communicate with the WhatsApp Web application's context to securely perform actions on behalf of the user, which is necessary to fulfill the extension's core purpose.`,
-    hostWhatsapp: `Permission for "https://web.whatsapp.com/*" is required for the extension to function. It allows the content scripts to run on WhatsApp Web, enabling the injection of its UI and interaction with the page to send messages to unsaved numbers.`,
+    singlePurpose: `The extension's single purpose is to enable users to send bulk messages (broadcasts) on WhatsApp Web. All features—including recipient management (importing from groups, Excel, etc.), message composition with personalization, scheduling, and anti-blocking mechanisms—are directly tied to this core function of facilitating and managing broadcast campaigns within the WhatsApp Web interface.`,
+    storage: `The 'storage' permission is used to locally store user settings, campaign data, and license information. This includes: saved message templates, recipient lists, broadcast history, the user's license key for Pro features, and an instance ID for license management. All data is kept on the user's device to ensure a consistent experience and maintain user privacy.`,
+    scripting: `Content scripts are essential to inject the extension's user interface onto the web.whatsapp.com page. They also communicate with the WhatsApp Web application's context to securely perform actions on behalf of the user (like sending messages), which is necessary to fulfill the extension's core purpose.`,
+    hostWhatsapp: `Permission for "https://web.whatsapp.com/*" is required for the extension to function. It allows the content scripts to run on WhatsApp Web, enabling the injection of its UI and interaction with the page to send broadcast messages.`,
     hostLemonSqueezy: `Permission for "https://api.lemonsqueezy.com/*" is used for secure license management. When a user activates a Pro license, the extension communicates with this API to verify, activate, or deactivate the license key. This is a standard and secure method for handling software licensing and does not involve any personal chat data.`,
   }
 
   const keywords = [
-    'whatsapp direct chat',
-    'wa direct message',
-    'chat without saving number',
-    'whatsapp unsaved number',
-    'send whatsapp without contact',
-    'whatsapp web extension',
-    'whatsapp pro',
-    'send media whatsapp',
+    'whatsapp bulk sender',
+    'wa bulk message',
     'whatsapp marketing',
+    'whatsapp broadcast',
+    'send to group members',
+    'whatsapp scheduler',
+    'whatsapp automation',
+    'wa sender pro',
+    'whatsapp excel import',
     'whatsapp crm',
     'whatsapp business',
+    'bulk whatsapp',
   ]
   const keywordsString = keywords.join(', ')
 
@@ -622,22 +788,19 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
                 </Card>
               </Stack>
             </Tabs.Panel>
-
             <Tabs.Panel value="icons" pt="lg">
               <Center>
                 <ScreenshotWrapper
                   title="Promotional Icon (128x128)"
                   filename="icon_128.png"
                 >
-                  <PromoIcon size={128} icon={'tabler:message-circle-plus'} />
+                  <PromoIcon size={128} icon={'teenyicons:send-solid'} />
                 </ScreenshotWrapper>
               </Center>
             </Tabs.Panel>
-
             <Tabs.Panel value="screenshots" pt="lg">
               <ScreenshotGallery />
             </Tabs.Panel>
-
             <Tabs.Panel value="keywords" pt="lg">
               <Card withBorder radius="md">
                 <Group justify="space-between">
@@ -678,7 +841,6 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
                 </Paper>
               </Card>
             </Tabs.Panel>
-
             <Tabs.Panel value="privacy" pt="lg">
               <Stack gap="xl">
                 <Card withBorder radius="md">
@@ -691,7 +853,8 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
                           color={copied ? 'teal' : 'gray'}
                           onClick={copy}
                         >
-                          {copied ? 'Copied' : 'Copy'}
+                          {' '}
+                          {copied ? 'Copied' : 'Copy'}{' '}
                         </Button>
                       )}
                     </CopyButton>
@@ -714,7 +877,8 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
                           color={copied ? 'teal' : 'gray'}
                           onClick={copy}
                         >
-                          {copied ? 'Copied' : 'Copy'}
+                          {' '}
+                          {copied ? 'Copied' : 'Copy'}{' '}
                         </Button>
                       )}
                     </CopyButton>
@@ -737,7 +901,8 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
                           color={copied ? 'teal' : 'gray'}
                           onClick={copy}
                         >
-                          {copied ? 'Copied' : 'Copy'}
+                          {' '}
+                          {copied ? 'Copied' : 'Copy'}{' '}
                         </Button>
                       )}
                     </CopyButton>
@@ -763,7 +928,8 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
                           color={copied ? 'teal' : 'gray'}
                           onClick={copy}
                         >
-                          {copied ? 'Copied' : 'Copy'}
+                          {' '}
+                          {copied ? 'Copied' : 'Copy'}{' '}
                         </Button>
                       )}
                     </CopyButton>
@@ -789,7 +955,8 @@ WhatsApp is a trademark of WhatsApp Inc., registered in the U.S. and other count
                           color={copied ? 'teal' : 'gray'}
                           onClick={copy}
                         >
-                          {copied ? 'Copied' : 'Copy'}
+                          {' '}
+                          {copied ? 'Copied' : 'Copy'}{' '}
                         </Button>
                       )}
                     </CopyButton>

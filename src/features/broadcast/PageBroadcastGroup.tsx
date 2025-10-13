@@ -29,7 +29,7 @@ import ModalDetailHistory from './components/Modal/ModalDetailHistory'
 import ModalEditSchedule from './components/Modal/ModalEditSchedule'
 import useBroadcast from './hooks/useBroadcast'
 
-const PageBroadcast: React.FC = () => {
+const PageBroadcastGroup: React.FC = () => {
   const dataQuery = useDataQuery<Broadcast>({
     table: db.broadcasts,
     initialPageSize: 10,
@@ -468,4 +468,4 @@ const PageBroadcast: React.FC = () => {
   )
 }
 
-export default PageBroadcast
+export default PageBroadcastGroup

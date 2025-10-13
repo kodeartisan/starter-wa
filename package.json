@@ -1,8 +1,8 @@
 {
-  "name": "whats-direct",
-  "displayName": "WA Direct Chat for WhatsApp",
+  "name": "wa-super-bulk-sender",
+  "displayName": "WA Super Group Bulk Sender for WhatsApp",
   "version": "1.0.0",
-  "description": "Start WhatsApp Chat Without Saving Numbers with Media and Templates",
+  "description": "Easily send messages to WhatsApp Groups, Schedule Campaigns with Smart Anti Blocking.",
   "author": "Extninja",
   "scripts": {
     "dev": "plasmo dev --no-cs-reload",

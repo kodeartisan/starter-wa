@@ -1,6 +1,6 @@
 import { Action, Page, PRIMARY_ICON } from '@/constants'
 import BroadcastListener from '@/features/broadcast/components/Listeners/BroadcastListener'
-import PageBroadcast from '@/features/broadcast/PageBroadcast'
+import PageBroadcast from '@/features/broadcast/PageBroadcastGroup'
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
 import useWindowMessage from '@/hooks/useWindowMessage'
