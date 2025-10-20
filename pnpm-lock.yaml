@@ -36,8 +36,13 @@ importers:
         specifier: ^1.15.0
         version: 1.15.0(react@18.2.0)
       '@wppconnect/wa-js':
+<<<<<<< HEAD
         specifier: ^3.18.6
         version: 3.18.6
+=======
+        specifier: ^3.18.7
+        version: 3.18.7
+>>>>>>> e881a8a (wpp 3.18.7)
       axios:
         specifier: ^1.11.0
         version: 1.11.0
@@ -1773,8 +1778,13 @@ packages:
   '@vue/shared@3.3.4':
     resolution: {integrity: sha512-7OjdcV8vQ74eiz1TZLzZP4JwqM5fA94K6yntPS5Z25r9HDuGNzaGdgvwKYq6S+MxwF0TFRwe50fIR/MYnakdkQ==}
 
+<<<<<<< HEAD
   '@wppconnect/wa-js@3.18.6':
     resolution: {integrity: sha512-KJj49aejOknEKZ8H85PYd2z01/EorEXNgwUDcL030bVqfphR6ez97OYR76h2qG/wu6+i0F0lfg/P04mEasEBjg==}
+=======
+  '@wppconnect/wa-js@3.18.7':
+    resolution: {integrity: sha512-32S3ZNr885+5UnWflgPfvNBroe3i22/JEAhcAd5jOEgKKv+ahsuyK/ORcJZ903OcXTSlYsnaKP/rboygaoCFUw==}
+>>>>>>> e881a8a (wpp 3.18.7)
     engines: {whatsapp-web: '>=2.2326.10-beta'}
 
   abortcontroller-polyfill@1.7.8:
@@ -5614,7 +5624,11 @@ snapshots:
 
   '@vue/shared@3.3.4': {}
 
+<<<<<<< HEAD
   '@wppconnect/wa-js@3.18.6': {}
+=======
+  '@wppconnect/wa-js@3.18.7': {}
+>>>>>>> e881a8a (wpp 3.18.7)
 
   abortcontroller-polyfill@1.7.8: {}
 
