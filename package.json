@@ -2,7 +2,7 @@
   "name": "whats-backup",
   "shortName": "WhatsBackup",
   "displayName": "WA Chat Backup & Exporter for WhatsApp",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "description": "Save your WhatsApp chat and export to multiple formats",
   "author": "Extninja",
   "scripts": {
@@ -21,7 +21,7 @@
     "@plasmohq/messaging": "0.7.1",
     "@plasmohq/storage": "^1.15.0",
     "@react-pdf/renderer": "^4.3.0",
-    "@wppconnect/wa-js": "^3.18.5",
+    "@wppconnect/wa-js": "^3.18.7",
     "axios": "^1.11.0",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
