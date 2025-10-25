@@ -1,7 +1,8 @@
 {
   "name": "wa-super-bulk-sender",
+  "shortName": "WASGB",
   "displayName": "WA Super Group Bulk Sender for WhatsApp",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "description": "Easily send messages to WhatsApp Groups, Schedule Campaigns with Smart Anti Blocking.",
   "author": "Extninja",
   "scripts": {

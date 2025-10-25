@@ -428,7 +428,7 @@ const PageBroadcastGroup: React.FC = () => {
                 dataQuery.toggleSort(status.columnAccessor)
               }
             }}
-            minHeight={560}
+            minHeight={435}
             noRecordsText="No broadcasts found"
             striped
             highlightOnHover

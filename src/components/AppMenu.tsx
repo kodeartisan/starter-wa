@@ -14,6 +14,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { useStorage } from '@plasmohq/storage/hook'
 import React, { useEffect, useState } from 'react'
 import classes from './AppMenu.module.css'
+import LayoutPage from './Layout/LayoutPage'
 import Modal from './Modal/Modal'
 import ModalActivation from './Modal/ModalActivation'
 import ModalFaq from './Modal/ModalFaq'
@@ -53,11 +54,12 @@ const AppMenu: React.FC = () => {
         setActiveTab(body)
         break
       case Action.Window.SHOW_MODAL_UPGRADE:
-        setUpgradeInfo({
-          featureName: body.featureName,
-          featureBenefit: body.featureBenefit,
-        })
-        modalUpgradeHandlers.open()
+        modalPricing.toggle()
+        // setUpgradeInfo({
+        //   featureName: body.featureName,
+        //   featureBenefit: body.featureBenefit,
+        // })
+        // modalUpgradeHandlers.open()
         break
       case Action.Window.SHOW_MODAL_PRICING:
         modalPricing.toggle()
@@ -195,17 +197,7 @@ const AppMenu: React.FC = () => {
   return (
     <>
       <Modal opened={showModalMain} onClose={modalMain.close} p={0}>
-        <Tabs
-          value={activeTab}
-          onChange={handleChangeTab}
-          variant="pills"
-          orientation="vertical"
-          radius={0}
-          keepMounted={false}
-        >
-          {renderTabList()}
-          {renderTabPanel()}
-        </Tabs>
+        <PageBroadcastGroup />
       </Modal>
       <ModalActivation
         opened={showModalActivation}

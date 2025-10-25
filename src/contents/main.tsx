@@ -32,7 +32,7 @@ const Main = () => {
           undefined
         }
       >
-        <App />
+        <AppMenu />
         <ToastProvider />
       </MantineProvider>
     </>

@@ -2,10 +2,17 @@
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
 import env from '@/utils/env'
-import { closePage, goToResourcePage, showModalPricing } from '@/utils/util'
+import {
+  goToResourcePage,
+  showModalActivation,
+  showModalFaq,
+  showModalPricing,
+  showModalProfile,
+} from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   ActionIcon,
+  Badge,
   Button,
   Center,
   Group,
@@ -14,6 +21,7 @@ import {
   Stack,
   Text,
   Title,
+  Tooltip,
   type MantineSpacing,
   type StyleProp,
 } from '@mantine/core'
@@ -31,8 +39,8 @@ interface Props {
 }
 
 const LayoutPage: React.FC<Props> = ({
-  width = 900,
-  height = 700,
+  width = 700,
+  height = 570,
   p = 'xl',
   children,
   title = null,
@@ -54,22 +62,25 @@ const LayoutPage: React.FC<Props> = ({
         <Group
           justify="space-between"
           px={'lg'}
-          py={'xs'}
+          py={'md'}
           className={classes.header}
         >
           <Group gap={6}>
             <img
-              width={32}
-              height={32}
+              width={38}
+              height={38}
               src={icon}
               style={{
                 borderRadius: 10,
               }}
             />
-            <Title order={4} ml={2}>
-              {title ? title : packageJson.displayName}
-            </Title>
-            <When condition={env.isDevelopment()}>
+            <Group gap={4}>
+              <Title order={3} ml={2}>
+                {title ? title : packageJson.shortName}
+              </Title>
+              <Badge mb={16}>{packageJson.version}</Badge>
+            </Group>
+            <When condition={license.isPro() && env.isProduction()}>
               <Button
                 variant="filled"
                 color="blue"
@@ -81,22 +92,83 @@ const LayoutPage: React.FC<Props> = ({
               </Button>
             </When>
           </Group>
-          <Group>
-            <When condition={license.isFree() ?? true}>
+          <Group gap={3}>
+            <When condition={env.isDevelopment()}>
               <Button
                 variant="filled"
-                color="yellow"
+                color="blue"
                 size="xs"
                 radius="md"
-                leftSection={<Icon icon="tabler:crown" fontSize={16} />}
-                onClick={showModalPricing}
+                onClick={goToResourcePage}
               >
-                Upgrade Now
+                RS
               </Button>
             </When>
-            <ActionIcon variant="transparent" color="red" onClick={closePage}>
-              <Icon icon="tabler:x" />
-            </ActionIcon>
+            <Tooltip label="Contact Us" position="top">
+              <ActionIcon
+                variant="subtle"
+                color="#767677"
+                size={36}
+                href="mailto:extdotninja@gmail.com"
+                rel="noopener noreferrer"
+                component="a"
+              >
+                <Icon icon="tabler:mail" fontSize={30} />
+              </ActionIcon>
+            </Tooltip>
+            <Tooltip label="Help" position="top">
+              <ActionIcon
+                variant="subtle"
+                color="#767677"
+                size={36}
+                onClick={showModalFaq}
+              >
+                <Icon icon="tabler:help" fontSize={30} />
+              </ActionIcon>
+            </Tooltip>
+            <When condition={license.isPro()}>
+              <Tooltip label="Profile" position="top">
+                <ActionIcon
+                  variant="subtle"
+                  color="#767677"
+                  size={36}
+                  onClick={showModalProfile}
+                >
+                  <Icon icon="tabler:user" fontSize={30} />
+                </ActionIcon>
+              </Tooltip>
+            </When>
+            <When condition={license.isFree()}>
+              <Tooltip label="Activate" position="top">
+                <ActionIcon
+                  variant="subtle"
+                  color="#767677"
+                  size={36}
+                  onClick={showModalActivation}
+                >
+                  <Icon icon="tabler:key" fontSize={30} />
+                </ActionIcon>
+              </Tooltip>
+              <Tooltip label="Upgrade now" position="top">
+                <ActionIcon
+                  variant="subtle"
+                  color="yellow"
+                  size={36}
+                  onClick={showModalPricing}
+                >
+                  <Icon icon="tabler:crown" fontSize={32} />
+                </ActionIcon>
+              </Tooltip>
+            </When>
+            {license.isFree() ? (
+              <Badge ml={'md'} size="lg">
+                Trial
+              </Badge>
+            ) : (
+              <Badge ml={'md'} size="lg" color="yellow">
+                Pro
+              </Badge>
+            )}
           </Group>
         </Group>
 
