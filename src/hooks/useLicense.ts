@@ -31,10 +31,10 @@ const useLicense = () => {
     )
 
     if (cachedLicense) {
-      // ++ MODIFIED: Reverted cache duration back to 2 days.
       const twoDaysInMillis = 2 * 24 * 60 * 60 * 1000
       const isCacheValid =
         Date.now() - cachedLicense.timestamp < twoDaysInMillis
+
       if (isCacheValid && cachedLicense.data.license_key.status === 'active') {
         setLicense(cachedLicense.data)
         return
@@ -43,6 +43,7 @@ const useLicense = () => {
 
     // If no valid cache, proceed with the standard validation flow.
     const licenseKey = await storage.get<string | null>(Setting.LICENSE_KEY)
+
     if (!licenseKey) {
       setLicense(null)
       await storage.remove(Setting.LICENSE_DATA_CACHE)
@@ -135,6 +136,7 @@ const useLicense = () => {
       setLicense(response.data)
       await storage.set(Setting.LICENSE_KEY, licenseKey)
       await storage.set(Setting.LICENSE_INSTANCE_ID, response.data.instance.id)
+
       // Cache the license data immediately on successful activation.
       if (response.data.license_key.status === 'active') {
         const cachePayload: CachedLicense = {
@@ -175,7 +177,6 @@ const useLicense = () => {
       toast.error('Could not find customer information.')
       return
     }
-
     try {
       const response = await callLemonSqueezyApi('getCustomer', {
         customerId: license.meta.customer_id,
