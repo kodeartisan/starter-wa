@@ -41,7 +41,7 @@ const plans = [
     isFree: false,
     description: 'Pay once, access forever, no monthly fees.',
     placeholderPrice: '$90',
-    price: '$27',
+    price: '$19',
     priceSuffix: 'one-time',
     link: 'https://extdotninja.lemonsqueezy.com/buy/db222543-5bb5-498c-94b3-63046cd150cf?logo=0&desc=0',
     // MODIFIED: Features are now objects with text and optional tooltips.

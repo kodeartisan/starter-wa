@@ -98,7 +98,7 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
                   </Group>
                   {!plan.isFree && (
                     <Badge variant="filled" size="lg">
-                      Save over 70%
+                      Save over 78%
                     </Badge>
                   )}
                 </Stack>
