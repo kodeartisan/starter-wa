@@ -12,6 +12,7 @@ import { useDisclosure } from '@mantine/hooks'
 import { useStorage } from '@plasmohq/storage/hook'
 import React, { useEffect, useState } from 'react'
 import classes from './AppMenu.module.css'
+import LayoutPage from './Layout/LayoutPage'
 import Modal from './Modal/Modal'
 import ModalActivation from './Modal/ModalActivation'
 import ModalFaq from './Modal/ModalFaq'
@@ -186,17 +187,7 @@ const AppMenu: React.FC = () => {
   return (
     <>
       <Modal opened={showModalMain} onClose={modalMain.close} p={0}>
-        <Tabs
-          value={activeTab}
-          onChange={handleChangeTab}
-          variant="pills"
-          orientation="vertical"
-          radius={0}
-          keepMounted={false}
-        >
-          {renderTabList()}
-          {renderTabPanel()}
-        </Tabs>
+        <PageGroupLinkGenerator />
       </Modal>
       <ModalActivation
         opened={showModalActivation}
