@@ -84,28 +84,15 @@ const ModalProfile: React.FC<Props> = ({ opened, onClose }: Props) => {
   )
 
   return (
-    <Modal opened={opened} onClose={onClose} withCloseButton w={700}>
+    <Modal opened={opened} onClose={onClose} withCloseButton w={800}>
       <Stack>
-        {/* Account Details */}
-        <Card withBorder radius="md" p="md" shadow="none">
-          <Stack>
-            <Title order={5}>Account Details</Title>
-            <Divider />
-            <InfoItem
-              icon="tabler:info-circle"
-              label="App Version"
-              value={packageJson.version}
-            />
-          </Stack>
-        </Card>
-
         {/* License Details */}
         <Card withBorder radius="md" p="md" shadow="none">
           <Stack>
             <Group justify="space-between">
               <Title order={5}>License Status</Title>
               <Badge
-                color={license.isPro() ? 'teal' : 'gray'}
+                color={license.isPro() ? 'yellow' : 'gray'}
                 size="lg"
                 variant="filled"
               >
