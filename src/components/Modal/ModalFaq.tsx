@@ -45,7 +45,7 @@ const ModalFaq: React.FC<Props> = ({ opened, onClose }: Props) => {
   }
 
   return (
-    <Modal opened={opened} onClose={handleOnClose} withCloseButton w={700}>
+    <Modal opened={opened} onClose={handleOnClose} withCloseButton w={800}>
       <Stack>
         <Stack align="center" gap={4} mb={'xl'}>
           <Icon
