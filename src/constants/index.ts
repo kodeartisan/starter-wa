@@ -3,6 +3,8 @@ export * as Action from './action'
 export * as Setting from './setting'
 
 export const PRIMARY_ICON = 'tabler:message-2-down'
+export const LINK_BUY =
+  'https://extdotninja.lemonsqueezy.com/buy/7f1401c0-fd00-4898-af64-15a869f9fb12?logo=0'
 
 export const Status = {
   SUCCESS: 'SUCCESS',
