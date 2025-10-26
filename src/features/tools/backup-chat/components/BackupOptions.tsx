@@ -2,7 +2,7 @@
 import ModalUpgrade from '@/components/Modal/ModalUpgrade'
 import useLicense from '@/hooks/useLicense'
 import useWa from '@/hooks/useWa'
-import { getContactName } from '@/utils/util'
+import { getContactName, showModalPricing } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
   Avatar,
@@ -57,6 +57,8 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
 
   // English: A helper function to set feature details and open the upgrade modal.
   const triggerUpgradeModal = (name: string, benefit: string) => {
+    showModalPricing()
+    return
     setSelectedFeature({ name, benefit })
     openUpgradeModal()
   }

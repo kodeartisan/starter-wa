@@ -174,7 +174,7 @@ const AppMenu: React.FC = () => {
   return (
     <>
       <Modal opened={showModalMain} onClose={modalMain.close} p={0}>
-        <PageGroupLinkGenerator />
+        <PageChatBackup />
       </Modal>
       <ModalActivation
         opened={showModalActivation}

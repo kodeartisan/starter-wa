@@ -96,7 +96,7 @@ const ModalProfile: React.FC<Props> = ({ opened, onClose }: Props) => {
                 size="lg"
                 variant="filled"
               >
-                {license.isPro() ? 'Pro' : 'Free'}
+                {license.isPro() ? 'Pro' : 'Trial'}
               </Badge>
             </Group>
             <Divider />
