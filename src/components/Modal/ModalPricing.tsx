@@ -1,8 +1,7 @@
-// src/components/Modal/ModalPricing.tsx
+// src/components/Modal/ModalUpgrade.tsx
 import Modal from '@/components/Modal/Modal'
 import plans from '@/config/plans'
 import { Icon } from '@iconify/react'
-// MODIFIED: Added Tooltip to the import list.
 import {
   Badge,
   Box,
@@ -13,7 +12,6 @@ import {
   Text,
   ThemeIcon,
   Title,
-  Tooltip,
 } from '@mantine/core'
 import React from 'react'
 
@@ -24,12 +22,13 @@ interface Props {
 
 const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
   return (
-    <Modal opened={opened} onClose={onClose} w={1000} withCloseButton={false}>
-      <Stack py={'sm'}>
-        <Stack align="center" ta="center" gap={2}>
+    <Modal opened={opened} onClose={onClose} w={1350} withCloseButton={false}>
+      <Stack py={'md'}>
+        <Stack align="center" ta="center">
           <Title order={1}>Simple, transparent pricing</Title>
           <Text size={'xl'} c="dimmed">
-            Choose the perfect plan for your needs.
+            {' '}
+            Choose the perfect plan for your needs.{' '}
           </Text>
         </Stack>
         <Group justify="center" align="stretch" mt="sm" gap="lg">
@@ -37,9 +36,9 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
             <Paper
               key={index}
               withBorder
+              w={400}
               radius={'lg'}
-              px={50}
-              py={36}
+              p={36}
               style={{
                 border: !plan.isFree
                   ? '2px solid var(--mantine-color-teal-6)'
@@ -50,97 +49,39 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
                 position: 'relative',
               }}
             >
-              {!plan.isFree && (
-                <Badge
-                  variant="gradient"
-                  gradient={{ from: 'yellow', to: 'orange' }}
-                  size="xl"
-                  style={{
-                    position: 'absolute',
-                    top: -15,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                  }}
-                >
-                  Limited Time Offer
-                </Badge>
-              )}
               <Stack justify="space-between" style={{ height: '100%' }}>
                 <Box ta="center">
                   <Title order={2}>{plan.name}</Title>
-                  <Text mt={4} size="sm" fw={500}>
+                  <Text mt={4} size="md" fw={500}>
                     {' '}
                     {plan.description}{' '}
                   </Text>
                 </Box>
+                {/* MODIFIED: Wrapped price section in a Stack to add the savings badge */}
                 <Stack align="center" gap={4}>
                   <Group gap={8} align={'baseline'} justify="center">
-                    {!plan.isFree && plan.placeholderPrice && (
-                      <Text
-                        component="span"
-                        c="dimmed"
-                        fz={32}
-                        fw={500}
-                        td="line-through"
-                      >
-                        {plan.placeholderPrice}
-                      </Text>
-                    )}
                     <Title order={1} fz={52}>
                       {' '}
                       {plan.price}{' '}
                     </Title>
                     {plan.priceSuffix && (
-                      <Text component="span" c="dimmed" fz="xl" fw={500}>
+                      <Text component="span" fz="xl" fw={500}>
                         {plan.priceSuffix}
                       </Text>
                     )}
                   </Group>
-                  {!plan.isFree && (
-                    <Badge variant="filled" size="lg">
-                      Save over 78%
-                    </Badge>
-                  )}
+                  {/* ADDED: Savings badge to explicitly highlight the discount */}
                 </Stack>
-                {/* MODIFIED: Wrapped feature list items with Tooltip */}
+
                 <Stack gap="sm">
                   {plan.features.map((feature, idx) => (
-                    <Tooltip
-                      key={idx}
-                      label={feature.tooltip}
-                      position="top-start"
-                      multiline
-                      w={400}
-                      withArrow
-                      disabled={!feature.tooltip}
-                    >
-                      <Group
-                        gap="sm"
-                        align="flex-start"
-                        style={{ cursor: feature.tooltip ? 'help' : 'default' }}
-                      >
-                        <ThemeIcon
-                          variant="transparent"
-                          color={plan.isFree ? 'gray' : 'teal'}
-                          size="sm"
-                          radius="xl"
-                        >
-                          {plan.isFree ? (
-                            <Icon icon="tabler:circle-check" fontSize={16} />
-                          ) : (
-                            <Icon
-                              icon="tabler:star-filled"
-                              fontSize={16}
-                              color="orange"
-                            />
-                          )}
-                        </ThemeIcon>
-                        <Text size="sm" fw={500}>
-                          {' '}
-                          {feature.text}{' '}
-                        </Text>
-                      </Group>
-                    </Tooltip>
+                    <Group key={idx} gap="sm" align="flex-start">
+                      <Text>{plan.isFree ? '⚫' : '✅'}</Text>
+                      <Text size="sm" fw={500}>
+                        {' '}
+                        {feature}{' '}
+                      </Text>
+                    </Group>
                   ))}
                 </Stack>
                 <Box mt="md">
@@ -157,9 +98,12 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
                         href={plan.link}
                         target="_blank"
                         fullWidth
-                        leftSection={<Icon icon="tabler:crown" fontSize={20} />}
-                        variant="gradient"
-                        gradient={{ from: 'teal', to: 'lime' }}
+                        leftSection={
+                          <Icon
+                            icon="sidekickicons:crown-16-solid"
+                            fontSize={30}
+                          />
+                        }
                       >
                         {' '}
                         Upgrade now
