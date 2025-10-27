@@ -57,6 +57,22 @@ const plans = [
     ],
   },
   {
+    name: '1 day passs',
+    isFree: false,
+    description: 'Ideal for testing.',
+    placeholderPrice: '$89',
+    price: '$3',
+    priceSuffix: '/day',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?logo=0',
+    features: [
+      'Start unlimited chats',
+      'No need to save contacts',
+      'Send Image, Video, File, Location, Text',
+      'Save Unlimited Message Templates',
+      'Ideal for testing',
+    ],
+  },
+  {
     name: 'Lifetime',
     isFree: false,
     description: 'Pay once, access forever, no monthly fees.',
@@ -67,7 +83,7 @@ const plans = [
     features: [
       'Start unlimited chats',
       'No need to save contacts',
-      'Send Image, Video, File, Location and Text',
+      'Send Image, Video, File, Location, Text',
       'Save Unlimited Message Templates',
       'No monthly fees, No subscription',
       'Pay once, access forever',
