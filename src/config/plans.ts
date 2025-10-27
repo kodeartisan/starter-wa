@@ -63,7 +63,7 @@ const plans = [
     placeholderPrice: '$89',
     price: '$3',
     priceSuffix: '/day',
-    link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?logo=0',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/a94d5657-7944-4766-8439-88be3268bf42?logo=0',
     features: [
       'Start unlimited chats',
       'No need to save contacts',
@@ -78,7 +78,7 @@ const plans = [
     description: 'Pay once, access forever, no monthly fees.',
     placeholderPrice: '$89',
     price: '$19',
-    priceSuffix: 'one-time',
+    priceSuffix: '/one-time',
     link: 'https://extdotninja.lemonsqueezy.com/buy/53f1c17b-8636-49cf-b454-ab0ad2700418?logo=0',
     features: [
       'Start unlimited chats',
