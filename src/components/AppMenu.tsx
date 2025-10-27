@@ -51,11 +51,12 @@ const AppMenu: React.FC = () => {
         setActiveTab(body)
         break
       case Action.Window.SHOW_MODAL_UPGRADE:
-        setUpgradeInfo({
-          featureName: body.featureName,
-          featureBenefit: body.featureBenefit,
-        })
-        modalUpgradeHandlers.open()
+        modalPricing.toggle()
+        // setUpgradeInfo({
+        //   featureName: body.featureName,
+        //   featureBenefit: body.featureBenefit,
+        // })
+        // modalUpgradeHandlers.open()
         break
       case Action.Window.SHOW_MODAL_PRICING:
         modalPricing.toggle()

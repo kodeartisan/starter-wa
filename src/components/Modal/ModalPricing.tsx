@@ -22,7 +22,7 @@ interface Props {
 
 const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
   return (
-    <Modal opened={opened} onClose={onClose} w={1000} withCloseButton={false}>
+    <Modal opened={opened} onClose={onClose} w={1350} withCloseButton={false}>
       <Stack py={'md'}>
         <Stack align="center" ta="center">
           <Title order={1}>Simple, transparent pricing</Title>
@@ -36,9 +36,9 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
             <Paper
               key={index}
               withBorder
+              w={400}
               radius={'lg'}
-              px={50}
-              py={36}
+              p={36}
               style={{
                 border: !plan.isFree
                   ? '2px solid var(--mantine-color-teal-6)'
@@ -49,26 +49,10 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
                 position: 'relative',
               }}
             >
-              {/* ADDED: Urgency badge for the Pro plan */}
-              {!plan.isFree && (
-                <Badge
-                  variant="gradient"
-                  gradient={{ from: 'yellow', to: 'orange' }}
-                  size="xl"
-                  style={{
-                    position: 'absolute',
-                    top: -15,
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                  }}
-                >
-                  Limited Offer
-                </Badge>
-              )}
               <Stack justify="space-between" style={{ height: '100%' }}>
                 <Box ta="center">
                   <Title order={2}>{plan.name}</Title>
-                  <Text mt={4} size="sm">
+                  <Text mt={4} size="md" fw={500}>
                     {' '}
                     {plan.description}{' '}
                   </Text>
@@ -76,54 +60,23 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
                 {/* MODIFIED: Wrapped price section in a Stack to add the savings badge */}
                 <Stack align="center" gap={4}>
                   <Group gap={8} align={'baseline'} justify="center">
-                    {!plan.isFree && plan.placeholderPrice && (
-                      <Text
-                        component="span"
-                        c="dimmed"
-                        fz={32}
-                        fw={500}
-                        td="line-through"
-                      >
-                        {plan.placeholderPrice}
-                      </Text>
-                    )}
                     <Title order={1} fz={52}>
                       {' '}
                       {plan.price}{' '}
                     </Title>
                     {plan.priceSuffix && (
-                      <Text component="span" c="dimmed" fz="xl" fw={500}>
+                      <Text component="span" fz="xl" fw={500}>
                         {plan.priceSuffix}
                       </Text>
                     )}
                   </Group>
                   {/* ADDED: Savings badge to explicitly highlight the discount */}
-                  {!plan.isFree && (
-                    <Badge variant="filled" size="lg">
-                      Save over 78%
-                    </Badge>
-                  )}
                 </Stack>
 
                 <Stack gap="sm">
                   {plan.features.map((feature, idx) => (
                     <Group key={idx} gap="sm" align="flex-start">
-                      <ThemeIcon
-                        variant="transparent"
-                        color={plan.isFree ? 'gray' : 'teal'}
-                        size="sm"
-                        radius="xl"
-                      >
-                        {plan.isFree ? (
-                          <Icon icon="tabler:circle-check" fontSize={16} />
-                        ) : (
-                          <Icon
-                            icon="tabler:star-filled"
-                            fontSize={16}
-                            color="orange"
-                          />
-                        )}
-                      </ThemeIcon>
+                      <Text>{plan.isFree ? '⚫' : '✅'}</Text>
                       <Text size="sm" fw={500}>
                         {' '}
                         {feature}{' '}
@@ -145,9 +98,12 @@ const ModalPricing: React.FC<Props> = ({ opened, onClose }) => {
                         href={plan.link}
                         target="_blank"
                         fullWidth
-                        leftSection={<Icon icon="tabler:crown" fontSize={20} />}
-                        variant="gradient"
-                        gradient={{ from: 'teal', to: 'lime' }}
+                        leftSection={
+                          <Icon
+                            icon="sidekickicons:crown-16-solid"
+                            fontSize={30}
+                          />
+                        }
                       >
                         {' '}
                         Upgrade now
