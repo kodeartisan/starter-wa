@@ -57,6 +57,8 @@ const BackupOptions: React.FC<Props> = ({ backupHook, onStart }) => {
 
   // English: A helper function to set feature details and open the upgrade modal.
   const triggerUpgradeModal = (name: string, benefit: string) => {
+    showModalPricing()
+    return
     setSelectedFeature({ name, benefit })
     openUpgradeModal()
   }

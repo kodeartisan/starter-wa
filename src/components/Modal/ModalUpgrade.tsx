@@ -1,6 +1,5 @@
 // src/components/Modal/ModalUpgrade.tsx
 import Modal from '@/components/Modal/Modal'
-import { LINK_BUY } from '@/constants'
 import { showModalPricing } from '@/utils/util'
 import { Icon } from '@iconify/react'
 import {
@@ -62,12 +61,9 @@ const ModalUpgrade: React.FC<Props> = ({
               Maybe Later
             </Button>
             <Button
+              onClick={handleUpgrade}
               leftSection={<Icon icon="tabler:crown" fontSize={20} />}
               variant="gradient"
-              href={LINK_BUY}
-              rel="noopener noreferrer"
-              component="a"
-              target="_blank"
               gradient={{ from: 'teal', to: 'lime' }}
             >
               Upgrade Now
