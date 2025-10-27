@@ -64,7 +64,7 @@ const plans = [
     placeholderPrice: '$89',
     price: '$3',
     priceSuffix: '/day',
-    link: 'https://extdotninja.lemonsqueezy.com/buy/7f1401c0-fd00-4898-af64-15a869f9fb12?logo=0',
+    link: 'https://extdotninja.lemonsqueezy.com/buy/589a4e46-e3a8-47eb-a59f-eecd36b28e4e?logo=0',
     features: [
       'Unlimited Message Backups',
       'Backup Text, Image, Video, Audio, Docs',
