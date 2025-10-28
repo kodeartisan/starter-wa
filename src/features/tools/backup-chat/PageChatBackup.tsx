@@ -40,7 +40,7 @@ const PageChatBackup: React.FC = () => {
   }
 
   return (
-    <LayoutPage width={700}>
+    <LayoutPage width={600}>
       <Stack>{renderContent()}</Stack>
     </LayoutPage>
   )

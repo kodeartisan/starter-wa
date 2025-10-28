@@ -160,15 +160,6 @@ const LayoutPage: React.FC<Props> = ({
                 </ActionIcon>
               </Tooltip>
             </When>
-            {license.isFree() ? (
-              <Badge ml={'md'} size="lg">
-                Trial
-              </Badge>
-            ) : (
-              <Badge ml={'md'} size="lg" color="yellow">
-                Pro
-              </Badge>
-            )}
           </Group>
         </Group>
 
