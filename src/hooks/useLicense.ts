@@ -6,9 +6,8 @@ import type { License } from '@/types'
 import toast from '@/utils/toast'
 import { getStoreId } from '@/utils/util'
 import { sendToBackground } from '@plasmohq/messaging'
-import { isPast } from 'date-fns'
+import { addDays, isPast } from 'date-fns'
 
-// English: Define a type for the cached license object, including a timestamp for expiration.
 interface CachedLicense {
   data: License
   timestamp: number
@@ -31,9 +30,13 @@ const useLicense = () => {
     )
 
     if (cachedLicense) {
-      // ++ MODIFIED: Set cache to be valid forever ("selamanya").
-      // Cache is always considered valid if it exists, skipping the time check.
-      const isCacheValid = true
+      const cacheDurationInDays = 2
+      const expirationTime = addDays(
+        cachedLicense.timestamp,
+        cacheDurationInDays,
+      )
+      const isCacheValid = !isPast(expirationTime)
+
       if (isCacheValid && cachedLicense.data.license_key.status === 'active') {
         setLicense(cachedLicense.data)
         return
@@ -130,10 +133,12 @@ const useLicense = () => {
     const response = await callLemonSqueezyApi('activateLicense', {
       licenseKey,
     })
+
     if (!response.error) {
       setLicense(response.data)
       await storage.set(Setting.LICENSE_KEY, licenseKey)
       await storage.set(Setting.LICENSE_INSTANCE_ID, response.data.instance.id)
+
       // Cache the license data immediately on successful activation.
       if (response.data.license_key.status === 'active') {
         const cachePayload: CachedLicense = {
@@ -149,11 +154,13 @@ const useLicense = () => {
   const deactivate = async () => {
     const licenseKey = await storage.get(Setting.LICENSE_KEY)
     const instanceId = await storage.get(Setting.LICENSE_INSTANCE_ID)
+
     try {
       const response = await callLemonSqueezyApi('deactivateLicense', {
         licenseKey,
         instanceId,
       })
+
       if (response.data.deactivated) {
         // Clear all license-related data from storage on deactivation.
         await storage.remove(Setting.LICENSE_KEY)
@@ -179,10 +186,12 @@ const useLicense = () => {
       const response = await callLemonSqueezyApi('getCustomer', {
         customerId: license.meta.customer_id,
       })
+
       if (response.error) {
         toast.error('Could not retrieve customer portal link.')
         return
       }
+
       window.open(
         response.data.data.attributes.urls.customer_portal,
         '_blank',
